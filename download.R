@@ -1,4 +1,4 @@
-install.packages("eurostat")
+#install.packages("eurostat")
 
 library(tidyverse)
 library(eurostat)
@@ -11,9 +11,9 @@ library(readxl)
 #toc <- get_eurostat_toc()
 #tables <- toc %>% filter(str_detect(code,"mar_go_qm_")) %>% select(title, code)
 
-tables <- c("mar_go_qm_be", "mar_go_qm_bg", "mar_go_qm_dk", "mar_go_qm_de", "mar_go_qm_ee", "mar_go_qm_es", "mar_go_qm_ie", "mar_go_qm_el", "mar_go_qm_fr", "mar_go_qm_hr",
-            "mar_go_qm_it", "mar_go_qm_cy", "mar_go_qm_lv", "mar_go_qm_lt", "mar_go_qm_mt", "mar_go_qm_nl", "mar_go_qm_pl", "mar_go_qm_pt", "mar_go_qm_ro", "mar_go_qm_si",
-            "mar_go_qm_fi", "mar_go_qm_se", "mar_go_qm_uk", "mar_go_qm_no", "mar_go_qm_me", "mar_go_qm_tr")
+reporter <- c("be", "bg", "dk", "de", "ee", "es", "ie", "el", "fr", "hr", "it",
+              "cy", "lv", "lt", "mt", "nl", "pl", "pt", "ro", "si", "fi", "se", 
+              "uk", "no", "me", "tr")
 
 origins <- data.frame(code= c("AGG_NSP", "AL", "DZ", "US_ISL", "AS", "AO", "AI", "AQ", "AG", "AR", "AW", "AU", "AZ", "BS", 
                               "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BM", "BQ", "BA", "BV", "BR", "IO", "VG", "BN", "BG", 
@@ -87,20 +87,53 @@ origins <- data.frame(code= c("AGG_NSP", "AL", "DZ", "US_ISL", "AS", "AO", "AI",
                                "Uruguay", "US Virgin Islands (US)", "Venezuela", "Vietnam", "Western Sahara", "Yemen")
 )
 
+cargo_list <- c("Dry bulk goods", "Dry bulk - coal", "Dry bulk - ores", "Dry bulk - other", "Dry bulk - agricultural products", 
+                "Liquid bulk goods", "Liquid bulk - other", "Liquid bulk - refined oil products",
+                "Large containers", "Large containers - 20-ft freight units", 
+                "Large containers - freight units over 20-ft and less than 40-ft", 
+                "Large containers - 40-ft freight units", "Large containers - freight units > 40-ft",                                                             
+                "Other cargo not elsewhere specified", "Other cargo - other general cargo", "Other cargo - iron and steel products",
+                "Ro-Ro - mobile non-self-propelled units", "Ro-Ro - mobile self-propelled units", "Ro-Ro - road goods vehicles and accompanying trailers",
+                "Ro-Ro - unaccompanied road goods trailers and semi-trailers", "Ro-Ro - trade vehicles (incl. import/export motor vehicles)", "Total", 
+                "Ro-Ro - rail wagons engaged in goods transport", "Ro-Ro - passenger cars, motorcycles and accompanying trailers/caravans", "Ro-Ro - passenger buses", 
+                "Ro-Ro - unaccompanied caravans and other road agricultural and industrial vehicles", 
+                "Ro-Ro - rail wagons, shipborne port-to-port trailers, and shipborne barges engaged in goods transport", "Liquid bulk - crude oil", 
+                "Liquid bulk - liquified gas", "Other cargo - forestry products", "Large containers - unspecified size", 
+                "Ro-Ro - unspecified mobile self-propelled units", "Ro-Ro - unspecified mobile non-self-propelled units")
 
 
 #selection and filter criteria
 
-direction <- "Inwards"
-origins_filtered <- origins$country_label[str_length(origins$code) == 2]
-cargo_type <- c("Total")
+direction <- "Inwards"                                                            # select the direction: "Inward", "Outward", or "Total"
+origins_filtered <- origins$country_label[str_length(origins$code) == 2]          # list containing only countries, no sub-regions
+cargo_type <- c("Total")                                                          # select cargo type: see cargo_list for all possible categories
 #min_tonnes <-  c()
 
 
-test <- get_eurostat("mar_go_qm_be")
 ######################
-test <- get_eurostat("mar_go_qm_be", 
-                     type = "label")
-test2 <- filter(test, direct == direction,
-                     cargo == cargo_type,
-                     par_mar %in% origins_filtered)
+
+for (i in 1:length(reporter)) {                                                   # loop over all reporter
+  
+x <- get_eurostat(paste0("mar_go_qm_", reporter[i]),                              # download table for the reporter
+                  type = "label") %>%
+        filter(direct == direction,                                               # apply filters
+               cargo == cargo_type,
+               par_mar %in% origins_filtered,                                            # keep only countries, no sub regions
+               rep_mar != origins$country_label[origins$code==toupper(reporter[i])]) %>% # drop country aggregates and keep only ports
+        select(-cargo, -direct, -unit) %>%                                               # drop unnecessary variables
+        rename(s_iso2c = par_mar,                                                        # rename variables
+               port = rep_mar,
+               throughput = values) %>% 
+        mutate(time=as.Date(time),                                                # format time variables
+               year = year(time), 
+               quarter=quarter(time))
+
+if (i==1){
+  port_data <- x                                                                  # save and append to previous tables
+} else {
+  port_data <- rbind(port_data, x)
+}
+}
+
+save(list = "port_data", file = "port_data.RData")                                # save in current directory
+rm(list = setdiff(ls(), "port_data"))                                             #delete all helper objects
