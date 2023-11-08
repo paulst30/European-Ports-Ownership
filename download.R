@@ -1,8 +1,10 @@
 #install.packages("eurostat")
+#install.packages("rmarkdown")
 
 library(tidyverse)
 library(eurostat)
 library(readxl)
+library(rmarkdown)
 
 
 ##### download cargo data ######
@@ -84,8 +86,13 @@ origins <- data.frame(code= c("AGG_NSP", "AL", "DZ", "US_ISL", "AS", "AO", "AI",
                                "United States: Great Lakes", "United States: Gulf", "United States: North Atlantic", 
                                "United States: North Pacific", "United States: Puerto Rico", "United States: South Atlantic", 
                                "United States: South Pacific", "United States: unspecified maritime coastal area", "United States", "Unknown", 
-                               "Uruguay", "US Virgin Islands (US)", "Venezuela", "Vietnam", "Western Sahara", "Yemen")
-)
+                               "Uruguay", "US Virgin Islands (US)", "Venezuela", "Vietnam", "Western Sahara", "Yemen"))
+
+port_list <- read_xlsx("country_codes.xlsx", sheet = "Tabelle3") %>% rename(port = `Port name`, stat_port = `Statistical port`) %>% 
+             filter(stat_port=="X") %>% pull(port)
+
+# list of ports is not exhaustive. Some are aggregated in geological areas. 
+# See https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL
 
 cargo_list <- c("Dry bulk goods", "Dry bulk - coal", "Dry bulk - ores", "Dry bulk - other", "Dry bulk - agricultural products", 
                 "Liquid bulk goods", "Liquid bulk - other", "Liquid bulk - refined oil products",
@@ -105,7 +112,7 @@ cargo_list <- c("Dry bulk goods", "Dry bulk - coal", "Dry bulk - ores", "Dry bul
 #selection and filter criteria
 
 direction <- "Inwards"                                                            # select the direction: "Inward", "Outward", or "Total"
-origins_filtered <- origins$country_label[str_length(origins$code) == 2]          # list containing only countries, no sub-regions
+origins_filtered <- c(origins$country_label[str_length(origins$code) == 2], "China (except Hong Kong)")  # list containing only countries, no sub-regions
 cargo_type <- c("Total")                                                          # select cargo type: see cargo_list for all possible categories
 #min_tonnes <-  c()
 
@@ -121,12 +128,14 @@ x <- get_eurostat(paste0("mar_go_qm_", reporter[i]),                            
                par_mar %in% origins_filtered,                                            # keep only countries, no sub regions
                rep_mar != origins$country_label[origins$code==toupper(reporter[i])]) %>% # drop country aggregates and keep only ports
         select(-cargo, -direct, -unit) %>%                                               # drop unnecessary variables
-        rename(s_iso2c = par_mar,                                                        # rename variables
+        rename(sender = par_mar,                                                        # rename variables
                port = rep_mar,
                throughput = values) %>% 
         mutate(time=as.Date(time),                                                # format time variables
                year = year(time), 
                quarter=quarter(time))
+
+x$stat_port <- (x$port %in% port_list)
 
 if (i==1){
   port_data <- x                                                                  # save and append to previous tables
