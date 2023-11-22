@@ -151,8 +151,9 @@ x <- get_eurostat(paste0("mar_go_qm_", reporter[i]),                            
                                 roro ~ "roro",
                                 bulk ~ "bulk",
                                 total ~ "total",
-                                other ~ "other")) %>%
-        group_by(par_mar, rep_mar, type, time) %>%
+                                other ~ "other"),
+               reporter = origins$country_label[origins$code==toupper(reporter[i])]) %>%
+        group_by(par_mar, rep_mar, type, time, reporter) %>%
         summarize(values=sum(values)) %>%
         ungroup() %>%
         #select(-cargo, -direct, -unit) %>%                                               # drop unnecessary variables
@@ -172,6 +173,8 @@ if (i==1){
   port_data <- rbind(port_data, x)
 }
 }
+
+port_data <- pivot_wider(port_data, values_from = "throughput", names_from = "type") 
 
 save(list = "port_data", file = "port_data.RData")                                # save in current directory
 rm(list = setdiff(ls(), "port_data"))                                             #delete all helper objects

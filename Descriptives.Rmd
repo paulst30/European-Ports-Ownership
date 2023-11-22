@@ -11,68 +11,61 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r include=FALSE}
 library(dplyr)
+library(tidyr)
 library(patchwork)
 library(ggplot2)
 
 load("port_data.RData")
+
+port_data <- filter(port_data, aggregate==0, stat_port==1)
 ```
+
 ## China share in cargo throughput
 
-Most throughput of energy commodities (transported in bulks) and Ro-Ro comes from countries other than China. The highest share of chinese products is shipped with container cargo. Therefore, the sample is restricted to container cargo only.
+Most throughput of energy commodities (transported in bulks) and Ro-Ro comes from countries other than China. The highest share of Chinese products is shipped with container cargo. Therefore, the sample is restricted to container cargo only.
 
 ```{r , echo=FALSE,message=FALSE}
 theme_set(theme_minimal() + theme(legend.position = 'none'))
 
-port_data %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & throughput>0)) %>%
-  group_by(type, china) %>% summarize(throughput = sum(throughput)) %>% 
+port_data %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)"))) %>%
+  pivot_longer(cols = c("roro", "bulk", "container", "other"), names_to = "type", values_to = "throughput") %>%
+  group_by(type, china) %>% summarize(throughput = sum(throughput, na.rm = T)) %>% 
   ggplot(aes(y=throughput, x=reorder(type, desc(throughput)))) + geom_bar(stat="identity", position = "stack", aes(fill = china) ) +
   xlab("cargo type") + 
   labs(title="Throughput by type", caption = "Blue bars represent cargo from China.")
 
-port_data_container <- port_data %>% filter(type=="container") 
 
 ```
 
 ## Sample
 
 ```{r include=FALSE}
-# statistical ports versus geographic areas
-share <- port_data_container %>% mutate(stat_port_thrput = case_when(stat_port==1 & aggregate==0 ~ throughput,
-                                                                     .default = 0),
-                                        geo_area_thrput = case_when(aggregate==1 & aggregate==1 ~ throughput,
-                                                                    .default = 0),
-                                        port_group_thrput = case_when(stat_port==1 & aggregate==1 ~ throughput,
-                                                                      .default = 0)) %>% 
-                   summarise(share_geo_area = round(sum(geo_area_thrput)/(sum(geo_area_thrput)+sum(stat_port_thrput)+sum(port_group_thrput))*100, digits=0),
-                             share_group = round(sum(port_group_thrput)/(sum(geo_area_thrput)+sum(stat_port_thrput)+sum(port_group_thrput))*100, digits=0))  
 
-geo_share <- share %>% pull(share_geo_area)
-group_share <- share %>% pull(share_group)
+#number of reporting countries
+n_reporter <- as.numeric(length(unique(port_data$reporter[!is.na(port_data$container)])))
 
-# filter out geographical areas
-port_data_container <- filter(port_data_container, stat_port==1)
 
 # number of ports
-n_ports <- as.numeric(length(unique(port_data_container$port)))
+n_ports <- as.numeric(length(unique(port_data$port[!is.na(port_data$container)])))
 
 # number of sending countries
-n_sender <- as.numeric(length(unique(port_data_container$sender)))
+n_sender <- as.numeric(length(unique(port_data$sender[!is.na(port_data$container)])))
 
 # number of periods
-n_quarters <- as.numeric(length(unique(port_data_container$time)))
+n_quarters <- as.numeric(length(unique(port_data$time[!is.na(port_data$container)])))
 
 # number of ports with zero throughput
-n_ports_nz <- port_data_container %>% group_by(port) %>% 
-              summarise(throughput = sum(throughput)) %>% 
+n_ports_nz <- port_data %>% group_by(port) %>% 
+              summarise(throughput = sum(container)) %>% 
               filter(throughput==0) %>% nrow() %>%
               as.numeric()
 
 ```
 
 
-The statistical units in the Eurostat data are a mixed list of actual ports and grouped ports (statistical ports) and geographic areas, which represent aggregates of many ports. While statistical aggregates can be filtered out, it is unfortunately not straight forward to distinguish between port groups and single ports (not indicated in metadata). While the port groups "usually" have one port management, this cannot be assumed for every one. The definition of the statistical units (statistical ports and geographic aggregates) can be found in the [metadata](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL), and in the [annex](https://ec.europa.eu/eurostat/cache/metadata/Annexes/mar_esms_an_2.xlsx). As of now, the sample is restricted to statistical ports (no geographic aggregates). The remaining sample includes:
+The statistical units in the Eurostat data are a mixed list of actual ports and grouped ports (statistical ports) and geographic areas, which represent aggregates of many ports. While statistical aggregates can be filtered out, it is unfortunately not straight forward to distinguish between port groups and single ports (not indicated in metadata). While the port groups "usually" have one port management, this cannot be assumed for everyone. The definition of the statistical units (statistical ports and geographic aggregates) can be found in the [metadata](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL), and in the [annex](https://ec.europa.eu/eurostat/cache/metadata/Annexes/mar_esms_an_2.xlsx). As of now, the sample is restricted to statistical ports (no geographic aggregates). The remaining sample includes:
 
-- 26 reporting countries
+- `r n_reporter` reporting countries
 - `r n_ports` ports (only `r n_ports_nz` with zero throughput)
 - `r n_sender` origin countries
 - `r n_quarters` timeperiods (quarters)
@@ -81,19 +74,19 @@ The statistical units in the Eurostat data are a mixed list of actual ports and 
 ## Distribution of throughput by ports and origin
 
 ```{r include=FALSE}
-through_put_by_ports <- port_data_container %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") &                                throughput>0)) %>%
-                        group_by(port) %>% summarise(throughput=sum(throughput), china=max(china)) %>% ungroup() %>%
+through_put_by_ports <- port_data %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") &                                          container>0)) %>%
+                        group_by(port) %>% summarise(throughput=sum(container, na.rm=T), china=max(china)) %>% ungroup() %>%
                         mutate(throughput = throughput/sum(throughput)) %>% arrange(desc(throughput)) %>% 
                         mutate(cumsum=cumsum(throughput))
                         
 ```
 
-Most of the throughput concentrates in a few hundred ports. Limiting the sample to `r sum(through_put_by_ports$cumsum<.99)` ports that are responsible for 99 percent of the container shipments might be a sensible option. Additionally, not all ports process chinese goods. While all major ports do, especially small ports usually do not (reasonable exclusion criteria?). 
+Most of the throughput concentrates in a few hundred ports. Limiting the sample to `r sum(through_put_by_ports$cumsum<.99)` ports that are responsible for 99 percent of the container shipments might be a sensible option. Additionally, not all ports process Chinese goods. While all major ports do, especially small ports usually do not (reasonable exclusion criteria?). 
 
 ```{r echo=FALSE}
 
-port_data_container %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & throughput>0)) %>%
-         group_by(port) %>% summarise(throughput=sum(throughput), china=max(china)) %>% ungroup() %>%
+port_data %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & container>0)) %>%
+         group_by(port) %>% summarise(throughput=sum(container, na.rm=T), china=max(china, na.rm = T)) %>% ungroup() %>%
          mutate(throughput = throughput/sum(throughput)) %>% arrange(desc(throughput)) %>% mutate(n=row_number()) %>%
          ggplot( aes(x=n, y=cumsum(throughput))) + geom_point(aes(colour = china)) + 
          ylab("cummulative share of throughput") +
@@ -107,65 +100,65 @@ port_data_container %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong 
 
 ```{r include=FALSE}
 # top 50 ports
-top50 <- port_data_container %>% filter(year>2010) %>% group_by(port) %>% summarise(throughput=sum(throughput)) %>% ungroup() %>% 
+top50 <- port_data %>% filter(year>2010) %>% group_by(port) %>% summarise(throughput=sum(container, na.rm=T)) %>% ungroup() %>% 
          arrange(desc(throughput)) %>% head(n=50) %>% pull(port)
 
 # top 50 ports with highest share of chinese goods
-top50_china <- port_data_container %>% filter(year>2010) %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & throughput>0),
+top50_china <- port_data %>% filter(year>2010) %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & container>0),
                                                     throughput_others = case_when(china==1 ~ 0,
-                                                                                  china==0 ~ throughput),
-                                                    throughput_china = case_when(china==1 ~ throughput,
+                                                                                  china==0 ~ container),
+                                                    throughput_china = case_when(china==1 ~ container,
                                                                                  china==0 ~ 0)) %>%
-         group_by(port) %>% summarise(throughput_others=sum(throughput_others),
-                                      throughput_china=sum(throughput_china),
+         group_by(port) %>% summarise(throughput_others=sum(throughput_others, na.rm=T),
+                                      throughput_china=sum(throughput_china, na.rm=T),
                                       share = throughput_china/throughput_others) %>% arrange(desc(share)) %>% 
          head(n=50) %>% pull(port)
 
 ```
 
-Port that process a relatively high share of cargo from China are generally large ports. Below are displayed the top 50 largest ports, their aggregate throughput and their throughputof chinese goods (Mainland China + Hong Kong). The other graph displays the top 50 ports with the highest share of chinese cargo throughput. Both lists are quite similar with `r as.numeric(length(setdiff(top50,top50_china)))` large ports which are not among the top 50 ports with high chinese throughput. 
+Port that process a relatively high share of cargo from China are generally large ports. Below are displayed the top 50 largest ports, their aggregate throughput and their throughput of Chinese container shipments (Mainland China + Hong Kong). The other graph displays the top 50 ports with the highest share of Chinese container throughput. Both lists are quite similar with `r as.numeric(length(setdiff(top50,top50_china)))` large ports which are not among the top 50 ports with high Chinese container throughput. 
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
-port_data_container %>% filter(year>=2010, port %in% top50) %>%  mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & throughput>0)) %>%
-              group_by(port, china) %>% summarise(throughput=sum(throughput)) %>% ungroup() %>%  
+port_data %>% filter(year>=2010, port %in% top50) %>%  mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & container>0)) %>%
+              group_by(port, china) %>% summarise(throughput=sum(container, na.rm=T)) %>% ungroup() %>%  
               ggplot(aes(x=reorder(port,desc(throughput)), y=throughput, fill=china)) + 
               geom_bar(stat="identity", position = "stack") +
-              labs(title="Total throughput of the 50 largest ports (2010-2023)", caption = "Blue bars represent throughput of chinese goods.")+
+              labs(title="Container throughput of the 50 largest ports (2010-2023)", caption = "Blue bars represent throughput of chinese goods.")+
               theme(axis.text.x = element_text(angle = 45, hjust = 1),
                     axis.title.x = element_blank())
 
-port_data_container %>% filter(year>=2010, port %in% top50_china) %>%  mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & throughput>0)) %>%
-              group_by(port, china) %>% summarise(throughput=sum(throughput)) %>% ungroup() %>%  
+port_data %>% filter(year>=2010, port %in% top50_china) %>%  mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & container>0)) %>%
+              group_by(port, china) %>% summarise(throughput=sum(container, na.rm=T)) %>% ungroup() %>%  
               ggplot(aes(x=reorder(port,desc(throughput)), y=throughput, fill=china)) + 
               geom_bar(stat="identity", position = "stack") +
-              labs(title="Total throughput of the 50 ports with the highest share of chinese throughput (2010-2023)", caption = "Blue bars represent throughput of chinese goods.")+
+              labs(title="Container throughput of the 50 ports with the highest share of chinese throughput (2010-2023)", caption = "Blue bars represent throughput of chinese goods.")+
               theme(axis.text.x = element_text(angle = 45, hjust = 1),
                     axis.title.x = element_blank())
 ```
 
 ```{r include=FALSE}
 #china share
-china_share <- port_data_container %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & throughput>0),
+china_share <- port_data %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & container>0),
                                         throughput_others = case_when(china==1 ~ 0,
-                                                                      china==0 ~ throughput),
-                                        throughput_china = case_when(china==1 ~ throughput,
+                                                                      china==0 ~ container),
+                                        throughput_china = case_when(china==1 ~ container,
                                                                      china==0 ~ 0)) %>%
-  group_by(year) %>% summarise(throughput_others=sum(throughput_others),
-                               throughput_china=sum(throughput_china),
-                               share = throughput_china/throughput_others*100*50000)
+  group_by(year) %>% summarise(throughput_others=sum(throughput_others, na.rm=T),
+                               throughput_china=sum(throughput_china, na.rm=T),
+                               share = throughput_china/throughput_others*100*25000)
 
 ```
 Above graphs indicate that the share of Chinese cargo is (surprisingly) low. The graph below plots the total cargo from China, the total cargo from origins other than China and the share of Chinese cargo in percent. Recent global crises, like the financial crisis in 2007-2009, the corona-pandemic in 2020, and the Ukraine war in 2023 have led to drops in total cargo shipments. Interestingly, they have affected Chinese cargo more than cargo from other origins, as the relative share of Chinese cargo mimics the movement of the total cargo shipments.
 
 ```{r echo=FALSE,message=FALSE}
-port_data_container   %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & throughput>0)) %>%
-                group_by(year, china) %>% summarise(throughput=sum(throughput)) %>% ungroup() %>%
+port_data   %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & container>0)) %>%
+                group_by(year, china) %>% summarise(throughput=sum(container, na.rm=T)) %>% ungroup() %>%
                 ggplot(aes(x=year)) + 
                 geom_line(aes(y=throughput, color = china)) +
                 geom_line(data=china_share, aes(x=year,y=share)) + 
                 scale_y_continuous(
                   name = "throughput",
-                  sec.axis = sec_axis( trans=~./50000, name="share in percent")) + 
+                  sec.axis = sec_axis( trans=~./25000, name="share in percent")) + 
                 labs(title = "Aggregate container throughput over time", 
                 caption = "Blue line represents throughput of chinese goods. 
                            Red line represents throughput from all other countries.
@@ -178,10 +171,10 @@ port_data_container   %>% mutate(china = ((sender == "Hong Kong" | sender == "Ch
 
 ```{r echo=FALSE, message=FALSE}
 
-port_data_container %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & throughput>0),
+port_data %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & container>0),
                      sender = case_when(china==0 ~ sender,
                                         china==1 ~ "China")) %>%
-              group_by(sender) %>% summarize(throughput=sum(throughput), china=max(china)) %>% ungroup() %>% 
+              group_by(sender) %>% summarize(throughput=sum(container, na.rm=T), china=max(china)) %>% ungroup() %>% 
               arrange(desc(throughput)) %>% head(n=50) %>%
               ggplot(aes(x=reorder(sender, desc(throughput)), y=throughput)) + 
               geom_bar(stat="identity", aes(fill=china)) +
