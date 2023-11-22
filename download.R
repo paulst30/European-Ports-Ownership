@@ -119,9 +119,7 @@ container <- c("Large containers")
 roro <- c("Ro-Ro - mobile self-propelled units",
           "Ro-Ro - mobile non-self-propelled units")
 bulk <- c("Dry bulk goods", "Liquid bulk goods")
-other <- c("Other cargo not elsewhere specified", 
-           "Other cargo - other general cargo", 
-           "Other cargo - iron and steel products")
+other <- c("Other cargo not elsewhere specified")
 total <- c("Total")
 list <- c(container, roro, bulk, other)
 
