@@ -41,6 +41,14 @@ port_data %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except 
 
 ```{r include=FALSE}
 
+# share of national statistical groups
+share <- port_data %>% mutate(stat_port = stat_port*container,
+                              nat_stat_group = nat_stat_group*container) %>%
+                       summarize(stat_port = sum(stat_port, na.rm=T),
+                                 nat_stat_group = sum(nat_stat_group, na.rm = T)) %>%
+                       mutate(share = round(nat_stat_group/(stat_port)*100, digits = 1)) %>%
+                       pull(share)
+
 #number of reporting countries
 n_reporter <- as.numeric(length(unique(port_data$reporter[!is.na(port_data$container)])))
 
@@ -63,7 +71,7 @@ n_ports_nz <- port_data %>% group_by(port) %>%
 ```
 
 
-The statistical units in the Eurostat data are a mixed list of actual ports and grouped ports (statistical ports) and geographic areas, which represent aggregates of many ports. While statistical aggregates can be filtered out, it is unfortunately not straight forward to distinguish between port groups and single ports (not indicated in metadata). While the port groups "usually" have one port management, this cannot be assumed for everyone. The definition of the statistical units (statistical ports and geographic aggregates) can be found in the [metadata](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL), and in the [annex](https://ec.europa.eu/eurostat/cache/metadata/Annexes/mar_esms_an_2.xlsx). As of now, the sample is restricted to statistical ports (no geographic aggregates). The remaining sample includes:
+The statistical units in the Eurostat data are a mixed list of actual ports and grouped ports (statistical ports) and geographic areas, which represent aggregates of many ports. While the port groups "usually" have one port management, this cannot be assumed for everyone. In addition, statistical ports that represent a group of ports make up the majority of the container shipments (`r share` percent). The definition of the statistical units (statistical ports and geographic aggregates) can be found in the [metadata](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL), and in the [annex](https://ec.europa.eu/eurostat/cache/metadata/Annexes/mar_esms_an_2.xlsx). As of now, the sample is restricted to statistical ports (no geographic aggregates). The remaining sample includes:
 
 - `r n_reporter` reporting countries
 - `r n_ports` ports (only `r n_ports_nz` with zero throughput)
@@ -75,13 +83,13 @@ The statistical units in the Eurostat data are a mixed list of actual ports and 
 
 ```{r include=FALSE}
 through_put_by_ports <- port_data %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") &                                          container>0)) %>%
-                        group_by(port) %>% summarise(throughput=sum(container, na.rm=T), china=max(china)) %>% ungroup() %>%
+                        group_by(port) %>% summarise(throughput=sum(container, na.rm=T), china=max(china), nat_stat_group = max(nat_stat_group)) %>% ungroup() %>%
                         mutate(throughput = throughput/sum(throughput)) %>% arrange(desc(throughput)) %>% 
                         mutate(cumsum=cumsum(throughput))
                         
 ```
 
-Most of the throughput concentrates in a few hundred ports. Limiting the sample to `r sum(through_put_by_ports$cumsum<.99)` ports that are responsible for 99 percent of the container shipments might be a sensible option. Additionally, not all ports process Chinese goods. While all major ports do, especially small ports usually do not (reasonable exclusion criteria?). 
+Most of the throughput concentrates in a few hundred ports. Limiting the sample to `r sum(through_put_by_ports$cumsum<.99)` ports that are responsible for 99 percent of the container shipments might be a sensible option (`r sum(through_put_by_ports$nat_stat_group[through_put_by_ports$cumsum<.99])` of these are aggregates of ports). Additionally, not all ports process Chinese goods. While all major ports do, especially small ports usually do not (reasonable exclusion criteria?). 
 
 ```{r echo=FALSE}
 

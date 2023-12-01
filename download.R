@@ -97,6 +97,15 @@ port_list <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2022 extended list of 
              rename(port = `Country/Port Name`, stat_port = `Statistical Port`) %>%
              filter(!is.na(stat_port)) %>% pull(port)
 
+#list of ports that are a statistical port but are an aggregate of many small ports
+nat_stat_code <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2022 extended list of ports")  %>% 
+                 rename(port = `Country/Port Name`, stat_port = `Statistical Port`, nat_stat_group = `Nat. Stat. Group`) %>%
+                 filter(!is.na(nat_stat_group)) %>% pull(nat_stat_group) %>% unique()
+
+nat_stat_group <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2022 extended list of ports")  %>% 
+                  rename(port = `Country/Port Name`, stat_port = `Statistical Port`) %>% 
+                  filter(UNLocode %in% nat_stat_code) %>% pull(port) %>% unique()
+
 
 # list of ports is not exhaustive. Some are aggregated in geological areas. 
 # See https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL
@@ -166,6 +175,7 @@ x <- get_eurostat(paste0("mar_go_qm_", reporter[i]),                            
 
 x$stat_port <- (x$port %in% port_list)
 x$aggregate <- (x$port %in% aggregates_list)
+x$nat_stat_group <- (x$port %in% nat_stat_group)
 
 if (i==1){
   port_data <- x                                                                  # save and append to previous tables
