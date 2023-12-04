@@ -1,0 +1,66 @@
+---
+title: "Estimation"
+author: "Paul Stricker"
+bibliography: literature_list.bib
+date: "2023-11-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(patchwork)
+library(ggplot2)
+library(fixest)
+library(did)
+
+load("port_data.RData")
+
+port_data <- filter(port_data, aggregate==0, stat_port==1)
+```
+
+
+## Baseline equation (fixed effects)
+
+In the first attempt, a simple multi-level fixed effects model ist used to identify the effect of Chinese port ownership. The following three equations include increasingly restrictive set of fixed effects to control for as many unobserved covariates as possible:
+
+$Thrpt_{ijt}=\alpha_{i}+\beta_{j}+\gamma_{t}+ChineseControl_{it}+e_{ijt}$ \left (1)
+
+In equation (1), the quarterly (t) container throughput (Thrpt) is explained by a set of port fixed-effects (alpha_i), sender country fixed effects (beta_j), and time fixed effects (gamma_t). The effect of chinese ownership is included in form of a dummy variable (ChineseControl_it) that is set to one when the ownership (at least partly) transfered to a Chinese company (needs clarification). This specification controls for all time-invariant port-specific, and all time-invariant sender-specific unobserved covariates. The time fixed effects account for common shocks that affect all European ports equally.  
+
+$Thrpt_{ijt}=\alpha_{ij}+\gamma_{t}+ChineseControl_{it}+e_{ijt}$ \left (2)
+
+Equation (2) increases the restrictiveness of th fixed effects by replacing the port-level fixed effects with port-sender fixed effects. This set of fixed effects controls for all time-invariant sender-port specfic covariates like regular shipping routes and preferences. This setup is often referred to as a difference-in-differences (DiD) set-up, as in the two-period case, equation (2) estimates a standard DiD effect. However, recent studies have shown, that this similarity does not extend to the multi-period case. (<span style="color:red">insert sources</span>) @Athey.2022 
+
+$Thrpt_{ijt}=\alpha_{ij}+\beta_{jt}+ChineseControl_{it}+e_{ijt}$ \left (3)
+
+Equation (3) adds another dimension to the fixed effects. In addition to controlling for sender-port time-invariant covariates, it also controls for sender-time fixed effects. These encapsule all sender-time varying covariates like production shocks or supply shortages (as in the case of the blocked Suez Canal in 2021).
+
+
+```{r include=TRUE}
+#etable(feols(container ~ China_dummy | port + sender + time))
+#etable(feols(container ~ China_dummy | port*sender + time))
+#etable(feols(container ~ China_dummy | port*sender + sender*time))
+
+```
+
+While the fixed effects identification strategy presented above is a common one in the literature, many authors criticize the model fo its lack of interpretable results. (<span style="color:red">insert sources</span>) For instance, @Mummolo.2018 notes that researchers tend to present unrealistic counterfactuals when unsing fixed effects regression. Since fixed effect models only use a fraction of the variance to estimate the coefficients, interpreting the model with counterfactuals that are drawn from the original distribution of the data often leads to unrealistically high effects that sometimes falsely imply economically relevant effect sizes. Additionally, the major benefit of fixed effects, the ability to control for unobserved covariates, critically depends on the linear additive assumption [@Imai.2021]. In cases where the variation can be attributed to several dimensions of fixed effects, the estimator is undefined [@Kropko.2020].
+
+
+## Difference in Differences
+
+To address these shortcomings, we use recent advances in the DiD literature, and employ a staggered DiD estimator by (insert sources).
+
+
+```{r include=T}
+
+
+
+```
+
+## References
+
