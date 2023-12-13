@@ -14,6 +14,8 @@ library(dplyr)
 library(tidyr)
 library(patchwork)
 library(ggplot2)
+library(readxl)
+library(knitr)
 
 load("port_data.RData")
 
@@ -77,6 +79,33 @@ The statistical units in the Eurostat data are a mixed list of actual ports and 
 - `r n_ports` ports (only `r n_ports_nz` with zero throughput)
 - `r n_sender` origin countries
 - `r n_quarters` timeperiods (quarters)
+
+```{r include=F}
+nat_stat_groups <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2024 extended list of ports")  %>% 
+                 rename(port = `Country/Port Name`, stat_port = `Statistical Port`, nat_stat_group = `Nat. Stat. Group`) %>%
+                 filter(!is.na(nat_stat_group)) %>% select(nat_stat_group) %>% group_by(nat_stat_group) %>% summarize(count=n())
+
+nat_stat_names <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2024 extended list of ports")  %>% 
+                  rename(port = `Country/Port Name`, stat_port = `Statistical Port`) %>% 
+                  select(port, UNLocode)
+
+nat_stat_groups <- merge(nat_stat_groups, nat_stat_names, by.x = "nat_stat_group", by.y = "UNLocode", all.x = T)
+
+through_put_2019 <- port_data %>% filter(year==2019) %>% group_by(port) %>% summarize(container_2019=sum(container,na.rm=T))
+
+nat_stat_groups <- merge(nat_stat_groups, through_put_2019, by.x="port", by.y = "port", all.x = T) %>% arrange(desc(count))
+
+na_count_nat_stat_g <- sum(is.na(nat_stat_groups))
+
+nat_stat_groups <- filter(nat_stat_groups, !is.na(container_2019))
+
+```
+
+```{r}
+kable(nat_stat_groups,
+      caption = "National Statistical Groups combining many Ports")
+```
+
 
 
 ## Distribution of throughput by ports and origin

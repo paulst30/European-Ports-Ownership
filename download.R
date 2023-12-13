@@ -8,16 +8,21 @@ library(readxl)
 library(rmarkdown)
 
 
-##### download cargo data ######
+######## AVAILABLE DATA ###################################
 
 # check available data
 #toc <- get_eurostat_toc()
 #tables <- toc %>% filter(str_detect(code,"mar_go_qm_")) %>% select(title, code)
 
-reporter <- c("be", "bg", "dk", "de", "ee", "es", "ie", "el", "fr", "hr", "it",
+######## SET UP #################
+
+############ COUNTRY CODES / ORIGINS #######
+# country codes of reporters to loop over
+reporter <- c("be", "bg", "dk", "de", "ee", "es", "ie", "el", "fr", "hr", "it",      
               "cy", "lv", "lt", "mt", "nl", "pl", "pt", "ro", "si", "fi", "se", 
               "uk", "no", "me", "tr")
 
+# country and subregion codes (origins) for filtering and reference
 origins <- data.frame(code= c("AGG_NSP", "AL", "DZ", "US_ISL", "AS", "AO", "AI", "AQ", "AG", "AR", "AW", "AU", "AZ", "BS", 
                               "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BM", "BQ", "BA", "BV", "BR", "IO", "VG", "BN", "BG", 
                               "KH", "CM", "CA_1", "CA_2", "CA_9", "CA_3", "CA", "CV", "KY", "CL", "CN_X_HK", "CX", "CC", "CO_1", 
@@ -89,94 +94,122 @@ origins <- data.frame(code= c("AGG_NSP", "AL", "DZ", "US_ISL", "AS", "AO", "AI",
                                "United States: South Pacific", "United States: unspecified maritime coastal area", "United States", "Unknown", 
                                "Uruguay", "US Virgin Islands (US)", "Venezuela", "Vietnam", "Western Sahara", "Yemen"))
 
-# list of geographical aggregates are taken from the official list of statistical units from 2018 (no updated version available). 
-aggregates_list <- read_xlsx("country_codes.xlsx", sheet = "Tabelle3") %>% rename(port = `Port name`, stat_port = `Statistical port`, aggregate = `Special aggregate`) %>%
-  filter(!is.na(aggregate)) %>% pull(port)
 
-# list of ports are taken from an updated interim list (annex of metadata).
-port_list <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2022 extended list of ports")  %>% 
-             rename(port = `Country/Port Name`, stat_port = `Statistical Port`) %>%
-             filter(!is.na(stat_port)) %>% pull(port)
+############ PORT CODES AND NAMES ###############
+
+# port names and codes (taken from an updated interim list (annex of metadata) and combined with official statistical list from 2018)
+port_codebook <- read_xlsx("country_codes.xlsx", sheet = "EU_Meta") %>% 
+                 rename(port = `Port name`, stat_port = `Statistical port`, aggregate = `Special aggregate`, nat_stat_code = `Nat. stat. group`) %>%
+                 select(Locode, port, stat_port,nat_stat_code, aggregate)
+
+port_codebook2 <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2024 extended list of ports")  %>% 
+                  rename(port = `Country/Port Name`, stat_port = `Statistical Port`, Locode = `UNLocode`, nat_stat_code = `Nat. Stat. Group`) %>%
+                  mutate(aggregate = NA) %>%
+                  select(Locode, port, stat_port,nat_stat_code, aggregate)
+
+port_codebook <- rbind(port_codebook2, port_codebook[!(port_codebook$Locode %in% port_codebook2$Locode),])  #final codebook
+
+# manually adding missing entries to the codebook
+missing_entries <-data.frame(Locode = c("FR001","SE88D","SE88C","SENOE", "NOGVL","NOKAS", 
+                                        "NORNA","NOBRG","NOEGD","NOBRE","NOBRO","DEMAG", 
+                                        "DEREC","DEIBB","DEFRA", "DELUE", "DKTHR", "GRKLS", "GBSTR", "GBBLR", "EE88C"),
+                             port = c(  "Haropa (Le Havre and Rouen)", "Sweden - other ports", "Sweden (confidential)","Norrtälje", "Porsgrunn, Rafnes, Herøya, Brevik, Skien, Langesund, Voldsfjorden", 
+                                        "Karmsund", "Rana", "Borg", "Eigersund", "Bremanger", "Brønnøy", "Magdeburg", "Recklinghausen",
+                                        "Ibbenbüren", "Frankfurt am Main", "Lünen","Tunnel Port Rødby", "Kaloi Limenes Rethymnou", "Stranraer", "Ballylumford",
+                                        "Estonia (confidential data aggregated by Eurostat)")) %>%
+                  mutate(stat_port=case_when(Locode %in% c("FR001","SE88D") ~ NA,
+                                             .default="X"),
+                         nat_stat_code= NA,
+                         aggregate=case_when(Locode %in% c("FR001","SE88D") ~ "X",
+                                             .default=NA))
+port_codebook <- rbind(port_codebook, missing_entries)
+
+
+# list of ports that are statistical ports
+port_list <- port_codebook %>% filter(!is.na(stat_port)) %>% pull(Locode)
 
 #list of ports that are a statistical port but are an aggregate of many small ports
-nat_stat_code <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2022 extended list of ports")  %>% 
-                 rename(port = `Country/Port Name`, stat_port = `Statistical Port`, nat_stat_group = `Nat. Stat. Group`) %>%
-                 filter(!is.na(nat_stat_group)) %>% pull(nat_stat_group) %>% unique()
+nat_stat_code <- port_codebook %>% filter(!is.na(nat_stat_code)) %>% pull(nat_stat_code) %>% unique()
 
-nat_stat_group <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2022 extended list of ports")  %>% 
-                  rename(port = `Country/Port Name`, stat_port = `Statistical Port`) %>% 
-                  filter(UNLocode %in% nat_stat_code) %>% pull(port) %>% unique()
+#list of geographic aggregates 
+aggregates_list <- port_codebook %>% filter(!is.na(aggregate)) %>% pull(Locode)
 
-
-# list of ports is not exhaustive. Some are aggregated in geological areas. 
+# NOTE: list of ports is not exhaustive. Some are aggregated in geological areas. 
 # See https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL
 
-cargo_list <- c("Dry bulk goods", "Dry bulk - coal", "Dry bulk - ores", "Dry bulk - other", "Dry bulk - agricultural products", 
-                "Liquid bulk goods", "Liquid bulk - other", "Liquid bulk - refined oil products",
-                "Large containers", "Large containers - 20-ft freight units", 
-                "Large containers - freight units over 20-ft and less than 40-ft", 
-                "Large containers - 40-ft freight units", "Large containers - freight units > 40-ft",                                                             
-                "Other cargo not elsewhere specified", "Other cargo - other general cargo", "Other cargo - iron and steel products",
-                "Ro-Ro - mobile non-self-propelled units", "Ro-Ro - mobile self-propelled units", "Ro-Ro - road goods vehicles and accompanying trailers",
-                "Ro-Ro - unaccompanied road goods trailers and semi-trailers", "Ro-Ro - trade vehicles (incl. import/export motor vehicles)", "Total", 
-                "Ro-Ro - rail wagons engaged in goods transport", "Ro-Ro - passenger cars, motorcycles and accompanying trailers/caravans", "Ro-Ro - passenger buses", 
-                "Ro-Ro - unaccompanied caravans and other road agricultural and industrial vehicles", 
-                "Ro-Ro - rail wagons, shipborne port-to-port trailers, and shipborne barges engaged in goods transport", "Liquid bulk - crude oil", 
-                "Liquid bulk - liquified gas", "Other cargo - forestry products", "Large containers - unspecified size", 
-                "Ro-Ro - unspecified mobile self-propelled units", "Ro-Ro - unspecified mobile non-self-propelled units")
 
-container <- c("Large containers")
-roro <- c("Ro-Ro - mobile self-propelled units",
-          "Ro-Ro - mobile non-self-propelled units")
-bulk <- c("Dry bulk goods", "Liquid bulk goods")
-other <- c("Other cargo not elsewhere specified")
-total <- c("Total")
-list <- c(container, roro, bulk, other)
+############ CARGO CODES AND NAMES ###############
 
+cargo_list <- data.frame( cargo_code = c("TOTAL", "LBK", "LBK_LGAS", "LBK_COIL", "LBK_ROIL", "LBK_OTH", "DBK", "DBK_ORES", "DBK_COAL", 
+                                         "DBK_PAGR", "DBK_OTH", "LCNT", "LCNT_20", "LCNT_40", "LCNT_21-39", "LCNT_GT40", "LCNT_NSP", 
+                                         "RO_MSP", "RO_RVEH", "RO_CM", "RO_PBUS", "RO_TVEH", "RO_MSP_NSP", "RO_MNSP", "RO_TRL_STRL", 
+                                         "RO_CVAN_OTH", "RO_RWS", "RO_RW", "RO_MNSP_NSP", "OTH", "OTH_FOR", "OTH_IS", "OTH_GN"),
+                          cargo_label = c("Total", "Liquid bulk goods", "Liquid bulk - liquified gas", "Liquid bulk - crude oil", 
+                                          "Liquid bulk - refined oil products", "Liquid bulk - other", "Dry bulk goods", "Dry bulk - ores", 
+                                          "Dry bulk - coal", "Dry bulk - agricultural products", "Dry bulk - other", "Large containers", 
+                                          "Large containers - 20-ft freight units", "Large containers - 40-ft freight units", 
+                                          "Large containers - freight units over 20-ft and less than 40-ft", "Large containers - freight units > 40-ft", 
+                                          "Large containers - unspecified size", "Ro-Ro - mobile self-propelled units", "Ro-Ro - road goods vehicles and accompanying trailers", 
+                                          "Ro-Ro - passenger cars, motorcycles and accompanying trailers/caravans", "Ro-Ro - passenger buses", 
+                                          "Ro-Ro - trade vehicles (incl. import/export motor vehicles)", "Ro-Ro - unspecified mobile self-propelled units", 
+                                          "Ro-Ro - mobile non-self-propelled units", "Ro-Ro - unaccompanied road goods trailers and semi-trailers", 
+                                          "Ro-Ro - unaccompanied caravans and other road agricultural and industrial vehicles", 
+                                          "Ro-Ro - rail wagons, shipborne port-to-port trailers, and shipborne barges engaged in goods transport", 
+                                          "Ro-Ro - rail wagons engaged in goods transport", "Ro-Ro - unspecified mobile non-self-propelled units", 
+                                          "Other cargo not elsewhere specified", "Other cargo - forestry products", "Other cargo - iron and steel products", 
+                                          "Other cargo - other general cargo"))
 
 #selection and filter criteria
 
-direction <- "Inwards"                                                            # select the direction: "Inward", "Outward", or "Total"
-origins_filtered <- c(origins$country_label[str_length(origins$code) == 2], "China (except Hong Kong)")  # list containing only countries, no sub-regions
-cargo_type <- c("Large containers", "Large containers - 20-ft freight units", 
-                "Large containers - freight units over 20-ft and less than 40-ft", 
-                "Large containers - 40-ft freight units", 
-                "Large containers - freight units > 40-ft",
-                "Large containers - unspecified size")                            # select cargo type: see cargo_list for all possible categories
-#min_tonnes <-  c()
+container <- c("LCNT")
+roro <- c("RO_MSP",
+          "RO_MNSP")
+bulk <- c("DBK", "LBK")
+other <- c("OTH")
+total <- c("TOTAL")
+list <- c(container, roro, bulk, other)
+
+direction <- "IN"                                                            # select the direction: "IN", "OUT", or "TOTAL"
+origins_filtered <- c(origins$code[str_length(origins$code) == 2], "CN_X_HK")  # list containing only countries, no sub-regions
 
 
-######################
+
+######## DOWNLOAD LOOP #####################
 
 for (i in 1:length(reporter)) {                                                   # loop over all reporter
   
 x <- get_eurostat(paste0("mar_go_qm_", reporter[i]),                              # download table for the reporter
-                  type = "label") %>%
+                  type = "code") %>%
         filter(direct == direction,                                               # apply filters
                cargo %in% list,
                par_mar %in% origins_filtered,                                            # keep only countries, no sub regions
-               rep_mar != origins$country_label[origins$code==toupper(reporter[i])]) %>% # drop country aggregates and keep only ports
+               rep_mar != origins$code[origins$code==toupper(reporter[i])]
+               ) %>% # drop country aggregates and keep only ports
         mutate(type = case_match(cargo, 
                                 container ~ "container",
                                 roro ~ "roro",
                                 bulk ~ "bulk",
                                 total ~ "total",
                                 other ~ "other"),
-               reporter = origins$country_label[origins$code==toupper(reporter[i])]) %>%
-        group_by(par_mar, rep_mar, type, time, reporter) %>%
+               reporter = origins$country_label[origins$code==toupper(reporter[i])],
+               port_code = substr(rep_mar,5,nchar(rep_mar))) %>%
+        group_by(par_mar, port_code, rep_mar, type, time, reporter) %>%
         summarize(values=sum(values)) %>%
         ungroup() %>%
         #select(-cargo, -direct, -unit) %>%                                               # drop unnecessary variables
-        rename(sender = par_mar,                                                        # rename variables
-               port = rep_mar,
+        rename(sender_code = par_mar,                                                        # rename variables
+               rep_mar = rep_mar,
+               port_code = port_code,
                throughput = values) %>% 
         mutate(time=as.Date(time),                                                # format time variables
                year = year(time), 
                quarter=quarter(time))
 
-x$stat_port <- (x$port %in% port_list)
-x$aggregate <- (x$port %in% aggregates_list)
-x$nat_stat_group <- (x$port %in% nat_stat_group)
+
+
+x$stat_port <- (x$port_code %in% port_list)
+x$aggregate <- (x$port_code %in% aggregates_list)
+x$nat_stat_group <- (x$port_code %in% nat_stat_code)
 
 if (i==1){
   port_data <- x                                                                  # save and append to previous tables
@@ -185,7 +218,58 @@ if (i==1){
 }
 }
 
-port_data <- pivot_wider(port_data, values_from = "throughput", names_from = "type") 
+
+
+port_data <- pivot_wider(port_data, values_from = "throughput", names_from = "type") %>%
+             merge(port_codebook[,c("Locode", "port")], by.x="port_code", by.y="Locode", all.x =T) %>%
+             merge(origins, by.x="sender_code", by.y="code", all.x=T) %>%
+             rename(sender = country_label)
+
+############ CLEANING ################
+
+# Some geographic aggregates that went undetected
+missing_entries2 <- data.frame(rep_mar = c("DE_1", "DE_2", "DE_3", "DE_9", "ES_1", "ES_2", 
+                                           "ES_3", "ES_4", "FR_1", "FR_2", "FR_4", "FR_5", 
+                                           "SE_1", "SE_2", "SE_9", "TR_1", "TR_2", "TR_9", "UK_1"),
+                               port = c("Germany: North Sea", "Germany: Baltic Sea", "Germany: Inland", 
+                                        "Germany: unspecified martime coastal area", "Spain: North Atlantic", 
+                                        "Spain: Mediterranean and South Atlantic", "Spain: Ceuta", "Spain: Melilla", 
+                                        "France: Atlantic/North Sea", "France: Mediterranean", "France: Guadeloupe and Martinique", 
+                                        "France: Reunion", "Sweden: Baltic Sea", "Sweden: North Sea", "Sweden: unspecified maritime coastal area", 
+                                        "Turkey: Back Sea", "Turkey: Mediterranean", "Turkey: unspecified maritime coastal area", "UK: GBR and North Ireland")) %>%
+                     mutate(aggregate = case_when(rep_mar %in% c("ES_3", "ES_4", "FR_4", "FR_5") ~ FALSE,
+                                                  .default = TRUE),
+                            stat_port = case_when(rep_mar %in% c("ES_3", "ES_4", "FR_4", "FR_5") ~ TRUE,
+                                                  .default = FALSE))
+for (i in 1:nrow(missing_entries2)) {
+  port_data$port[port_data$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$port[i]
+  port_data$aggregate[port_data$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$aggregate[i]
+  port_data$stat_port[port_data$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$stat_port[i]
+  port_data$port_code[port_data$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$rep_mar[i]
+}
+
+# port_codes with figures as the third character are mostly aggregates. Some of them are incorrectly label as such:
+incorrect_aggregates <- data.frame(port_code = c("NL888", "SE88D", "BE003", "FR001", "TR888", "NO888", 
+                                                 "SE023", "IT88P", "SE88C", "FI002", "GB221", "FI001", 
+                                                 "EE88C", "GB203", "DE017", "SE022", "DE888", "SE021", 
+                                                 "SE020", "IT888", "DE88N", "DE8PN", "DE76Y", "DE116", 
+                                                 "DE8PO", "GR909", "GR88R", "FI888", "IT004", "SE888"),
+                                   aggregate = c(TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, 
+                                                 TRUE, FALSE, TRUE, TRUE, FALSE, FALSE, TRUE, TRUE, TRUE, 
+                                                 TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, 
+                                                 TRUE, FALSE, TRUE),
+                                   stat_port = c(TRUE, TRUE, TRUE, FALSE, TRUE, FALSE, TRUE, TRUE, TRUE,
+                                                 TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, 
+                                                 TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, FALSE, 
+                                                 TRUE, TRUE, TRUE))
+
+for (i in 1:nrow(incorrect_aggregates)) {
+  port_data$aggregate[port_data$port_code==incorrect_aggregates$port_code[i]] <- incorrect_aggregates$aggregate[i]
+  port_data$stat_port[port_data$port_code==incorrect_aggregates$port_code[i]] <- incorrect_aggregates$stat_port[i]
+}
+
+
+######## SAVE ############
 
 save(list = "port_data", file = "port_data.RData")                                # save in current directory
 rm(list = setdiff(ls(), "port_data"))                                             #delete all helper objects
