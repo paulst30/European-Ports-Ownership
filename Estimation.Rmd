@@ -26,17 +26,21 @@ port_data <- filter(port_data, aggregate==0, stat_port==1)
 
 ## Baseline equation (fixed effects)
 
-In the first attempt, a simple multi-level fixed effects model ist used to identify the effect of Chinese port ownership. The following three equations include increasingly restrictive set of fixed effects to control for as many unobserved covariates as possible:
+In the first attempt, a simple fixed effects model and aggregated data on container throughput is used to identify the effect of Chinese port ownership. The effect of chinese ownership is included in form of a dummy variable (ChineseControl_it) that is set to one when the ownership (at least partly) transfered to a Chinese company (needs clarification).
 
-$Thrpt_{ijt}=\alpha_{i}+\beta_{j}+\gamma_{t}+ChineseControl_{it}+e_{ijt}$ \left (1)
+$Thrpt_{it}=\alpha_{i}+\gamma_{t}+ChineseControl_{it}+e_{it}$ \left (1)
 
-In equation (1), the quarterly (t) container throughput (Thrpt) is explained by a set of port fixed-effects (alpha_i), sender country fixed effects (beta_j), and time fixed effects (gamma_t). The effect of chinese ownership is included in form of a dummy variable (ChineseControl_it) that is set to one when the ownership (at least partly) transfered to a Chinese company (needs clarification). This specification controls for all time-invariant port-specific, and all time-invariant sender-specific unobserved covariates. The time fixed effects account for common shocks that affect all European ports equally.  
+Second, we leverage the bilateral structure of the data, and use the variation between sender country and receiving port over time. The advantage of this approach is, that we can use higher levels of fixed effects, which enable much more precise control over which variation is used to identify the treatment effect. We proceed by estimating multipe equations with different levels of fixed effects with increasing restrictiveness.
 
-$Thrpt_{ijt}=\alpha_{ij}+\gamma_{t}+ChineseControl_{it}+e_{ijt}$ \left (2)
+$Thrpt_{ijt}=\alpha_{i}+\beta_{j}+\gamma_{t}$ \left (2)
+
+In equation (1), the quarterly ($t$) container throughput ($Thrpt$) is explained by a set of port fixed-effects ($\alpha_{i}$), sender country fixed effects (\beta_{j}), and time fixed effects (\gamma_{t}). This specification controls for all time-invariant port-specific, and all time-invariant sender-specific unobserved covariates. The time fixed effects account for common shocks that affect all European ports equally.  
+
+$Thrpt_{ijt}=\alpha_{ij}+\gamma_{t}+ChineseControl_{it}+e_{ijt}$ \left (3)
 
 Equation (2) increases the restrictiveness of th fixed effects by replacing the port-level fixed effects with port-sender fixed effects. This set of fixed effects controls for all time-invariant sender-port specfic covariates like regular shipping routes and preferences. This setup is often referred to as a difference-in-differences (DiD) set-up, as in the two-period case, equation (2) estimates a standard DiD effect. However, recent studies have shown, that this similarity does not extend to the multi-period case. 
 
-$Thrpt_{ijt}=\alpha_{ij}+\beta_{jt}+ChineseControl_{it}+e_{ijt}$ \left (3)
+$Thrpt_{ijt}=\alpha_{ij}+\beta_{jt}+ChineseControl_{it}+e_{ijt}$ \left (4)
 
 Equation (3) adds another dimension to the fixed effects. In addition to controlling for sender-port time-invariant covariates, it also controls for sender-time fixed effects. These encapsule all sender-time varying covariates like production shocks or supply shortages (as in the case of the blocked Suez Canal in 2021).
 
@@ -64,49 +68,49 @@ Another common issue is finding reasonable counterfactuals when interpreting the
 
 To address these shortcomings, we use recent advances in the DiD literature, and employ a staggered DiD estimator by @Callaway.2021. They formulate a unified approach to estimating average treatment effects in a DiD framework with multiple periods and varying treatment timing that aviods all above described interpretation issues. They define group-time average treatment effects, which measure the average treatment effect for a group of units that receive the treatment at the same point in time. In a later step, these group-time average treatment effects can be aggregated either by time period or group to derive an overall average treatment effect. Another advantage of their approach is that it gives the research the liberty to choose which comparison group should be used to calculate the treatment effects. That is, whether the comparison group includes only never-treated or not-yet-treated units. This translates to two parallel trend assumptions. When the comparison group is made up of never treated units:
 
-$ E[Y_{t}(0)-Y_{t-1}(0)|G=g]=E[Y_{t}(0)-Y_{t-1}(0)|C=1] $ with $g\leq t$
+$ E[Y_{t}(0)-Y_{t-1}(0)|G=g]=E[Y_{t}(0)-Y_{t-1}(0)|C=1] $ with $g\leq t$ \left (5)
 
 Where $Y_{t}(0)$ denotes the potential untreated outcome in period t, $G$ indicates the period a unit is first treated, and $C$ is an indicator that takes the value of one if a unit is never treated. Hence, the first term of the equation above denotes the difference between untreated outcomes of period t and period t-1 for units while they are treated, and the second term denotes the difference between potential outcomes of periods t and t-1 for units that are never treated. In a setting with staggered treatment, random sampling, and not treatment anticipation, the above parallel trend assumption leads the following group-time average treatment effects: 
 
-$ATT(g,t)=E[Y_{t}(g)-Y_{t}(0)|G=g]=E[Y_{t}-Y_{g-1}|G=g]-E[Y_{t}-Y_{g-1}|C=1]$
+$ATT(g,t)=E[Y_{t}(g)-Y_{t}(0)|G=g]=E[Y_{t}-Y_{g-1}|G=g]-E[Y_{t}-Y_{g-1}|C=1]$ \left (6)
 
 Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the observed outcome in period $t$. Hence, the average $ATT(g,t)$ represents the average effect of treatment in period t for units that are first treated in period g. To derive at an overall average treatment effect, we use a simple aggregation scheme as proposed by @Callaway.2021, which weights each ATT by the size of the group. 
 
 
 ```{r include=T}
-attgt <- att_gt(yname = "container",            #outcome variable
-                tname = "time",                 #time variable
-                idname = "",                    #id for units (should be port_code*sender)
-                gname = "G",                    #grouping variable for first treatment. Is zero for never treated units
-                #xformla = ~X,                  #for potential covariates
-                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
-                #allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time. 
-                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
-                data = port_data)
-
-# summarize the results
-summary(example_attgt)
-
-# plot the results (group-time atts)
-ggdid(example_attgt)
-
-# aggregate the group-time atts 
-
-# option 1: simple weighted average treatment effect with weights proportional to the group size
-agg_simple <- aggte(attgt, type = "simple")
-summary(agg.simple)
-
-# option 2: event-study type aggregation by time under treatment
-agg.es <- aggte(example_attgt, type = "dynamic")
-summary(agg.es)
-
-# option 3: groupwise treatment effects
-agg.gs <- aggte(example_attgt, type = "group")
-summary(agg.gs)
-
-# option 4: calender time effects
-agg.ct <- aggte(example_attgt, type = "calendar")
-summary(agg.ct)
+# attgt <- att_gt(yname = "container",            #outcome variable
+#                 tname = "time",                 #time variable
+#                 idname = "",                    #id for units (should be port_code*sender)
+#                 gname = "G",                    #grouping variable for first treatment. Is zero for never treated units
+#                 #xformla = ~X,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 #allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time. 
+#                 #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data)
+# 
+# # summarize the results
+# summary(example_attgt)
+# 
+# # plot the results (group-time atts)
+# ggdid(example_attgt)
+# 
+# # aggregate the group-time atts 
+# 
+# # option 1: simple weighted average treatment effect with weights proportional to the group size
+# agg_simple <- aggte(attgt, type = "simple")
+# summary(agg.simple)
+# 
+# # option 2: event-study type aggregation by time under treatment
+# agg.es <- aggte(example_attgt, type = "dynamic")
+# summary(agg.es)
+# 
+# # option 3: groupwise treatment effects
+# agg.gs <- aggte(example_attgt, type = "group")
+# summary(agg.gs)
+# 
+# # option 4: calender time effects
+# agg.ct <- aggte(example_attgt, type = "calendar")
+# summary(agg.ct)
 
 
 
@@ -114,11 +118,11 @@ summary(agg.ct)
 
 One potential issue, that above DiD model may have is endogeneity. In particular, ports may be selected into treatment based on their throughput in the past. If that is the case, untreated units do not pose a credible comparison group to estimate treatment effects. To alleviate those concerns, we reestimate the treatment effects adding the not yet treated observations as the comparison group. Following @Callaway.2021, the underlying parallel trend assumption is then: 
 
-$ E[Y_{t}-Y_{t-1}|G=g]=E[Y_{t}-Y_{t-1}|D_{t}=0, G\neq g] $ with $g\leq t$
+$ E[Y_{t}-Y_{t-1}|G=g]=E[Y_{t}-Y_{t-1}|D_{t}=0, G\neq g] $ with $g\leq t$ \left (6)
 
 Where $D_{t}$ is an binary variable indicating whether a unit is treated in period t. The new parallel trend assumption then leads to the following group-time average treatment effects:
 
-$ATT(g,t)=E[Y_{t}(g)-Y_{t}(0)|G=g]=E[Y_{t}-Y_{g-1}|G=g]-E[Y_{t}-Y_{g-1}|D_{t}=0, G\neq g]$
+$ATT(g,t)=E[Y_{t}(g)-Y_{t}(0)|G=g]=E[Y_{t}-Y_{g-1}|G=g]-E[Y_{t}-Y_{g-1}|D_{t}=0, G\neq g]$ \left (7)
 
 Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period $t$ in comparison to not yet treated units (and untreated units). 
 
