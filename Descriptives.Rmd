@@ -101,7 +101,7 @@ nat_stat_groups <- filter(nat_stat_groups, !is.na(container_2019))
 
 ```
 
-```{r}
+```{r echo=FALSE}
 kable(nat_stat_groups,
       caption = "National Statistical Groups combining many Ports")
 ```

@@ -42,10 +42,17 @@ Equation (3) adds another dimension to the fixed effects. In addition to control
 
 
 ```{r include=TRUE}
-#etable(feols(container ~ China_dummy | port + sender + time))
-#etable(feols(container ~ China_dummy | port*sender + time))
-#etable(feols(container ~ China_dummy | port*sender + sender*time))
+# spec1 <- feols(container ~ China_dummy | port + sender + time)
+# spec2 <- feols(container ~ China_dummy | port*sender + time)
+# spec3 <- feols(container ~ China_dummy | port*sender + sender*time)
 
+#etable(spec1, spec2, spec3,
+        #headers = c("Eq. 1", "Eq. 2", "Eq. 3"),
+        #style.df = style.df(fixef.title = "",
+        #                   fixef.suffix = " fixed effect", yesNo = "yes"),
+        #vcov = "twoway")
+
+        
 ```
 
 While the fixed effects identification strategy presented above is a common one in the literature, many authors criticize the model fo its lack of interpretable results. In particular, it is often unclear how the coefficients in fixed effects models are obtained and which units have served as comparisons to treated units, especially when the treatment timing varies between units. @Chaisemartin.2020 and @Borusyak.2022 find that the treatment effect estimated by two-way fixed effects models (as in equation (2)) is a weighted average of time-specific treatment effects with some weights potentially being negative. In extreme cases, this can cause negative coefficients although all time-specific treatment effects are positive. @GoodmanBacon.2021 point out that the estimator can be seen as a weighted average of all possible comparisons between treated, untreated, and not-yet-treated units, with the weights depending on treatment timing and the number of observations and conclude that a fixed effects set should be avoided, when the treatment effect is likely to vary over time.  
@@ -55,14 +62,65 @@ Another common issue is finding reasonable counterfactuals when interpreting the
 
 ## Difference in Differences
 
-To address these shortcomings, we use recent advances in the DiD literature, and employ a staggered DiD estimator by @Callaway.2021. They formulate a unified approach to estimating average treatment effects in a DiD framework with multiple periods and varying treatment timing that aviods all above described interpretation issues. They define group-time average treatment effects, which measure the average treatment effect for a group of units that receive the treatment at the same point in time. In a later step, these group-time average treatment effects can be aggregated either by time period or group to derive an overall average treatment effect. Another advantage of their approach is that it gives the research the liberty to choose which comparison group should be used to calculate the treatment effects. That is, whether the comparison group includes only never-treated or not-yet-treated units.  
+To address these shortcomings, we use recent advances in the DiD literature, and employ a staggered DiD estimator by @Callaway.2021. They formulate a unified approach to estimating average treatment effects in a DiD framework with multiple periods and varying treatment timing that aviods all above described interpretation issues. They define group-time average treatment effects, which measure the average treatment effect for a group of units that receive the treatment at the same point in time. In a later step, these group-time average treatment effects can be aggregated either by time period or group to derive an overall average treatment effect. Another advantage of their approach is that it gives the research the liberty to choose which comparison group should be used to calculate the treatment effects. That is, whether the comparison group includes only never-treated or not-yet-treated units. This translates to two parallel trend assumptions. When the comparison group is made up of never treated units:
+
+$ E[Y_{t}(0)-Y_{t-1}(0)|G=g]=E[Y_{t}(0)-Y_{t-1}(0)|C=1] $ with $g\leq t$
+
+Where $Y_{t}(0)$ denotes the potential untreated outcome in period t, $G$ indicates the period a unit is first treated, and $C$ is an indicator that takes the value of one if a unit is never treated. Hence, the first term of the equation above denotes the difference between untreated outcomes of period t and period t-1 for units while they are treated, and the second term denotes the difference between potential outcomes of periods t and t-1 for units that are never treated. In a setting with staggered treatment, random sampling, and not treatment anticipation, the above parallel trend assumption leads the following group-time average treatment effects: 
+
+$ATT(g,t)=E[Y_{t}(g)-Y_{t}(0)|G=g]=E[Y_{t}-Y_{g-1}|G=g]-E[Y_{t}-Y_{g-1}|C=1]$
+
+Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the observed outcome in period $t$. Hence, the average $ATT(g,t)$ represents the average effect of treatment in period t for units that are first treated in period g. To derive at an overall average treatment effect, we use a simple aggregation scheme as proposed by @Callaway.2021, which weights each ATT by the size of the group. 
 
 
 ```{r include=T}
+attgt <- att_gt(yname = "container",            #outcome variable
+                tname = "time",                 #time variable
+                idname = "",                    #id for units (should be port_code*sender)
+                gname = "G",                    #grouping variable for first treatment. Is zero for never treated units
+                #xformla = ~X,                  #for potential covariates
+                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                #allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time. 
+                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                data = port_data)
+
+# summarize the results
+summary(example_attgt)
+
+# plot the results (group-time atts)
+ggdid(example_attgt)
+
+# aggregate the group-time atts 
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple <- aggte(attgt, type = "simple")
+summary(agg.simple)
+
+# option 2: event-study type aggregation by time under treatment
+agg.es <- aggte(example_attgt, type = "dynamic")
+summary(agg.es)
+
+# option 3: groupwise treatment effects
+agg.gs <- aggte(example_attgt, type = "group")
+summary(agg.gs)
+
+# option 4: calender time effects
+agg.ct <- aggte(example_attgt, type = "calendar")
+summary(agg.ct)
 
 
 
 ```
+
+One potential issue, that above DiD model may have is endogeneity. In particular, ports may be selected into treatment based on their throughput in the past. If that is the case, untreated units do not pose a credible comparison group to estimate treatment effects. To alleviate those concerns, we reestimate the treatment effects adding the not yet treated observations as the comparison group. Following @Callaway.2021, the underlying parallel trend assumption is then: 
+
+$ E[Y_{t}-Y_{t-1}|G=g]=E[Y_{t}-Y_{t-1}|D_{t}=0, G\neq g] $ with $g\leq t$
+
+Where $D_{t}$ is an binary variable indicating whether a unit is treated in period t. The new parallel trend assumption then leads to the following group-time average treatment effects:
+
+$ATT(g,t)=E[Y_{t}(g)-Y_{t}(0)|G=g]=E[Y_{t}-Y_{g-1}|G=g]-E[Y_{t}-Y_{g-1}|D_{t}=0, G\neq g]$
+
+Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period $t$ in comparison to not yet treated units (and untreated units). 
 
 ## References
 
