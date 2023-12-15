@@ -91,9 +91,10 @@ nat_stat_names <- read_xlsx("mar_esms_an_2.xlsx", sheet = "1.  2024 extended lis
 
 nat_stat_groups <- merge(nat_stat_groups, nat_stat_names, by.x = "nat_stat_group", by.y = "UNLocode", all.x = T)
 
-through_put_2019 <- port_data %>% filter(year==2019) %>% group_by(port) %>% summarize(container_2019=sum(container,na.rm=T))
+through_put_2019 <- port_data %>% filter(year==2019) %>% group_by(port) %>%  summarize(container_2019=sum(container,na.rm=T))
 
-nat_stat_groups <- merge(nat_stat_groups, through_put_2019, by.x="port", by.y = "port", all.x = T) %>% arrange(desc(count))
+nat_stat_groups <- merge(nat_stat_groups, through_put_2019, by.x="port", by.y = "port", all.x = T) %>% arrange(desc(count)) %>% 
+  mutate(share = round(container_2019/count, digits = 0))
 
 na_count_nat_stat_g <- sum(is.na(nat_stat_groups))
 
