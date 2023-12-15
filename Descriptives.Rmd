@@ -19,8 +19,31 @@ library(knitr)
 
 load("port_data.RData")
 
-port_data <- filter(port_data, aggregate==0, stat_port==1)
+port_data <- filter(port_data, aggregate==0, stat_port==1, average_yrly >=100)   # filter out aggregates and small ports
 ```
+
+## Filtering by average yearly throughput
+
+```{r echo=FALSE,message=FALSE}
+
+#port_data %>% ggplot(aes(x=average_yrly)) + geom_histogram()
+edf <- ecdf(port_data$average_yrly)
+plot(edf)
+
+quantile_averages <- quantile(port_data$average_yrly, probs = seq(0,0.4,0.1))
+
+```
+
+```{r echo=F}
+kable(quantile_averages,
+      caption = "Distribution of average yearly container throughput")
+```
+
+
+
+
+
+
 
 ## China share in cargo throughput
 
