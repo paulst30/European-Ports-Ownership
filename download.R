@@ -134,6 +134,9 @@ nat_stat_code <- port_codebook %>% filter(!is.na(nat_stat_code)) %>% pull(nat_st
 #list of geographic aggregates 
 aggregates_list <- port_codebook %>% filter(!is.na(aggregate)) %>% pull(Locode)
 
+# table of port groups and the number of included ports
+port_groups <- port_codebook %>% group_by(nat_stat_code) %>% summarize(inc_ports_n=n()) %>% filter(!is.na(nat_stat_code))
+
 # NOTE: list of ports is not exhaustive. Some are aggregated in geological areas. 
 # See https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL
 
@@ -267,6 +270,19 @@ for (i in 1:nrow(incorrect_aggregates)) {
   port_data$aggregate[port_data$port_code==incorrect_aggregates$port_code[i]] <- incorrect_aggregates$aggregate[i]
   port_data$stat_port[port_data$port_code==incorrect_aggregates$port_code[i]] <- incorrect_aggregates$stat_port[i]
 }
+
+######## ADD INFOMATION ON PORT GROUPS ########
+averages <- port_data %>% group_by(port_code, year) %>% summarize(container_yrly=sum(container, na.rm = T)) %>% ungroup() %>%
+                      merge(port_groups, by.x = "port_code", by.y = "nat_stat_code", all.x = T) %>%
+                      group_by(port_code, inc_ports_n) %>%
+                      summarize(average_yrly = mean(container_yrly, na.rm=T)) %>% ungroup() %>%
+                      mutate(average_yrly = case_when(!is.na(inc_ports_n) ~ average_yrly/inc_ports_n,
+                                                 .default = average_yrly))
+
+port_data <- merge(port_data, averages, by.x = "port_code", by.y = "port_code", all.x = T)
+
+######## ADD INFORMATION ON TREATMENT ########
+
 
 
 ######## SAVE ############
