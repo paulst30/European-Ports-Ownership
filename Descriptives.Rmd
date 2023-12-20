@@ -285,7 +285,7 @@ Originally, we found 26 ports which were at some point at least partly owned by 
 
 - (list them here)
 
-The following graph display all 16 treated ports and their annual container throughput. The vertical lines indicate treatment time. 
+The following graph display all 16 treated ports and their annual container throughput. The vertical lines indicate treatment time. Solid line represent the container throughput of the respective port. The dashed line represents the average throughput of the control group. Note that not all ports report the throughput for every period. This might influence the average.
 
 ```{r echo=FALSE, message=FALSE, fig.dim = c(8, 12)}
 treated_ports <- unique(port_data$port_code[port_data$group!=0])
@@ -295,16 +295,17 @@ for (i in 1:length(treated_ports)){
   treatment_time <- unique(port_data$group[port_data$port_code==treated_ports[i]])
   port_name <- unique(port_data$port[port_data$port_code==treated_ports[i]])
   
-  plot_list[[i]] <- port_data %>% filter(port_code==treated_ports[i]) %>% group_by(time) %>% summarize(container = sum(container, na.rm=T), 
-                                                      group = mean(group), 
-                                                      ownership_china = max(ownership_china)) %>%
-              ggplot(aes(x=time, y=container)) + geom_line() +
+  plot_list[[i]] <- port_data %>% filter(port_code==treated_ports[i] | group==0) %>% group_by(group, time) %>% 
+                                         summarize(count = n(),
+                                                   container = sum(container, na.rm=T)/count,
+                                                   ownership_china = max(ownership_china)) %>%
+              ggplot(aes(x=time, y=container)) + geom_line(aes(linetype=as.factor(group))) +
               geom_vline(xintercept = treatment_time) +
-              labs(title = port_name)
+              scale_linetype_manual(values=c("dotted", "solid")) +
+              labs(title = port_name ) 
 }
 
-plot_grid(plotlist = plot_list, ncol=3)
-
+plot_grid(plotlist = plot_list, ncol=3) 
 ```
 
 

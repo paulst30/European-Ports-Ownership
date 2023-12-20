@@ -84,6 +84,8 @@ Originally, we found 26 ports which were at some point at least partly owned by 
 
 - (list them here)
 
+The following graph display all 16 treated ports and their annual container throughput. The vertical lines indicate treatment time. 
+
 ![](Descriptives_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 
 
