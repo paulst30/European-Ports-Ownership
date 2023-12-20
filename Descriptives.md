@@ -54,49 +54,6 @@ The statistical units in the Eurostat data are a mixed list of actual ports and 
 
 
 
-Table: National Statistical Groups combining many Ports
-
-|port                         |nat_stat_group | count| container_2019| share|
-|:----------------------------|:--------------|-----:|--------------:|-----:|
-|Izmit                        |TRIZT          |    14|           6569|   469|
-|Marseille                    |FRMRS          |     8|           4514|   564|
-|Cork                         |IEORK          |     6|            871|   145|
-|Rotterdam                    |NLRTM          |     6|          65487| 10914|
-|Santa Cruz de Tenerife       |ESSCT          |     5|           1684|   337|
-|Tallinn                      |EETLL          |     5|            813|   163|
-|Ambarli                      |TRAMB          |     4|          14968|  3742|
-|Amsterdam                    |NLAMS          |     4|            110|    28|
-|Las Palmas                   |ESLPA          |     4|           5033|  1258|
-|Palma de Mallorca            |ESPMI          |     4|            170|    42|
-|Iskenderun, Hatay            |TRISK          |     3|           3412|  1137|
-|Constanta                    |ROCND          |     2|           2580|  1290|
-|Gioia Tauro                  |ITGIT          |     2|           9256|  4628|
-|Helsinki                     |FIHEL          |     2|           1518|   759|
-|Le Havre                     |FRLEH          |     2|           9674|  4837|
-|Valencia                     |ESVLC          |     2|          21599| 10800|
-|Venezia                      |ITVCE          |     2|           2079|  1040|
-|Aalborg                      |DKAAL          |     1|            226|   226|
-|Algeciras                    |ESALG          |     1|          26295| 26295|
-|Aliaga                       |TRALI          |     1|           1747|  1747|
-|Bari                         |ITBRI          |     1|            354|   354|
-|Fredericia (Og Shell-Havnen) |DKFRC          |     1|            418|   418|
-|Gdansk                       |PLGDN          |     1|           7797|  7797|
-|Hamburg                      |DEHAM          |     1|          36153| 36153|
-|Helsingborg                  |SEHEL          |     1|           1185|  1185|
-|Kristiansand                 |NOKRS          |     1|            189|   189|
-|Livorno                      |ITLIV          |     1|           9505|  9505|
-|Lubeck                       |DELBC          |     1|            887|   887|
-|Malmo                        |SEMMA          |     1|            112|   112|
-|Marsaxlokk                   |MTMAR          |     1|            816|   816|
-|Mersin                       |TRMER          |     1|           8922|  8922|
-|Moerdijk                     |NLMOE          |     1|            341|   341|
-|Mosjoen                      |NOMJF          |     1|            117|   117|
-|Moss                         |NOMSS          |     1|            202|   202|
-|Napoli                       |ITNAP          |     1|           1690|  1690|
-|Savona                       |ITSVN          |     1|            307|   307|
-|Tekirdag                     |TRTEK          |     1|           7637|  7637|
-|Varna                        |BGVAR          |     1|            755|   755|
-|Volos                        |GRVOL          |     1|            153|   153|
 
 
 
@@ -118,4 +75,16 @@ Above graphs indicate that the share of Chinese cargo is (surprisingly) low. The
 
 
 ![](Descriptives_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+
+## Chinese ownership treatment
+
+
+
+Originally, we found 26 ports which were at some point at least partly owned by a Chinese company. The selected sample contains 14 treated ports. Ten ports dropped out of the sample due to various reasons:
+
+- (list them here)
+
+![](Descriptives_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+
+
 

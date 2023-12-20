@@ -18,6 +18,7 @@ library(patchwork)
 library(ggplot2)
 library(readxl)
 library(knitr)
+library(cowplot)
 
 load("port_data.RData")
 
@@ -177,8 +178,8 @@ nat_stat_groups <- filter(nat_stat_groups, !is.na(container_2019))
 ```
 
 ```{r echo=FALSE}
-kable(nat_stat_groups,
-      caption = "National Statistical Groups combining many Ports")
+# kable(nat_stat_groups,
+#       caption = "National Statistical Groups combining many Ports")
 ```
 
 
@@ -271,4 +272,40 @@ port_data %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except 
               theme(axis.text.x = element_text(angle = 45, hjust = 1),
                     axis.title.x = element_blank())
 ```
+
+## Chinese ownership treatment
+
+```{r include=FALSE}
+
+length(unique(port_data$port_code[port_data$group!=0]))
+
+```
+
+Originally, we found 26 ports which were at some point at least partly owned by a Chinese company. The selected sample contains `r length(unique(port_data$port_code[port_data$group!=0]))` treated ports. Ten ports dropped out of the sample due to various reasons:
+
+- (list them here)
+
+The following graph display all 16 treated ports and their annual container throughput. The vertical lines indicate treatment time. 
+
+```{r echo=FALSE, message=FALSE, fig.dim = c(8, 12)}
+treated_ports <- unique(port_data$port_code[port_data$group!=0])
+plot_list <- list()
+
+for (i in 1:length(treated_ports)){
+  treatment_time <- unique(port_data$group[port_data$port_code==treated_ports[i]])
+  port_name <- unique(port_data$port[port_data$port_code==treated_ports[i]])
+  
+  plot_list[[i]] <- port_data %>% filter(port_code==treated_ports[i]) %>% group_by(time) %>% summarize(container = sum(container, na.rm=T), 
+                                                      group = mean(group), 
+                                                      ownership_china = max(ownership_china)) %>%
+              ggplot(aes(x=time, y=container)) + geom_line() +
+              geom_vline(xintercept = treatment_time) +
+              labs(title = port_name)
+}
+
+plot_grid(plotlist = plot_list, ncol=3)
+
+```
+
+
 
