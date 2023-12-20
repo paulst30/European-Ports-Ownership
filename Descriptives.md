@@ -82,9 +82,13 @@ Above graphs indicate that the share of Chinese cargo is (surprisingly) low. The
 
 Originally, we found 26 ports which were at some point at least partly owned by a Chinese company. The selected sample contains 14 treated ports. Ten ports dropped out of the sample due to various reasons:
 
-- (list them here)
+- One port does not report any data (Willebroek)
+- One falls into an aggregate of many ports (Venlo, is included in an aggregate of 96 ports)
+- Two ports are not listed as statistical ports (Zeebrugge, and Antwerp; should be looked into again)
+- two fall below the average throughput threshold of 100 thousand tonnes (Montoir, Stockholm)
+- Five ports were either always treated (Duisburg, Felixtowe, Thamesport, Harwich) or never treated (Hamburg)
 
-The following graph display all 16 treated ports and their annual container throughput. The vertical lines indicate treatment time. 
+The following graph display all 14 treated ports and their annual container throughput. The vertical lines indicate treatment time. Solid line represent the container throughput of the respective port. The dashed line represents the average throughput of the control group. Note that not all ports report the throughput for every period. This might influence the average.
 
 ![](Descriptives_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 
