@@ -19,6 +19,7 @@ library(ggplot2)
 library(readxl)
 library(knitr)
 library(cowplot)
+library(lattice)
 
 load("port_data.RData")
 
@@ -110,6 +111,13 @@ port_data %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" | se
 
 ```{r, include=FALSE}
 port_data <- filter(port_data, average_yrly >=100) #exclude port that have an average yearly container throughput above 100
+
+port_data_agg <- port_data %>% group_by(port, port_code, period) %>% 
+                               summarize(container = sum(container, na.rm=T),
+                                         group = max(group),
+                                         ownership_china = max(ownership_china)) %>% ungroup() %>%
+                              group_by(port_code) %>% 
+                              mutate(port_id = cur_group_id()) %>% ungroup()
 ```
 
 # Sample
@@ -281,12 +289,12 @@ length(unique(port_data$port_code[port_data$group!=0]))
 
 ```
 
-Originally, we found 26 ports which were at some point at least partly owned by a Chinese company. The selected sample contains `r length(unique(port_data$port_code[port_data$group!=0]))` treated ports. Ten ports dropped out of the sample due to various reasons:
+Originally, we found 26 ports which were at some point at least partly owned by a Chinese company. The selected sample contains `r length(unique(port_data$port_code[port_data$group!=0]))` treated ports. 11 ports dropped out of the sample due to various reasons:
 
 - One port does not report any data (Willebroek)
 - One falls into an aggregate of many ports (Venlo, is included in an aggregate of 96 ports)
 - Two ports are not listed as statistical ports (Zeebrugge, and Antwerp; should be looked into again)
-- two fall below the average throughput threshold of 100 thousand tonnes (Montoir, Stockholm)
+- Two fall below the average throughput threshold of 100 thousand tonnes (Montoir, Stockholm)
 - Five ports were either always treated (Duisburg, Felixtowe, Thamesport, Harwich) or never treated (Hamburg)
 
 The following graph display all 14 treated ports and their annual container throughput. The vertical lines indicate treatment time. Solid line represent the container throughput of the respective port. The dashed line represents the average throughput of the control group. Note that not all ports report the throughput for every period. This might influence the average.
@@ -296,7 +304,8 @@ treated_ports <- unique(port_data$port_code[port_data$group!=0])
 plot_list <- list()
 
 for (i in 1:length(treated_ports)){
-  treatment_time <- unique(port_data$group[port_data$port_code==treated_ports[i]])
+  treatment_period <- unique(port_data$group[port_data$port_code==treated_ports[i]])
+  treatment_time <- unique(port_data$time[port_data$period==treatment_period])
   port_name <- unique(port_data$port[port_data$port_code==treated_ports[i]])
   
   plot_list[[i]] <- port_data %>% filter(port_code==treated_ports[i] | group==0) %>% group_by(group, time) %>% 
@@ -312,5 +321,18 @@ for (i in 1:length(treated_ports)){
 plot_grid(plotlist = plot_list, ncol=3) 
 ```
 
+## Data availability for treated ports
+
+The DiD approach is sensible to missing data in the timeseries of treated units. In the best case, there are not missing values in each treated unit. There are two options to achieve this: First, trim the time horizon at the front an end to make sure all treated ports start and end at the same time. Second, missing values in the middle of the time series could be imputed. 
+
+```{r echo=FALSE, message=FALSE, fig.dim = c(16,8)}
+missingness_matrix <- port_data_agg %>% filter(group!=0) %>% mutate(missing=case_when(!is.na(container) & ownership_china==0 ~ 1,
+                                                                                      !is.na(container) & ownership_china==1 ~2)) %>%
+                        pivot_wider(id_cols = "period", names_from = "port", values_from = "missing", values_fill = 0) %>%
+                        arrange(period) %>% select(-period)
+missingness_matrix <- as.matrix(missingness_matrix)
+
+levelplot(missingness_matrix)
+```
 
 

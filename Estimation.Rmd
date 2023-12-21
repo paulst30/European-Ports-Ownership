@@ -20,7 +20,14 @@ library(did)
 
 load("port_data.RData")
 
-port_data <- filter(port_data, aggregate==0, stat_port==1)
+port_data <- filter(port_data, aggregate==0, stat_port==1, average_yrly >=100)
+
+port_data_agg <- port_data %>% group_by(port, port_code, period) %>% 
+                               summarize(container = sum(container, na.rm=T),
+                                         group = max(group),
+                                         ownership_china = max(ownership_china)) %>% ungroup() %>%
+                              group_by(port_code) %>% 
+                              mutate(port_id = cur_group_id()) %>% ungroup()
 ```
 
 
@@ -46,15 +53,20 @@ Equation (3) adds another dimension to the fixed effects. In addition to control
 
 
 ```{r include=TRUE}
-# spec1 <- feols(container ~ China_dummy | port + sender + time)
-# spec2 <- feols(container ~ China_dummy | port*sender + time)
-# spec3 <- feols(container ~ China_dummy | port*sender + sender*time)
+spec1 <- feols(container ~ ownership_china | port_code + period,
+               data = port_data_agg)
+spec2 <- feols(container ~ ownership_china | port + sender + period,
+               data = port_data)
+spec3 <- feols(container ~ ownership_china| port^sender + period,
+               data = port_data)
+spec4 <- feols(container ~ ownership_china| port^sender + sender^period,
+               data = port_data)
 
-#etable(spec1, spec2, spec3,
-        #headers = c("Eq. 1", "Eq. 2", "Eq. 3"),
-        #style.df = style.df(fixef.title = "",
-        #                   fixef.suffix = " fixed effect", yesNo = "yes"),
-        #vcov = "twoway")
+etable(spec1, spec2, spec3, spec4,
+        headers = c("Eq. 1", "Eq. 2", "Eq. 3", "Eq.4"),
+        style.df = style.df(fixef.title = "Fixed Effects",
+                            fixef.suffix = "", yesNo = "yes"),
+        vcov = "twoway")
 
         
 ```
@@ -78,39 +90,39 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
 
 
 ```{r include=T}
-# attgt <- att_gt(yname = "container",            #outcome variable
-#                 tname = "time",                 #time variable
-#                 idname = "",                    #id for units (should be port_code*sender)
-#                 gname = "G",                    #grouping variable for first treatment. Is zero for never treated units
-#                 #xformla = ~X,                  #for potential covariates
-#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
-#                 #allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time. 
-#                 #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
-#                 data = port_data)
-# 
-# # summarize the results
-# summary(example_attgt)
+attgt <- att_gt(yname = "container",            #outcome variable
+                tname = "period",                 #time variable
+                idname = "port_id",                    #id for units (should be port_code*sender)
+                gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+                #xformla = ~X,                  #for potential covariates
+                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                data = port_data_agg)
+
+# summarize the results
+summary(attgt)
 # 
 # # plot the results (group-time atts)
 # ggdid(example_attgt)
 # 
 # # aggregate the group-time atts 
 # 
-# # option 1: simple weighted average treatment effect with weights proportional to the group size
-# agg_simple <- aggte(attgt, type = "simple")
-# summary(agg.simple)
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple <- aggte(attgt, type = "simple", na.rm=T)
+summary(agg_simple)
 # 
-# # option 2: event-study type aggregation by time under treatment
-# agg.es <- aggte(example_attgt, type = "dynamic")
-# summary(agg.es)
+# option 2: event-study type aggregation by time under treatment
+agg_es <- aggte(attgt, type = "dynamic", na.rm=T)
+summary(agg_es)
 # 
-# # option 3: groupwise treatment effects
-# agg.gs <- aggte(example_attgt, type = "group")
-# summary(agg.gs)
+# option 3: groupwise treatment effects
+agg_gs <- aggte(attgt, type = "group", na.rm=T)
+summary(agg_gs)
 # 
-# # option 4: calender time effects
-# agg.ct <- aggte(example_attgt, type = "calendar")
-# summary(agg.ct)
+# option 4: calender time effects
+agg_ct <- aggte(attgt, type = "calendar", na.rm=T)
+summary(agg_ct)
 
 
 

@@ -286,8 +286,9 @@ treatment <- read_xlsx("Chinese_investments_14 Dec 23.xlsx", sheet = "treatment_
              select(port_code, year, quarter, number_CHfinanciers, first_CHfinancier, port_information)
 
 port_data <- merge(port_data, treatment, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>% 
+               arrange(year, quarter) %>% group_by(year,quarter) %>% mutate(period = cur_group_id()) %>% ungroup() %>%
                mutate(ownership_china = ifelse(is.na(number_CHfinanciers),NA,1),
-               group = ifelse(is.na(number_CHfinanciers),NA,time)) %>% group_by(port_code) %>% arrange(!desc(time)) %>%
+                      group = ifelse(is.na(number_CHfinanciers),NA, period)) %>% group_by(port_code) %>% arrange(!desc(time)) %>%
                fill(group, .direction = "downup") %>% fill(ownership_china, .direction = "down") %>% ungroup() %>%
                mutate(ownership_china=ifelse(is.na(ownership_china),0,ownership_china),
                       group = ifelse(is.na(group), 0, group)) %>% arrange(desc(group))

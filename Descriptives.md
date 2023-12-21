@@ -44,7 +44,7 @@ An alternative to filtering by the aggregated throughput could be filtering by t
 
 
 
-The statistical units in the Eurostat data are a mixed list of actual ports and grouped ports (statistical ports) and geographic areas, which represent aggregates of many ports. While the port groups "usually" have one port management, this cannot be assumed for everyone. In addition, statistical ports that represent a group of ports make up the majority of the container shipments (64.8 percent). The definition of the statistical units (statistical ports and geographic aggregates) can be found in the [metadata](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL), and in the [annex](https://ec.europa.eu/eurostat/cache/metadata/Annexes/mar_esms_an_2.xlsx). As of now, the sample is restricted to statistical ports (no geographic aggregates). The remaining sample includes:
+The statistical units in the Eurostat data are a mixed list of actual ports and grouped ports (statistical ports) and geographic areas, which represent aggregates of many ports. While the port groups "usually" have one port management, this cannot be assumed for everyone. In addition, statistical ports that represent a group of ports make up the majority of the container shipments (64.7 percent). The definition of the statistical units (statistical ports and geographic aggregates) can be found in the [metadata](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2018.180.01.0029.01.ENG&toc=OJ:L:2018:180:FULL), and in the [annex](https://ec.europa.eu/eurostat/cache/metadata/Annexes/mar_esms_an_2.xlsx). As of now, the sample is restricted to statistical ports (no geographic aggregates). The remaining sample includes:
 
 - 26 reporting countries
 - 120 ports (only 0 with zero throughput)
@@ -80,17 +80,22 @@ Above graphs indicate that the share of Chinese cargo is (surprisingly) low. The
 
 
 
-Originally, we found 26 ports which were at some point at least partly owned by a Chinese company. The selected sample contains 14 treated ports. Ten ports dropped out of the sample due to various reasons:
+Originally, we found 26 ports which were at some point at least partly owned by a Chinese company. The selected sample contains 15 treated ports. 11 ports dropped out of the sample due to various reasons:
 
 - One port does not report any data (Willebroek)
 - One falls into an aggregate of many ports (Venlo, is included in an aggregate of 96 ports)
 - Two ports are not listed as statistical ports (Zeebrugge, and Antwerp; should be looked into again)
-- two fall below the average throughput threshold of 100 thousand tonnes (Montoir, Stockholm)
+- Two fall below the average throughput threshold of 100 thousand tonnes (Montoir, Stockholm)
 - Five ports were either always treated (Duisburg, Felixtowe, Thamesport, Harwich) or never treated (Hamburg)
 
 The following graph display all 14 treated ports and their annual container throughput. The vertical lines indicate treatment time. Solid line represent the container throughput of the respective port. The dashed line represents the average throughput of the control group. Note that not all ports report the throughput for every period. This might influence the average.
 
 ![](Descriptives_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 
+## Data availability for treated ports
+
+The DiD approach is sensible to missing data in the timeseries of treated units. In the best case, there are not missing values in each treated unit. There are two options to achieve this: First, trim the time horizon at the front an end to make sure all treated ports start and end at the same time. Second, missing values in the middle of the time series could be imputed. 
+
+![](Descriptives_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 
