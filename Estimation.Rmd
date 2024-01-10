@@ -20,14 +20,16 @@ library(did)
 
 load("port_data.RData")
 
-port_data <- filter(port_data, aggregate==0, stat_port==1, average_yrly >=100)
+port_data <- filter(port_data, aggregate==0, stat_port==1, average_yrly >=100) %>% 
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0))
 
 port_data_agg <- port_data %>% group_by(port, port_code, period) %>% 
                                summarize(container = sum(container, na.rm=T),
                                          group = max(group),
                                          ownership_china = max(ownership_china)) %>% ungroup() %>%
                               group_by(port_code) %>% 
-                              mutate(port_id = cur_group_id()) %>% ungroup()
+                              mutate(port_id = cur_group_id(),
+                                     mean_container = container / mean(container, na.rm=T)) %>% ungroup()
 ```
 
 
@@ -52,15 +54,19 @@ $Thrpt_{ijt}=\alpha_{ij}+\beta_{jt}+ChineseControl_{it}+e_{ijt}$ \left (4)
 Equation (3) adds another dimension to the fixed effects. In addition to controlling for sender-port time-invariant covariates, it also controls for sender-time fixed effects. These encapsule all sender-time varying covariates like production shocks or supply shortages (as in the case of the blocked Suez Canal in 2021).
 
 
-```{r include=TRUE}
-spec1 <- feols(container ~ ownership_china | port_code + period,
+```{r include=FALSE}
+spec1 <- feols(container ~ ownership_china  | port_code + period,
                data = port_data_agg)
-spec2 <- feols(container ~ ownership_china | port + sender + period,
+spec2 <- feols(container ~ ownership_china + ownership_china*s_china | port + sender + period,
                data = port_data)
-spec3 <- feols(container ~ ownership_china| port^sender + period,
+spec3 <- feols(container ~ ownership_china + ownership_china*s_china| port^sender + period,
                data = port_data)
-spec4 <- feols(container ~ ownership_china| port^sender + sender^period,
+spec4 <- feols(container ~ ownership_china + ownership_china*s_china| port^sender + sender^period,
                data = port_data)
+
+```
+
+```{r include=TRUE}
 
 etable(spec1, spec2, spec3, spec4,
         headers = c("Eq. 1", "Eq. 2", "Eq. 3", "Eq.4"),
@@ -78,9 +84,10 @@ Another common issue is finding reasonable counterfactuals when interpreting the
 
 ## Difference in Differences
 
-To address these shortcomings, we use recent advances in the DiD literature, and employ a staggered DiD estimator by @Callaway.2021. They formulate a unified approach to estimating average treatment effects in a DiD framework with multiple periods and varying treatment timing that aviods all above described interpretation issues. They define group-time average treatment effects, which measure the average treatment effect for a group of units that receive the treatment at the same point in time. In a later step, these group-time average treatment effects can be aggregated either by time period or group to derive an overall average treatment effect. Another advantage of their approach is that it gives the research the liberty to choose which comparison group should be used to calculate the treatment effects. That is, whether the comparison group includes only never-treated or not-yet-treated units. This translates to two parallel trend assumptions. When the comparison group is made up of never treated units:
+To address these shortcomings, we use recent advances in the DiD literature, and employ a staggered DiD estimator by @Callaway.2021. They formulate a unified approach to estimating average treatment effects in a DiD framework with multiple periods and varying treatment timing that avoids all above described interpretation issues. They define group-time average treatment effects, which measure the average treatment effect for a group of units that receive the treatment at the same point in time. In a later step, these group-time average treatment effects can be aggregated either by time period or group to derive an overall average treatment effect. Another advantage of their approach is that it gives the research the liberty to choose which comparison group should be used to calculate the treatment effects. That is, whether the comparison group includes only never-treated or not-yet-treated units. This translates to two parallel trend assumptions. When the comparison group is made up of never treated units:
 
-$ E[Y_{t}(0)-Y_{t-1}(0)|G=g]=E[Y_{t}(0)-Y_{t-1}(0)|C=1] $ with $g\leq t$ \left (5)
+$E[Y_{t}(0)-Y_{t-1}(0)|G=g]=E[Y_{t}(0)-Y_{t-1}(0)|C=1]$ 
+with $g\leq t$ \left (5)
 
 Where $Y_{t}(0)$ denotes the potential untreated outcome in period t, $G$ indicates the period a unit is first treated, and $C$ is an indicator that takes the value of one if a unit is never treated. Hence, the first term of the equation above denotes the difference between untreated outcomes of period t and period t-1 for units while they are treated, and the second term denotes the difference between potential outcomes of periods t and t-1 for units that are never treated. In a setting with staggered treatment, random sampling, and not treatment anticipation, the above parallel trend assumption leads the following group-time average treatment effects: 
 
@@ -89,7 +96,7 @@ $ATT(g,t)=E[Y_{t}(g)-Y_{t}(0)|G=g]=E[Y_{t}-Y_{g-1}|G=g]-E[Y_{t}-Y_{g-1}|C=1]$ \l
 Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the observed outcome in period $t$. Hence, the average $ATT(g,t)$ represents the average effect of treatment in period t for units that are first treated in period g. To derive at an overall average treatment effect, we use a simple aggregation scheme as proposed by @Callaway.2021, which weights each ATT by the size of the group. 
 
 
-```{r include=T}
+```{r include=F}
 attgt <- att_gt(yname = "container",            #outcome variable
                 tname = "period",                 #time variable
                 idname = "port_id",                    #id for units (should be port_code*sender)
@@ -101,7 +108,7 @@ attgt <- att_gt(yname = "container",            #outcome variable
                 data = port_data_agg)
 
 # summarize the results
-summary(attgt)
+#summary(attgt)
 # 
 # # plot the results (group-time atts)
 # ggdid(example_attgt)
@@ -110,23 +117,30 @@ summary(attgt)
 # 
 # option 1: simple weighted average treatment effect with weights proportional to the group size
 agg_simple <- aggte(attgt, type = "simple", na.rm=T)
-summary(agg_simple)
+#summary(agg_simple)
 # 
 # option 2: event-study type aggregation by time under treatment
 agg_es <- aggte(attgt, type = "dynamic", na.rm=T)
-summary(agg_es)
+#summary(agg_es)
 # 
 # option 3: groupwise treatment effects
 agg_gs <- aggte(attgt, type = "group", na.rm=T)
-summary(agg_gs)
+#summary(agg_gs)
 # 
 # option 4: calender time effects
 agg_ct <- aggte(attgt, type = "calendar", na.rm=T)
-summary(agg_ct)
-
-
+#summary(agg_ct)
 
 ```
+
+```{r include=TRUE}
+# simple weighted average
+summary(agg_simple)
+
+# groupwise
+summary(agg_gs)
+```
+
 
 One potential issue, that above DiD model may have is endogeneity. In particular, ports may be selected into treatment based on their throughput in the past. If that is the case, untreated units do not pose a credible comparison group to estimate treatment effects. To alleviate those concerns, we reestimate the treatment effects adding the not yet treated observations as the comparison group. Following @Callaway.2021, the underlying parallel trend assumption is then: 
 
@@ -137,6 +151,97 @@ Where $D_{t}$ is an binary variable indicating whether a unit is treated in peri
 $ATT(g,t)=E[Y_{t}(g)-Y_{t}(0)|G=g]=E[Y_{t}-Y_{g-1}|G=g]-E[Y_{t}-Y_{g-1}|D_{t}=0, G\neq g]$ \left (7)
 
 Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period $t$ in comparison to not yet treated units (and untreated units). 
+
+```{r include=F}
+ny_attgt <- att_gt(yname = "container",            #outcome variable
+                tname = "period",                 #time variable
+                idname = "port_id",                    #id for units (should be port_code*sender)
+                gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+                #xformla = ~X,                  #for potential covariates
+                control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                data = port_data_agg)
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+ny_agg_simple <- aggte(ny_attgt, type = "simple", na.rm=T)
+
+# option 3: groupwise treatment effects
+ny_agg_gs <- aggte(ny_attgt, type = "group", na.rm=T)
+
+```
+
+```{r include=T}
+summary(ny_agg_simple)
+summary(ny_agg_gs)
+
+```
+
+## Parallel trend assumption
+# Event study
+For the DiD framework to deliver unbiased results, the parallel trend assumptions needs to hold. While it is not possible to test this assumption directly, we conduct a few test to validate whether the pre-treatment trends run parallel or not. The following graph displays and event study type aggregation of the group-time average treatment effects calculated above. The aggregated average treatment effects before treatment (red) are all around zero, indicating that parallel trends holds in the pre-treatment period. The graphs clearly indicate a peristent positive treatment effect after the treatment. The point-wise estimates are only significant in a couple of periods, which is due to the fact that some ports experience a high positive treatment effect while others do not. In particular *insert portnames* show consistently higher throughputs after treatment than the control group. 
+
+```{r include=TRUE}
+ggdid(agg_es) + scale_x_continuous(breaks = seq(-80, 80, 10))
+
+```
+
+# Placebo test
+
+
+```{r include=FALSE, warning=FALSE}
+placebo_data <- port_data_agg %>% filter(group==0)
+
+placebo_atts <- list()
+for (j in 1:100) {
+fake_treated <- slice_sample(as.data.frame(unique(placebo_data$port_id)),n=15,replace = F)
+colnames(fake_treated)[1] <- "port_id"
+
+for (i in 1:nrow(fake_treated)) {
+  sampled_period <- placebo_data %>%
+    filter(port_id == fake_treated$port_id[i] & !is.na(container)) %>%
+    slice_sample(n = 1) %>%
+    pull(period)  # Extract the sampled period value
+
+  fake_treated$fake_group[i] <- sampled_period
+}
+
+placebo_data$fake_group  <- fake_treated$fake_group[match(placebo_data$port_id, fake_treated$port_id)]
+placebo_data$fake_group[is.na(placebo_data$fake_group)] <- 0
+placebo_data$fake_group <- as.numeric(placebo_data$fake_group)
+
+placebo_attgt <- att_gt(yname = "container",            #outcome variable
+                tname = "period",                 #time variable
+                idname = "port_id",                    #id for units (should be port_code*sender)
+                gname = "fake_group",                    #grouping variable for first treatment. Is zero for never treated units
+                #xformla = ~X,                  #for potential covariates
+                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                data = placebo_data)
+
+placebo_agg_simple <- aggte(placebo_attgt, type = "simple", na.rm=T)
+
+placebo_atts[j] <- placebo_agg_simple$overall.att
+}
+
+placebo_atts_df <- as.data.frame(do.call(rbind,placebo_atts))
+
+p_value <- (sum(placebo_atts_df$V1>agg_simple[[1]]) + sum(placebo_atts_df$V1<(2*mean(placebo_atts_df$V1)-agg_simple[[1]])))/100
+
+```
+
+Due to the small number of treated ports, there exists the possibility that the treated ports are just coincidentally experiencing an increase in the throughput after treatment. To alleviate these concerns, we conduct another placebo test. We exclude all treated ports from the data and randomly assign `r n_distinct(port_data_agg$port[port_data_agg$ownership_china==1])` port to be treated at a random point in time and calculate the simple average treatment effect. Repeating this process for 100 times yields the empirical distribution of treatment effects depicted in the bar chart below. As expected, the distribution is centered around zero, indicating that there is no consistent average treatment effect, when the treatment is assigned randomly. The observed treatment effect of the actual treated ports (vertical line) clearly lies at the right end of the distribution. If the true treatment effect was in fact zero and the observed treatment effect was only due to a coincidental lucky pick of ports and time, that probability of the observed treatment to occur effect would be `r p_value*100` percent.    
+
+```{r echo=FALSE, message=FALSE}
+
+ggplot(data = placebo_atts_df) + geom_histogram(aes(x=V1), stat = "bin") + 
+                                 geom_vline(xintercept = agg_simple[[1]]) + 
+                                 xlab("Simple average treatment effect") +
+                                 labs(title = "Average Treatment Effects of Placebo Treatments",caption = "Vertical line represents the observed treatment effect.")
+
+```
+
 
 ## References
 

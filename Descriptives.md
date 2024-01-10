@@ -88,7 +88,7 @@ Originally, we found 26 ports which were at some point at least partly owned by 
 - Two fall below the average throughput threshold of 100 thousand tonnes (Montoir, Stockholm)
 - Five ports were either always treated (Duisburg, Felixtowe, Thamesport, Harwich) or never treated (Hamburg)
 
-The following graph display all 14 treated ports and their annual container throughput. The vertical lines indicate treatment time. Solid line represent the container throughput of the respective port. The dashed line represents the average throughput of the control group. Note that not all ports report the throughput for every period. This might influence the average.
+The following graph display all 14 treated ports and their annual container throughput as a share of their mean container throughput. The vertical lines indicate treatment time. Solid line represent the container throughput of the respective port. The dashed line represents the average throughput of the control group. Note that not all ports report the throughput for every period. This might influence the average.
 
 ![](Descriptives_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 
