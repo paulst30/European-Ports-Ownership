@@ -3,7 +3,9 @@ title: "Estimation"
 author: "Paul Stricker"
 bibliography: literature_list.bib
 date: "2023-11-29"
-output: html_document
+output: 
+ html_document:
+      keep_md: true
 ---
 
 ```{r setup, include=FALSE}
@@ -231,7 +233,7 @@ p_value <- (sum(placebo_atts_df$V1>agg_simple[[1]]) + sum(placebo_atts_df$V1<(2*
 
 ```
 
-Due to the small number of treated ports, there exists the possibility that the treated ports are just coincidentally experiencing an increase in the throughput after treatment. To alleviate these concerns, we conduct another placebo test. We exclude all treated ports from the data and randomly assign `r n_distinct(port_data_agg$port[port_data_agg$ownership_china==1])` port to be treated at a random point in time and calculate the simple average treatment effect. Repeating this process for 100 times yields the empirical distribution of treatment effects depicted in the bar chart below. As expected, the distribution is centered around zero, indicating that there is no consistent average treatment effect, when the treatment is assigned randomly. The observed treatment effect of the actual treated ports (vertical line) clearly lies at the right end of the distribution. If the true treatment effect was in fact zero and the observed treatment effect was only due to a coincidental lucky pick of ports and time, that probability of the observed treatment to occur effect would be `r p_value*100` percent.    
+Due to the small number of treated ports, there exists the possibility that the treated ports are just coincidentally experiencing an increase in the throughput after treatment. To alleviate these concerns, we conduct a placebo test testing the sharp null of an average treatment effect of zero @Young.2019. We exclude all treated ports from the data and randomly assign `r n_distinct(port_data_agg$port[port_data_agg$ownership_china==1])` port to be treated at a random point in time and calculate the simple average treatment effect. Repeating this process for 100 times yields the empirical distribution of treatment effects depicted in the bar chart below. As expected, the distribution is centered around zero, indicating that there is no consistent average treatment effect, when the treatment is assigned randomly. The observed treatment effect of the actual treated ports (vertical line) clearly lies at the right end of the distribution. If the true treatment effect was in fact zero and the observed treatment effect was only due to a coincidental lucky pick of ports and time, that probability of the observed treatment to occur effect would be `r p_value*100` percent.    
 
 ```{r echo=FALSE, message=FALSE}
 

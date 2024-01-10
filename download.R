@@ -283,17 +283,21 @@ port_data <- merge(port_data, averages, by.x = "port_code", by.y = "port_code", 
 
 ######## ADD INFORMATION ON TREATMENT ########
 treatment <- read_xlsx("Chinese_investments_14 Dec 23.xlsx", sheet = "treatment_active") %>% 
-             select(port_code, year, quarter, number_CHfinanciers, first_CHfinancier, port_information)
+             select(port_code, year, quarter, number_CHfinanciers, first_CHfinancier, port_information, type)
 
 port_data <- merge(port_data, treatment, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>% 
                arrange(year, quarter) %>% group_by(year,quarter) %>% mutate(period = cur_group_id()) %>% ungroup() %>%
                mutate(ownership_china = ifelse(is.na(number_CHfinanciers),NA,1),
+                      operation = ifelse(is.na(type),NA,1),
                       group = ifelse(is.na(number_CHfinanciers),NA, period)) %>% group_by(port_code) %>% arrange(!desc(time)) %>%
-               fill(group, .direction = "downup") %>% fill(ownership_china, .direction = "down") %>% ungroup() %>%
+               fill(group, .direction = "downup") %>% 
+               fill(ownership_china, .direction = "down") %>% 
+               fill(operation, .direction = "down") %>% ungroup() %>%
                mutate(ownership_china=ifelse(is.na(ownership_china),0,ownership_china),
-                      group = ifelse(is.na(group), 0, group)) %>% arrange(desc(group))
+                      group = ifelse(is.na(group), 0, group),
+                      operation = ifelse(is.na(operation), 0, operation)) %>% arrange(desc(group))
         
-
+port_data$operation[port_data$port=="Rotterdam" & port_data$year<2016] <- 0 # Operations in Rotterdam were taken over since 2016
 
 ######## SAVE ############
 
