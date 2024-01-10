@@ -302,4 +302,5 @@ port_data$operation[port_data$port=="Rotterdam" & port_data$year<2016] <- 0 # Op
 ######## SAVE ############
 
 save(list = "port_data", file = "port_data.RData")                                # save in current directory
+
 rm(list = setdiff(ls(), "port_data"))                                             #delete all helper objects
