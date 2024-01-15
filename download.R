@@ -1,6 +1,7 @@
 #install.packages("eurostat")
 #install.packages("rmarkdown")
 #install.packages("did")
+#install.packages("gt")
 
 library(tidyverse)
 library(eurostat)
@@ -196,14 +197,15 @@ x <- get_eurostat(paste0("mar_go_qm_", reporter[i]),                            
                                 other ~ "other"),
                reporter = origins$country_label[origins$code==toupper(reporter[i])],
                port_code = substr(rep_mar,5,nchar(rep_mar))) %>%
-        group_by(par_mar, port_code, rep_mar, type, time, reporter) %>%
+        group_by(par_mar, port_code, rep_mar, type, TIME_PERIOD, reporter) %>%
         summarize(values=sum(values)) %>%
         ungroup() %>%
         #select(-cargo, -direct, -unit) %>%                                               # drop unnecessary variables
         rename(sender_code = par_mar,                                                        # rename variables
                rep_mar = rep_mar,
                port_code = port_code,
-               throughput = values) %>% 
+               throughput = values,
+               time = TIME_PERIOD ) %>% 
         mutate(time=as.Date(time),                                                # format time variables
                year = year(time), 
                quarter=quarter(time))
@@ -271,6 +273,8 @@ for (i in 1:nrow(incorrect_aggregates)) {
   port_data$stat_port[port_data$port_code==incorrect_aggregates$port_code[i]] <- incorrect_aggregates$stat_port[i]
 }
 
+save(list = "port_data", file = "downloaded_data.RData")  
+
 ######## ADD INFOMATION ON PORT GROUPS ########
 averages <- port_data %>% group_by(port_code, year) %>% summarize(container_yrly=sum(container, na.rm = T)) %>% ungroup() %>%
                       merge(port_groups, by.x = "port_code", by.y = "nat_stat_code", all.x = T) %>%
@@ -283,21 +287,26 @@ port_data <- merge(port_data, averages, by.x = "port_code", by.y = "port_code", 
 
 ######## ADD INFORMATION ON TREATMENT ########
 treatment <- read_xlsx("Chinese_investments_14 Dec 23.xlsx", sheet = "treatment_active") %>% 
-             select(port_code, year, quarter, number_CHfinanciers, first_CHfinancier, port_information, type)
+             select(port_code, year, quarter, number_CHfinanciers, first_CHfinancier, port_information, investment_type)
 
 port_data <- merge(port_data, treatment, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>% 
                arrange(year, quarter) %>% group_by(year,quarter) %>% mutate(period = cur_group_id()) %>% ungroup() %>%
                mutate(ownership_china = ifelse(is.na(number_CHfinanciers),NA,1),
-                      operation = ifelse(is.na(type),NA,1),
-                      group = ifelse(is.na(number_CHfinanciers),NA, period)) %>% group_by(port_code) %>% arrange(!desc(time)) %>%
+                      operation = ifelse(is.na(investment_type),NA,1),
+                      group = ifelse(is.na(number_CHfinanciers),NA, period),
+                      group_operation = ifelse(is.na(operation),NA, period)) %>% group_by(port_code) %>% arrange(!desc(time)) %>%
                fill(group, .direction = "downup") %>% 
+               fill(group_operation, .direction = "downup") %>%
                fill(ownership_china, .direction = "down") %>% 
                fill(operation, .direction = "down") %>% ungroup() %>%
                mutate(ownership_china=ifelse(is.na(ownership_china),0,ownership_china),
                       group = ifelse(is.na(group), 0, group),
+                      group_operation = ifelse(is.na(group_operation), 0, group_operation),
                       operation = ifelse(is.na(operation), 0, operation)) %>% arrange(desc(group))
         
 port_data$operation[port_data$port=="Rotterdam" & port_data$year<2016] <- 0 # Operations in Rotterdam were taken over since 2016
+port_data$group_operation[port_data$port=="Rotterdam"] <- 80  # operation started Sept. 2016 
+
 
 ######## SAVE ############
 
