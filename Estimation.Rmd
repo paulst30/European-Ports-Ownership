@@ -399,7 +399,8 @@ ggplot(data = placebo_atts_df) + geom_histogram(aes(x=V1), stat = "bin") +
 
 ## Shipments from China
 
-In this section, we look further into the effect of Chinese ownerhsip and the operation of the ports by investigating the effect of Chinese ownership on the throughput of Chinese container. To evaluate whether Chinese container were processed more often in ports that management was taken over by a Chinese investor, we employ a triple difference framework. In particular, we define our output variable as the share of Chinese containers processed in a particular port relative to containers from all other origins. 
+In this section, we look further into the effect of Chinese ownership and the operation of the ports by investigating the effect of Chinese ownership on the throughput of Chinese container. To evaluate whether Chinese container were processed more often in ports that management was taken over by a Chinese investor, we employ a triple difference framework. In particular, we define our output variable as the share of Chinese containers processed in a particular port relative to containers from all other origins. The identifying parallel trends assumption that needs to hold is that the relative throughput of Chinese containers in treated ports trend in the same way as the relative throughput of Chinese containers in untreated ports @Olden.2022.
+This setup has a number of advantages over a simple difference in difference using Chinese container throughput in levels as the outcome variable. In particular, the triple difference setup helps reducing potential bias that could be in a difference in difference estimation of Chinese container throughput versus container throughput of other origins for treated ports and untreated ports.   
 
 ```{r include=FALSE}
 port_data_agg <- mutate(port_data_agg, share_china=origin_china/(container)) 
