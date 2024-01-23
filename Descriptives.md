@@ -14,7 +14,7 @@ output:
 
 # What is the relevant sample? 
 
-## Which type of cargo?
+## Which type of cargo matters?
 
 Most throughput of energy commodities (transported in bulks) and Ro-Ro comes from countries other than China. The highest share of Chinese products is shipped with container cargo. Therefore, the sample is restricted to container cargo only.
 
