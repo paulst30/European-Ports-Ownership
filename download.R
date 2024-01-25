@@ -208,7 +208,8 @@ x <- get_eurostat(paste0("mar_go_qm_", reporter[i]),                            
                time = TIME_PERIOD ) %>% 
         mutate(time=as.Date(time),                                                # format time variables
                year = year(time), 
-               quarter=quarter(time))
+               quarter=quarter(time),
+               reporter_code = substr(rep_mar,1,2))
 
 
 
@@ -274,6 +275,25 @@ for (i in 1:nrow(incorrect_aggregates)) {
 }
 
 save(list = "port_data", file = "downloaded_data.RData")  
+
+### Download GDP data ####
+gdp_data <- get_eurostat("namq_10_gdp", type="code") %>% 
+            filter(unit == "PD10_EUR" | unit =="CP_MEUR",
+                   s_adj == "NSA",
+                   na_item == "B1GQ",
+                   geo %in% toupper(reporter)) %>%
+            mutate(time=as.Date(TIME_PERIOD),                                                # format time variables
+                   year = year(time), 
+                   quarter=quarter(time)) %>%
+            pivot_wider(id_cols = c("geo", "year", "quarter"),
+                        values_from = values, 
+                        names_from = unit) %>%
+            mutate(real_gdp_reporter = CP_MEUR/PD10_EUR*100) %>%
+            select(real_gdp_reporter, geo, year, quarter)
+
+## ADD GDP DATA ####
+
+port_data <- merge(port_data, gdp_data, by.x = c("reporter_code", "year", "quarter"), by.y = c("geo", "year", "quarter"), all.x = TRUE)
 
 ######## ADD INFOMATION ON PORT GROUPS ########
 averages <- port_data %>% group_by(port_code, year) %>% summarize(container_yrly=sum(container, na.rm = T)) %>% ungroup() %>%
