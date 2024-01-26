@@ -243,9 +243,9 @@ missing_entries2 <- data.frame(rep_mar = c("DE_1", "DE_2", "DE_3", "DE_9", "ES_1
                                         "France: Atlantic/North Sea", "France: Mediterranean", "France: Guadeloupe and Martinique", 
                                         "France: Reunion", "Sweden: Baltic Sea", "Sweden: North Sea", "Sweden: unspecified maritime coastal area", 
                                         "Turkey: Back Sea", "Turkey: Mediterranean", "Turkey: unspecified maritime coastal area", "UK: GBR and North Ireland")) %>%
-                     mutate(aggregate = case_when(rep_mar %in% c("ES_3", "ES_4", "FR_4", "FR_5") ~ FALSE,
+                     mutate(aggregate = case_when(rep_mar %in% c("ES_3", "FR_4") ~ FALSE,
                                                   .default = TRUE),
-                            stat_port = case_when(rep_mar %in% c("ES_3", "ES_4", "FR_4", "FR_5") ~ TRUE,
+                            stat_port = case_when(rep_mar %in% c("ES_3", "FR_4") ~ TRUE,
                                                   .default = FALSE))
 for (i in 1:nrow(missing_entries2)) {
   port_data$port[port_data$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$port[i]
