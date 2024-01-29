@@ -2,10 +2,6 @@
 #install.packages("rmarkdown")
 #install.packages("did")
 #install.packages("gt")
-#install.packages("tidyverse")
-#install.packages("readxl")
-
-
 
 library(tidyverse)
 library(eurostat)
@@ -22,7 +18,10 @@ library(rmarkdown)
 ######## SET UP #################
 
 ############ COUNTRY CODES / ORIGINS #######
-# country codes of reporters to loop over
+# years to loop over
+time <- c(2024, 2022, 2020, 2018, 2016, 2014, 2012, 2010, 2008, 2006, 2004, 2002, 1999)
+
+# country codes of reporters 
 reporter <- c("be", "bg", "dk", "de", "ee", "es", "ie", "el", "fr", "hr", "it",      
               "cy", "lv", "lt", "mt", "nl", "pl", "pt", "ro", "si", "fi", "se", 
               "uk", "no", "me", "tr")
@@ -169,51 +168,34 @@ cargo_list <- data.frame( cargo_code = c("TOTAL", "LBK", "LBK_LGAS", "LBK_COIL",
 
 #selection and filter criteria
 
-container <- c("LCNT")
-roro <- c("RO_MSP",
-          "RO_MNSP")
-bulk <- c("DBK", "LBK")
-other <- c("OTH")
-total <- c("TOTAL")
-list <- c(container, roro, bulk, other)
-
-direction <- "IN"                                                            # select the direction: "IN", "OUT", or "TOTAL"
+cargo <- "TOTAL"      #different types of container volumes
+direction <- "TOTAL"                                                            # select the direction: "IN", "OUT", or "TOTAL"
 origins_filtered <- c(origins$code[str_length(origins$code) == 2], "CN_X_HK")  # list containing only countries, no sub-regions
 
 
 
 ######## DOWNLOAD LOOP #####################
 
-for (i in 1:length(reporter)) {                                                   # loop over all reporter
-  
-x <- get_eurostat(paste0("mar_go_qm_", reporter[i]),                              # download table for the reporter
+for (i in 1:length(time)) {                                                   # loop over all reporter
+
+x <- get_eurostat(paste0("mar_go_qm_c", time[i]),                              # download table for the reporter
                   type = "code") %>%
-        filter(direct == direction,                                               # apply filters
-               cargo %in% list,
+        filter(direct %in% direction,                                               # apply filters
+               cargo == "TOTAL",
                par_mar %in% origins_filtered,                                            # keep only countries, no sub regions
-               rep_mar != origins$code[origins$code==toupper(reporter[i])]
-               ) %>% # drop country aggregates and keep only ports
-        mutate(type = case_match(cargo, 
-                                container ~ "container",
-                                roro ~ "roro",
-                                bulk ~ "bulk",
-                                total ~ "total",
-                                other ~ "other"),
-               reporter = origins$country_label[origins$code==toupper(reporter[i])],
-               port_code = substr(rep_mar,5,nchar(rep_mar))) %>%
-        group_by(par_mar, port_code, rep_mar, type, TIME_PERIOD, reporter) %>%
-        summarize(values=sum(values)) %>%
-        ungroup() %>%
-        #select(-cargo, -direct, -unit) %>%                                               # drop unnecessary variables
+               !(rep_mar %in% toupper(reporter))
+               ) %>%
+        mutate(port_code = substr(rep_mar,5,nchar(rep_mar)),
+               reporter_code = substr(rep_mar,1,2),
+               reporter = origins$country_label[match(reporter_code, origins$code)]) %>%
         rename(sender_code = par_mar,                                                        # rename variables
                rep_mar = rep_mar,
                port_code = port_code,
-               throughput = values,
+               TEU = values,
                time = TIME_PERIOD ) %>% 
         mutate(time=as.Date(time),                                                # format time variables
                year = year(time), 
-               quarter=quarter(time),
-               reporter_code = substr(rep_mar,1,2))
+               quarter=quarter(time))
 
 
 
@@ -222,15 +204,16 @@ x$aggregate <- (x$port_code %in% aggregates_list)
 x$nat_stat_group <- (x$port_code %in% nat_stat_code)
 
 if (i==1){
-  port_data <- x                                                                  # save and append to previous tables
+  port_data_TEU <- x                                                                  # save and append to previous tables
 } else {
-  port_data <- rbind(port_data, x)
+  port_data_TEU <- rbind(port_data_TEU, x)
 }
 }
 
 
 
-port_data <- pivot_wider(port_data, values_from = "throughput", names_from = "type") %>%
+port_data_TEU <- pivot_wider(port_data_TEU, values_from = "TEU", names_from = "loadstat") %>%
+                 rename(total_TEU = TOTAL, empty_TEU = EMPTY) %>%
              merge(port_codebook[,c("Locode", "port")], by.x="port_code", by.y="Locode", all.x =T) %>%
              merge(origins, by.x="sender_code", by.y="code", all.x=T) %>%
              rename(sender = country_label)
@@ -252,10 +235,10 @@ missing_entries2 <- data.frame(rep_mar = c("DE_1", "DE_2", "DE_3", "DE_9", "ES_1
                             stat_port = case_when(rep_mar %in% c("ES_3", "FR_4") ~ TRUE,
                                                   .default = FALSE))
 for (i in 1:nrow(missing_entries2)) {
-  port_data$port[port_data$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$port[i]
-  port_data$aggregate[port_data$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$aggregate[i]
-  port_data$stat_port[port_data$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$stat_port[i]
-  port_data$port_code[port_data$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$rep_mar[i]
+  port_data_TEU$port[port_data_TEU$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$port[i]
+  port_data_TEU$aggregate[port_data_TEU$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$aggregate[i]
+  port_data_TEU$stat_port[port_data_TEU$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$stat_port[i]
+  port_data_TEU$port_code[port_data_TEU$rep_mar==missing_entries2$rep_mar[i]] <- missing_entries2$rep_mar[i]
 }
 
 # port_codes with figures as the third character are mostly aggregates. Some of them are incorrectly label as such:
@@ -275,11 +258,11 @@ incorrect_aggregates <- data.frame(port_code = c("NL888", "SE88D", "BE003", "FR0
                                                  TRUE, TRUE, TRUE, TRUE, TRUE))
 
 for (i in 1:nrow(incorrect_aggregates)) {
-  port_data$aggregate[port_data$port_code==incorrect_aggregates$port_code[i]] <- incorrect_aggregates$aggregate[i]
-  port_data$stat_port[port_data$port_code==incorrect_aggregates$port_code[i]] <- incorrect_aggregates$stat_port[i]
+  port_data_TEU$aggregate[port_data_TEU$port_code==incorrect_aggregates$port_code[i]] <- incorrect_aggregates$aggregate[i]
+  port_data_TEU$stat_port[port_data_TEU$port_code==incorrect_aggregates$port_code[i]] <- incorrect_aggregates$stat_port[i]
 }
 
-save(list = "port_data", file = "downloaded_data.RData")  
+save(list = "port_data_TEU", file = "downloaded_data_TEU.RData")  
 
 ### Download GDP data ####
 gdp_data <- get_eurostat("namq_10_gdp", type="code") %>% 
@@ -298,23 +281,23 @@ gdp_data <- get_eurostat("namq_10_gdp", type="code") %>%
 
 ## ADD GDP DATA ####
 
-port_data <- merge(port_data, gdp_data, by.x = c("reporter_code", "year", "quarter"), by.y = c("geo", "year", "quarter"), all.x = TRUE)
+port_data_TEU <- merge(port_data_TEU, gdp_data, by.x = c("reporter_code", "year", "quarter"), by.y = c("geo", "year", "quarter"), all.x = TRUE)
 
 ######## ADD INFOMATION ON PORT GROUPS ########
-averages <- port_data %>% group_by(port_code, year) %>% summarize(container_yrly=sum(container, na.rm = T)) %>% ungroup() %>%
-                      merge(port_groups, by.x = "port_code", by.y = "nat_stat_code", all.x = T) %>%
-                      group_by(port_code, inc_ports_n) %>%
-                      summarize(average_yrly = mean(container_yrly, na.rm=T)) %>% ungroup() %>%
-                      mutate(average_yrly = case_when(!is.na(inc_ports_n) ~ average_yrly/inc_ports_n,
-                                                 .default = average_yrly))
+average_TEU <- port_data_TEU %>% group_by(port_code, year) %>% summarize(TEU_yrly=sum(total_TEU, na.rm = T)) %>% ungroup() %>%
+                              merge(port_groups, by.x = "port_code", by.y = "nat_stat_code", all.x = T) %>%
+                              group_by(port_code, inc_ports_n) %>%
+                              summarize(TEU_yrly = mean(TEU_yrly, na.rm=T)) %>% ungroup() %>%
+                              mutate(TEU_yrly = case_when(!is.na(inc_ports_n) ~ TEU_yrly/inc_ports_n,
+                                                 .default = TEU_yrly))
 
-port_data <- merge(port_data, averages, by.x = "port_code", by.y = "port_code", all.x = T)
+port_data_TEU <- merge(port_data_TEU, average_TEU, by.x = "port_code", by.y = "port_code", all.x = T)
 
 ######## ADD INFORMATION ON TREATMENT ########
 treatment <- read_xlsx("Chinese_investments_14 Dec 23.xlsx", sheet = "treatment_active") %>% 
              select(port_code, year, quarter, number_CHfinanciers, first_CHfinancier, port_information, investment_type)
 
-port_data <- merge(port_data, treatment, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>% 
+port_data_TEU <- merge(port_data_TEU, treatment, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>% 
                arrange(year, quarter) %>% group_by(year,quarter) %>% mutate(period = cur_group_id()) %>% ungroup() %>%
                mutate(ownership_china = ifelse(is.na(number_CHfinanciers),NA,1),
                       operation = ifelse(is.na(investment_type),NA,1),
@@ -329,12 +312,13 @@ port_data <- merge(port_data, treatment, by.x = c("port_code", "year", "quarter"
                       group_operation = ifelse(is.na(group_operation), 0, group_operation),
                       operation = ifelse(is.na(operation), 0, operation)) %>% arrange(desc(group))
         
-port_data$operation[port_data$port=="Rotterdam" & port_data$year<2016] <- 0 # Operations in Rotterdam were taken over since 2016
-port_data$group_operation[port_data$port=="Rotterdam"] <- 80  # operation started Sept. 2016 
+port_data_TEU$operation[port_data_TEU$port=="Rotterdam" & port_data_TEU$year<2016] <- 0 # Operations in Rotterdam were taken over since 2016
+port_data_TEU$group_operation[port_data_TEU$port=="Rotterdam"] <- 80  # operation started Sept. 2016 
 
+port_data_TEU <- port_data_TEU[!is.na(port_data_TEU$port),]       #delete remaining observations that are not associated with an port
 
 ######## SAVE ############
 
-save(list = "port_data", file = "port_data.RData")                                # save in current directory
+save(list = "port_data_TEU", file = "port_data_TEU.RData")                                # save in current directory
 
-rm(list = setdiff(ls(), "port_data"))                                             #delete all helper objects
+rm(list = setdiff(ls(), "port_data_TEU"))                                             #delete all helper objects
