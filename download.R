@@ -2,6 +2,10 @@
 #install.packages("rmarkdown")
 #install.packages("did")
 #install.packages("gt")
+#install.packages("tidyverse")
+#install.packages("readxl")
+
+
 
 library(tidyverse)
 library(eurostat)
