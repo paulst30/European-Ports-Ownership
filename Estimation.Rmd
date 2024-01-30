@@ -21,17 +21,23 @@ library(fixest)
 library(did)
 library(gt)
 
+set.seed(100)
 
-load("port_data.RData")
+load("port_data_TEU.RData")
 
-port_data <- filter(port_data, aggregate==0, stat_port==1, average_yrly >=100) %>% 
+port_data_TEU <- filter(port_data_TEU, aggregate==0,
+                                       stat_port==1,              #filter out non-stat ports (and geographic aggregates)
+                                       TEU_yrly >=20000,          #filter out small ports
+                                       port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
              mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
              group_by(port_code, sender_code) %>%
-             mutate(pair_id=cur_group_id()) %>% ungroup()
+             mutate(pair_id=cur_group_id()) %>% ungroup() %>%
+             rename(container=total_TEU)
 
-port_data_agg <- port_data %>% mutate(origin_china = ifelse(!is.na(container) & (sender_code=="CN_X_HK" | sender_code=="HK"),container,0)) %>%
-                               group_by(port, port_code, period) %>% 
+port_data_agg <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container) & (sender_code=="CN_X_HK" | sender_code=="HK"),container,0)) %>%
+                               group_by(port, port_code, period, reporter_code) %>% 
                                summarize(container = sum(container, na.rm=T),
+                                         real_gdp_reporter = mean(real_gdp_reporter),
                                          origin_china = sum(origin_china),
                                          group = max(group),
                                          group_operation = max(group_operation),
@@ -39,7 +45,9 @@ port_data_agg <- port_data %>% mutate(origin_china = ifelse(!is.na(container) & 
                                          operation = max(operation)) %>% ungroup() %>%
                               group_by(port_code) %>% 
                               mutate(port_id = cur_group_id(),
-                                     mean_container = container / mean(container, na.rm=T)) %>% ungroup()
+                                     mean_container = mean(container, na.rm=T)) %>% ungroup()
+
+port_data_agg_ny <- port_data_agg %>% filter(group!=0)
 
 port_group_list <- port_data_agg %>% filter(group!=0) %>% group_by(group) %>%
                                      summarize(ports = toString(unique(port)))
@@ -78,19 +86,21 @@ Lastly, we add another Dummy variable $ChineseOperation_{it}$, which indicates w
 
 
 ```{r include=FALSE}
-spec1 <- feols(container ~ ownership_china   | port_code + period,
+spec1 <- feols(container ~ ownership_china  | port_code + period + reporter_code^period,
                data = port_data_agg)
-spec2 <- feols(container ~ ownership_china + ownership_china*s_china | port + sender + period,
-               data = port_data)
-spec3 <- feols(container ~ ownership_china + ownership_china*s_china| port^sender + period,
-               data = port_data)
+spec2 <- feols(container ~ ownership_china + ownership_china*s_china  | port + sender + period,
+               data = port_data_TEU)
+spec3 <- feols(container ~ ownership_china + ownership_china*s_china | port^sender + period,
+               data = port_data_TEU)
 spec4 <- feols(container ~ ownership_china + ownership_china*s_china | port^sender + sender^period,
-               data = port_data)
+               data = port_data_TEU)
 spec5 <- feols(container ~ ownership_china + ownership_china*s_china + operation | port^sender + sender^period,
-               data = port_data)
+               data = port_data_TEU)
+spec6 <- feols(container ~ ownership_china  | port^sender + sender^period + reporter_code^period,
+               data = port_data_TEU)
 
-fe_results<- etable(spec1, spec2, spec3, spec4, spec5,
-                    headers = c("Eq. 1", "Eq. 2", "Eq. 3", "Eq.4", "Eq.5"),
+fe_results<- etable(spec1, spec2, spec3, spec4, spec5, spec6,
+                    headers = c("Eq. 1", "Eq. 2", "Eq. 3", "Eq.4", "Eq.5", "Eq.6"),
                     style.df = style.df(fixef.title = "Fixed Effects",
                                         fixef.suffix = "", yesNo = "yes"),
                     vcov = "twoway")
@@ -126,20 +136,22 @@ attgt <- att_gt(yname = "container",            #outcome variable
                 tname = "period",                 #time variable
                 idname = "port_id",                    #id for units (should be port_code*sender)
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
-                #xformla = ~X,                  #for potential covariates
+                #xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
-                allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                allow_unbalanced_panel = T,  #allows he use of unbalanced panel data. Increases computation time.
                 #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                bstrap = FALSE,
                 data = port_data_agg)
 
-attgt_op <- att_gt(yname = "container",            #outcome variable
+attgt_cond <- att_gt(yname = "container",            #outcome variable
                 tname = "period",                 #time variable
                 idname = "port_id",                    #id for units (should be port_code*sender)
-                gname = "group_operation",                    #grouping variable for first treatment. Is zero for never treated units
-                #xformla = ~X,                  #for potential covariates
+                gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+                xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
-                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                bstrap = FALSE,
                 data = port_data_agg)
 
 # summarize the results
@@ -151,18 +163,18 @@ attgt_op <- att_gt(yname = "container",            #outcome variable
 # # aggregate the group-time atts 
 # 
 # option 1: simple weighted average treatment effect with weights proportional to the group size
-agg_simple <- aggte(attgt, type = "simple", na.rm=T)
-agg_simple_op <- aggte(attgt_op, type = "simple", na.rm=T)
+agg_simple <- aggte(attgt, type = "simple", bstrap=FALSE, na.rm=T)
+agg_simple_cond <- aggte(attgt_cond, type = "simple", bstrap=FALSE, na.rm=T)
 #summary(agg_simple)
 # 
 # option 2: event-study type aggregation by time under treatment
-agg_es <- aggte(attgt, type = "dynamic", na.rm=T)
-agg_es_op <- aggte(attgt_op, type = "dynamic", na.rm=T)
+agg_es <- aggte(attgt, type = "dynamic", na.rm=T, bstrap=FALSE)
+agg_es_cond <- aggte(attgt_cond, type = "dynamic", na.rm=T, bstrap=FALSE)
 #summary(agg_es)
 # 
 # option 3: groupwise treatment effects
-agg_gs <- aggte(attgt, type = "group", na.rm=T)
-agg_gs_op <- aggte(attgt_op, type = "group", na.rm=T)
+agg_gs <- aggte(attgt, type = "group", na.rm=T, bstrap=FALSE)
+agg_gs_cond <- aggte(attgt_cond, type = "group", na.rm=T, bstrap=FALSE)
 #summary(agg_gs)
 # 
 # option 4: calender time effects
@@ -179,11 +191,11 @@ results1 <- data.frame(Estimate = c("simple average", port_group_list$ports[matc
                       lower = c(agg_simple$overall.att-(agg_simple$overall.se*1.95), agg_gs$att.egt-(agg_gs$se.egt*agg_gs$crit.val.egt)),
                       upper = c(agg_simple$overall.att+(agg_simple$overall.se*1.95), agg_gs$att.egt+(agg_gs$se.egt*agg_gs$crit.val.egt)))
 
-results2 <- data.frame(Estimate = c("simple average",port_group_list$ports[match(as.character(agg_gs_op$eg), port_group_list$group)]),
-                       ATT = c(agg_simple_op$overall.att,
-                                   agg_gs_op$att.egt),
-                      lower = c(agg_simple_op$overall.att-(agg_simple_op$overall.se*1.95), agg_gs_op$att.egt-(agg_gs_op$se.egt*agg_gs_op$crit.val.egt)),
-                      upper = c(agg_simple_op$overall.att+(agg_simple_op$overall.se*1.95), agg_gs_op$att.egt+(agg_gs_op$se.egt*agg_gs_op$crit.val.egt)))
+results2 <- data.frame(Estimate = c("simple average",port_group_list$ports[match(as.character(agg_gs_cond$eg), port_group_list$group)]),
+                       ATT = c(agg_simple_cond$overall.att,
+                                   agg_gs_cond$att.egt),
+                      lower = c(agg_simple_cond$overall.att-(agg_simple_cond$overall.se*1.95), agg_gs_cond$att.egt-(agg_gs_cond$se.egt*agg_gs_cond$crit.val.egt)),
+                      upper = c(agg_simple_cond$overall.att+(agg_simple_cond$overall.se*1.95), agg_gs_cond$att.egt+(agg_gs_cond$se.egt*agg_gs_cond$crit.val.egt)))
 results <- merge(results1, results2, by.x = "Estimate", by.y = "Estimate", all =  T)
 #results <- results[c(11, 1:10),]
 
@@ -202,9 +214,9 @@ results_gt <- gt(results, rowname_col = "Estimate") |>
                 lower.y="[95%",
                 upper.y="conf.int.]"
               ) |>
-              tab_spanner(label = "Chinese ownership",
+              tab_spanner(label = "uncond. PTA",
                           columns = c("ATT.x", "lower.x", "upper.x")) |>
-              tab_spanner(label = "Chinese operation",
+              tab_spanner(label = "cond. PTA",
                           columns = c("ATT.y", "lower.y", "upper.y")) |>
               tab_row_group(label = "by group:",
                             rows = contains("(")) |>
@@ -250,25 +262,25 @@ ny_attgt <- att_gt(yname = "container",            #outcome variable
                 control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
                 #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
-                data = port_data_agg)
+                data = port_data_agg_ny)
 
-ny_attgt_op <- att_gt(yname = "container",            #outcome variable
+ny_attgt_cond <- att_gt(yname = "container",            #outcome variable
                 tname = "period",                 #time variable
                 idname = "port_id",                    #id for units (should be port_code*sender)
-                gname = "group_operation",                    #grouping variable for first treatment. Is zero for never treated units
-                #xformla = ~X,                  #for potential covariates
+                gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+                xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
                 control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
-                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
-                data = port_data_agg)
+                est_method = "ipw",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                data = port_data_agg_ny)
 
 # option 1: simple weighted average treatment effect with weights proportional to the group size
 ny_agg_simple <- aggte(ny_attgt, type = "simple", na.rm=T)
-ny_agg_simple_op <- aggte(ny_attgt_op, type = "simple", na.rm=T)
+ny_agg_simple_cond <- aggte(ny_attgt_cond, type = "simple", na.rm=T)
 
 # option 3: groupwise treatment effects
 ny_agg_gs <- aggte(ny_attgt, type = "group", na.rm=T)
-ny_agg_gs_op <- aggte(ny_attgt_op, type = "group", na.rm=T)
+ny_agg_gs_cond <- aggte(ny_attgt_cond, type = "group", na.rm=T)
 
 ```
 
@@ -280,21 +292,21 @@ ny_results1 <- data.frame(Estimate = c("simple average", port_group_list$ports[m
                       lower = c(ny_agg_simple$overall.att-(ny_agg_simple$overall.se*1.95), ny_agg_gs$att.egt-(ny_agg_gs$se.egt*ny_agg_gs$crit.val.egt)),
                       upper = c(ny_agg_simple$overall.att+(ny_agg_simple$overall.se*1.95), ny_agg_gs$att.egt+(ny_agg_gs$se.egt*ny_agg_gs$crit.val.egt)))
 
-ny_results2 <- data.frame(Estimate = c("simple average",port_group_list$ports[match(as.character(ny_agg_gs_op$egt), port_group_list$group)]),
-                       ATT = c(ny_agg_simple_op$overall.att,
-                                   ny_agg_gs_op$att.egt),
-                      lower = c(ny_agg_simple_op$overall.att-(ny_agg_simple_op$overall.se*1.95), ny_agg_gs_op$att.egt-(ny_agg_gs_op$se.egt*ny_agg_gs_op$crit.val.egt)),
-                      upper = c(ny_agg_simple_op$overall.att+(ny_agg_simple_op$overall.se*1.95), ny_agg_gs_op$att.egt+(ny_agg_gs_op$se.egt*ny_agg_gs_op$crit.val.egt)))
+ny_results2 <- data.frame(Estimate = c("simple average",port_group_list$ports[match(as.character(ny_agg_gs_cond$egt), port_group_list$group)]),
+                       ATT = c(ny_agg_simple_cond$overall.att,
+                                   ny_agg_gs_cond$att.egt),
+                      lower = c(ny_agg_simple_cond$overall.att-(ny_agg_simple_cond$overall.se*1.95), ny_agg_gs_cond$att.egt-(ny_agg_gs_cond$se.egt*ny_agg_gs_cond$crit.val.egt)),
+                      upper = c(ny_agg_simple_cond$overall.att+(ny_agg_simple_cond$overall.se*1.95), ny_agg_gs_cond$att.egt+(ny_agg_gs_cond$se.egt*ny_agg_gs_cond$crit.val.egt)))
 ny_results <- merge(ny_results1, ny_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
-ny_results <- results[c(11, 1:10),]
+#ny_results <- ny_results[c(11, 1:10),]
 
 
 
 # generating a gt table
-ny_results_gt <- gt(results, rowname_col = "Estimate") |>
+ny_results_gt <- gt(ny_results, rowname_col = "Estimate") |>
               tab_header(
                 title = "Aggregation of group time average treatment effects",
-                subtitle = "Control group: Never treated and not yet treated") |>
+                subtitle = "Control group: Not yet treated") |>
               cols_label(
                 ATT.x="ATT",
                 lower.x="[95%",
@@ -303,9 +315,9 @@ ny_results_gt <- gt(results, rowname_col = "Estimate") |>
                 lower.y="[95%",
                 upper.y="conf.int.]"
               ) |>
-              tab_spanner(label = "Chinese ownership",
+              tab_spanner(label = "uncond. PTA",
                           columns = c("ATT.x", "lower.x", "upper.x")) |>
-              tab_spanner(label = "Chinese operation",
+              tab_spanner(label = "cond. PTA",
                           columns = c("ATT.y", "lower.y", "upper.y")) |>
               tab_row_group(label = "by group:",
                             rows = contains("(")) |>
@@ -331,11 +343,11 @@ ny_results_gt
 
 # Parallel trend assumption
 ## Event study
-For the DiD framework to deliver unbiased results, the parallel trend assumptions needs to hold. While it is not possible to test this assumption directly, we conduct a few test to validate whether the pre-treatment trends run parallel or not. The following graph displays and event study type aggregation of the group-time average treatment effects calculated above. The aggregated average treatment effects before treatment (red) are all around zero, indicating that parallel trends holds in the pre-treatment period. The graphs clearly indicate a peristent positive treatment effect after the treatment. The point-wise estimates are only significant in a couple of periods, which is due to the fact that some ports experience a high positive treatment effect while others do not. In particular *insert portnames* show consistently higher throughputs after treatment than the control group. 
+For the DiD framework to deliver unbiased results, the parallel trend assumptions needs to hold. While it is not possible to test this assumption directly, we conduct a few test to validate whether the pre-treatment trends run parallel or not. The following graph displays and event study type aggregation of the group-time average treatment effects calculated above. The aggregated average treatment effects before treatment (red) are all around zero, indicating that parallel trends holds in the pre-treatment period. The graphs clearly indicate a persistent positive treatment effect after the treatment. The point-wise estimates are only significant in a couple of periods, which is due to the fact that some ports experience a high positive treatment effect while others do not. In particular *insert portnames* show consistently higher throughputs after treatment than the control group. 
 
 ```{r include=TRUE, message=FALSE, echo=FALSE}
-ggdid(agg_es) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title = "Average Effect by Length of Exposure of Ports with Chinese Ownership")
-ggdid(agg_es_op) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title = "Average Effect by Length of Exposure of Ports with Chinese Operator")
+ggdid(agg_es) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title = "Average Effect by Length of Exposure of Ports under unconditional PTA")
+ggdid(agg_es_cond) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title = "Average Effect by Length of Exposure of Ports under conditional PTA")
 
 ```
 
@@ -415,35 +427,35 @@ attgt_share <- att_gt(yname = "share_china",            #outcome variable
                 #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
                 data = port_data_agg)
 
-attgt_op_share <- att_gt(yname = "share_china",            #outcome variable
-                tname = "period",                 #time variable
-                idname = "port_id",                    #id for units (should be port_code*sender)
-                gname = "group_operation",                    #grouping variable for first treatment. Is zero for never treated units
-                #xformla = ~X,                  #for potential covariates
-                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
-                allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
-                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
-                data = port_data_agg)
+# attgt_share_cond <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*sender)
+#                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data_agg)
 
 
 # option 1: simple weighted average treatment effect with weights proportional to the group size
 agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
-agg_simple_op_share <- aggte(attgt_op_share, type = "simple", na.rm=T)
+#agg_simple_share_cond <- aggte(attgt_share_cond, type = "simple", na.rm=T)
 
 # option 2: event-study type aggregation by time under treatment
 agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
-agg_es_op_share <- aggte(attgt_op_share, type = "dynamic", na.rm=T)
+#agg_es_share_cond <- aggte(attgt_share_cond, type = "dynamic", na.rm=T)
 
 # option 3: groupwise treatment effects
 agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
-agg_gs_op_share <- aggte(attgt_op_share, type = "group", na.rm=T)
+#agg_gs_share_cond <- aggte(attgt_share_cond, type = "group", na.rm=T)
 
 
 ```
 
 ```{r include=F}
 
-port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
+#port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
 # putting together the results
 share_results1 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_share$egt), port_group_list$group)]),
                        ATT = c(agg_simple_share$overall.att,
@@ -451,33 +463,37 @@ share_results1 <- data.frame(Estimate = c("simple average", port_group_list$port
                       lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
                       upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
 
-share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
-                       ATT = c(agg_simple_op_share$overall.att,
-                                   agg_gs_op_share$att.egt),
-                      lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
-                      upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
-share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
-share_results <- share_results[c(11, 1:10),]
+# share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
+#                        ATT = c(agg_simple_op_share$overall.att,
+#                                    agg_gs_op_share$att.egt),
+#                       lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
+#                       upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
+# share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
+#share_results <- share_results[c(12, 1:11),]
 
 
 
 # generating a gt table
-share_results_gt <- gt(share_results, rowname_col = "Estimate") |>
+share_results_gt <- gt(share_results1, rowname_col = "Estimate") |>
               tab_header(
                 title = "Aggregation of group time average treatment effects",
                 subtitle = "Control group: Never treated") |>
               cols_label(
-                ATT.x="ATT",
-                lower.x="[95%",
-                upper.x="conf.int.]",
-                ATT.y="ATT",
-                lower.y="[95%",
-                upper.y="conf.int.]"
+                lower="[95%",
+                upper="conf.int.]"
+                # ATT.x="ATT",
+                # lower.x="[95%",
+                # upper.x="conf.int.]",
+                # ATT.y="ATT",
+                # lower.y="[95%",
+                # upper.y="conf.int.]"
               ) |>
-              tab_spanner(label = "Chinese ownership",
-                          columns = c("ATT.x", "lower.x", "upper.x")) |>
-              tab_spanner(label = "Chinese operation",
-                          columns = c("ATT.y", "lower.y", "upper.y")) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              # tab_spanner(label = "uncond. PTA",
+              #             columns = c("ATT.x", "lower.x", "upper.x")) |>
+              # tab_spanner(label = "Chinese operation",
+              #             columns = c("ATT.y", "lower.y", "upper.y")) |>
               tab_row_group(label = "by group:",
                             rows = contains("(")) |>
               row_group_order(groups = c(NA,"by group:")) |>
@@ -485,10 +501,14 @@ share_results_gt <- gt(share_results, rowname_col = "Estimate") |>
                           rows = everything(),
                           missing_text = "") |>
               tab_footnote(footnote = "Confidence interval does not include zero.",
-                           location = list(cells_body(columns=c(ATT.x),
-                                                 rows = lower.x > 0 | upper.x < 0),
-                                            cells_body(columns=c(ATT.y),
-                                                 rows = lower.y > 0 | upper.y < 0)),
+                           location = list(
+                                            cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)
+                                            # cells_body(columns=c(ATT.x),
+                                            #      rows = lower.x > 0 | upper.x < 0),
+                                            # cells_body(columns=c(ATT.y),
+                                            #      rows = lower.y > 0 | upper.y < 0)
+                                           ),
                            placement = "right") |>
               tab_footnote(footnote = "First treatment period in brackets.") |>
               opt_footnote_marks(marks = "standard") |>
