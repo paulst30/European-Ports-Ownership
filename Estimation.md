@@ -42,45 +42,71 @@ Lastly, we add another Dummy variable $ChineseOperation_{it}$, which indicates w
 
 
 ```
-##                                       spec1            spec2             spec3
-##                                       Eq. 1            Eq. 2             Eq. 3
-## Dependent Var.:                   container        container         container
-##                                                                               
-## ownership_china              654.9* (321.8)   -3.720 (5.457)     1.823 (2.111)
-## ownership_china x s_china                     350.9. (202.7)     152.0 (101.7)
-## operation                                                                     
-## Fixed Effects                --------------   --------------     -------------
-## port_code                               yes                                   
-## period                                  yes              yes               yes
-## port                                                     yes                  
-## sender                                                   yes                  
-## port-sender                                                                yes
-## sender-period                                                                 
-## _________________________    ______________   ______________     _____________
-## S.E.: Clustered           by: port. & peri. by: port & send. by: port. & peri.
-## Observations                         10,268          279,050           279,050
-## R2                                  0.90624          0.24779           0.78718
-## Within R2                           0.03863          0.03920           0.01437
+##                                            spec1                spec2
+##                                            Eq. 1                Eq. 2
+## Dependent Var.:                        container            container
+##                                                                      
+## ownership_china            146,727.1* (70,739.9)      585.4 (1,441.9)
+## s_china                                                -6,774.8 (0.9)
+## ownership_china x s_china                        58,325.9. (33,689.5)
+## operation                                                            
+## Fixed Effects              --------------------- --------------------
+## port_code                                    yes                     
+## period                                       yes                  yes
+## reporter_code-period                         yes                     
+## port                                                              yes
+## sender                                                            yes
+## port-sender                                                          
+## sender-period                                                        
+## _________________________  _____________________ ____________________
+## S.E.: Clustered           by: port_code & period    by: port & sender
+## Observations                              11,551              388,820
+## R2                                       0.92030              0.23615
+## Within R2                                0.03340              0.03665
 ## 
-##                                       spec4             spec5
-##                                        Eq.4              Eq.5
-## Dependent Var.:                   container         container
-##                                                              
-## ownership_china            5.985*** (1.758)   -0.8641 (2.054)
-## ownership_china x s_china     90.40 (62.46)     86.74 (60.92)
-## operation                                    50.20*** (11.73)
-## Fixed Effects              ----------------  ----------------
-## port_code                                                    
-## period                                                       
-## port                                                         
-## sender                                                       
-## port-sender                             yes               yes
-## sender-period                           yes               yes
-## _________________________  ________________  ________________
-## S.E.: Clustered           by: port. & send. by: port. & send.
-## Observations                        279,050           279,050
-## R2                                  0.81334           0.81596
-## Within R2                           0.00587           0.01986
+##                                          spec3                spec4
+##                                          Eq. 3                 Eq.4
+## Dependent Var.:                      container            container
+##                                                                    
+## ownership_china              1,253.2** (392.6)   2,087.4*** (357.2)
+## s_china                                                            
+## ownership_china x s_china 30,529.3* (15,121.0) 19,469.3. (10,820.8)
+## operation                                                          
+## Fixed Effects             -------------------- --------------------
+## port_code                                                          
+## period                                     yes                     
+## reporter_code-period                                               
+## port                                                               
+## sender                                                             
+## port-sender                                yes                  yes
+## sender-period                                                   yes
+## _________________________ ____________________ ____________________
+## S.E.: Clustered              by: port. & peri.    by: port. & send.
+## Observations                           388,820              388,820
+## R2                                     0.78364              0.80578
+## Within R2                              0.02011              0.01082
+## 
+##                                          spec5              spec6
+##                                           Eq.5               Eq.6
+## Dependent Var.:                      container          container
+##                                                                  
+## ownership_china             1,907.2*** (374.0) 1,527.2*** (379.2)
+## s_china                                                          
+## ownership_china x s_china 19,324.0. (10,773.4)                   
+## operation                      1,318.3 (880.4)                   
+## Fixed Effects             -------------------- ------------------
+## port_code                                                        
+## period                                                           
+## reporter_code-period                                          yes
+## port                                                             
+## sender                                                           
+## port-sender                                yes                yes
+## sender-period                              yes                yes
+## _________________________ ____________________ __________________
+## S.E.: Clustered              by: port. & send.  by: port. & send.
+## Observations                           388,820            388,820
+## R2                                     0.80586            0.81201
+## Within R2                              0.01121            0.00097
 ## ---
 ## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -110,23 +136,23 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
 
 
 ```{=html}
-<div id="hyittwiyxh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#hyittwiyxh table {
+<div id="isscaxkygg" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#isscaxkygg table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#hyittwiyxh thead, #hyittwiyxh tbody, #hyittwiyxh tfoot, #hyittwiyxh tr, #hyittwiyxh td, #hyittwiyxh th {
+#isscaxkygg thead, #isscaxkygg tbody, #isscaxkygg tfoot, #isscaxkygg tr, #isscaxkygg td, #isscaxkygg th {
   border-style: none;
 }
 
-#hyittwiyxh p {
+#isscaxkygg p {
   margin: 0;
   padding: 0;
 }
 
-#hyittwiyxh .gt_table {
+#isscaxkygg .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -152,12 +178,12 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-left-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_caption {
+#isscaxkygg .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#hyittwiyxh .gt_title {
+#isscaxkygg .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -169,7 +195,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-bottom-width: 0;
 }
 
-#hyittwiyxh .gt_subtitle {
+#isscaxkygg .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -181,7 +207,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-top-width: 0;
 }
 
-#hyittwiyxh .gt_heading {
+#isscaxkygg .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -193,13 +219,13 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-right-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_bottom_border {
+#isscaxkygg .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_col_headings {
+#isscaxkygg .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -214,7 +240,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-right-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_col_heading {
+#isscaxkygg .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -234,7 +260,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   overflow-x: hidden;
 }
 
-#hyittwiyxh .gt_column_spanner_outer {
+#isscaxkygg .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -246,15 +272,15 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 4px;
 }
 
-#hyittwiyxh .gt_column_spanner_outer:first-child {
+#isscaxkygg .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#hyittwiyxh .gt_column_spanner_outer:last-child {
+#isscaxkygg .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#hyittwiyxh .gt_column_spanner {
+#isscaxkygg .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -266,11 +292,11 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   width: 100%;
 }
 
-#hyittwiyxh .gt_spanner_row {
+#isscaxkygg .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#hyittwiyxh .gt_group_heading {
+#isscaxkygg .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -296,7 +322,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   text-align: left;
 }
 
-#hyittwiyxh .gt_empty_group_heading {
+#isscaxkygg .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -311,15 +337,15 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   vertical-align: middle;
 }
 
-#hyittwiyxh .gt_from_md > :first-child {
+#isscaxkygg .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#hyittwiyxh .gt_from_md > :last-child {
+#isscaxkygg .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#hyittwiyxh .gt_row {
+#isscaxkygg .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -338,7 +364,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   overflow-x: hidden;
 }
 
-#hyittwiyxh .gt_stub {
+#isscaxkygg .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -351,7 +377,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#hyittwiyxh .gt_stub_row_group {
+#isscaxkygg .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -365,15 +391,15 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   vertical-align: top;
 }
 
-#hyittwiyxh .gt_row_group_first td {
+#isscaxkygg .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#hyittwiyxh .gt_row_group_first th {
+#isscaxkygg .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#hyittwiyxh .gt_summary_row {
+#isscaxkygg .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -383,16 +409,16 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#hyittwiyxh .gt_first_summary_row {
+#isscaxkygg .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_first_summary_row.thick {
+#isscaxkygg .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#hyittwiyxh .gt_last_summary_row {
+#isscaxkygg .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -402,7 +428,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-bottom-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_grand_summary_row {
+#isscaxkygg .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -412,7 +438,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#hyittwiyxh .gt_first_grand_summary_row {
+#isscaxkygg .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -422,7 +448,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-top-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_last_grand_summary_row_top {
+#isscaxkygg .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -432,11 +458,11 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-bottom-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_striped {
+#isscaxkygg .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#hyittwiyxh .gt_table_body {
+#isscaxkygg .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -445,7 +471,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-bottom-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_footnotes {
+#isscaxkygg .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -459,7 +485,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-right-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_footnote {
+#isscaxkygg .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -468,7 +494,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#hyittwiyxh .gt_sourcenotes {
+#isscaxkygg .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -482,7 +508,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-right-color: #D3D3D3;
 }
 
-#hyittwiyxh .gt_sourcenote {
+#isscaxkygg .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -490,63 +516,63 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#hyittwiyxh .gt_left {
+#isscaxkygg .gt_left {
   text-align: left;
 }
 
-#hyittwiyxh .gt_center {
+#isscaxkygg .gt_center {
   text-align: center;
 }
 
-#hyittwiyxh .gt_right {
+#isscaxkygg .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#hyittwiyxh .gt_font_normal {
+#isscaxkygg .gt_font_normal {
   font-weight: normal;
 }
 
-#hyittwiyxh .gt_font_bold {
+#isscaxkygg .gt_font_bold {
   font-weight: bold;
 }
 
-#hyittwiyxh .gt_font_italic {
+#isscaxkygg .gt_font_italic {
   font-style: italic;
 }
 
-#hyittwiyxh .gt_super {
+#isscaxkygg .gt_super {
   font-size: 65%;
 }
 
-#hyittwiyxh .gt_footnote_marks {
+#isscaxkygg .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#hyittwiyxh .gt_asterisk {
+#isscaxkygg .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#hyittwiyxh .gt_indent_1 {
+#isscaxkygg .gt_indent_1 {
   text-indent: 5px;
 }
 
-#hyittwiyxh .gt_indent_2 {
+#isscaxkygg .gt_indent_2 {
   text-indent: 10px;
 }
 
-#hyittwiyxh .gt_indent_3 {
+#isscaxkygg .gt_indent_3 {
   text-indent: 15px;
 }
 
-#hyittwiyxh .gt_indent_4 {
+#isscaxkygg .gt_indent_4 {
   text-indent: 20px;
 }
 
-#hyittwiyxh .gt_indent_5 {
+#isscaxkygg .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -560,11 +586,11 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
     </tr>
     <tr class="gt_col_headings gt_spanner_row">
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id=""></th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="Chinese ownership">
-        <span class="gt_column_spanner">Chinese ownership</span>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="uncond. PTA">
+        <span class="gt_column_spanner">uncond. PTA</span>
       </th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="Chinese operation">
-        <span class="gt_column_spanner">Chinese operation</span>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="cond. PTA">
+        <span class="gt_column_spanner">cond. PTA</span>
       </th>
     </tr>
     <tr class="gt_col_headings">
@@ -581,85 +607,85 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
       <th colspan="7" class="gt_empty_group_heading" scope="colgroup" id=""></th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">simple average</th>
-<td headers="NA stub_1_1 ATT.x" class="gt_row gt_right">1,183.05</td>
-<td headers="NA stub_1_1 lower.x" class="gt_row gt_right">−861.11</td>
-<td headers="NA stub_1_1 upper.x" class="gt_row gt_right">3,227.20</td>
-<td headers="NA stub_1_1 ATT.y" class="gt_row gt_right">1,207.22</td>
-<td headers="NA stub_1_1 lower.y" class="gt_row gt_right">−601.23</td>
-<td headers="NA stub_1_1 upper.y" class="gt_row gt_right">3,015.67</td></tr>
+<td headers="NA stub_1_1 ATT.x" class="gt_row gt_right">212,233.22<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="NA stub_1_1 lower.x" class="gt_row gt_right">29,752.72</td>
+<td headers="NA stub_1_1 upper.x" class="gt_row gt_right">394,713.71</td>
+<td headers="NA stub_1_1 ATT.y" class="gt_row gt_right">106,024.95<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="NA stub_1_1 lower.y" class="gt_row gt_right">7,805.53</td>
+<td headers="NA stub_1_1 upper.y" class="gt_row gt_right">204,244.36</td></tr>
     <tr class="gt_group_heading_row">
       <th colspan="7" class="gt_group_heading" scope="colgroup" id="by group:">by group:</th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Ambarli (76)</th>
-<td headers="by group: stub_1_2 ATT.x" class="gt_row gt_right">−461.60<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_2 lower.x" class="gt_row gt_right">−570.64</td>
-<td headers="by group: stub_1_2 upper.x" class="gt_row gt_right">−352.56</td>
-<td headers="by group: stub_1_2 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_2 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_2 upper.y" class="gt_row gt_right"><br /></td></tr>
+<td headers="by group: stub_1_2 ATT.x" class="gt_row gt_right">−38,788.63</td>
+<td headers="by group: stub_1_2 lower.x" class="gt_row gt_right">−185,635.86</td>
+<td headers="by group: stub_1_2 upper.x" class="gt_row gt_right">108,058.60</td>
+<td headers="by group: stub_1_2 ATT.y" class="gt_row gt_right">−28,743.89</td>
+<td headers="by group: stub_1_2 lower.y" class="gt_row gt_right">−135,030.16</td>
+<td headers="by group: stub_1_2 upper.y" class="gt_row gt_right">77,542.38</td></tr>
     <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Amsterdam, Thessaloniki (85)</th>
-<td headers="by group: stub_1_3 ATT.x" class="gt_row gt_right">−8.06</td>
-<td headers="by group: stub_1_3 lower.x" class="gt_row gt_right">−134.77</td>
-<td headers="by group: stub_1_3 upper.x" class="gt_row gt_right">118.65</td>
-<td headers="by group: stub_1_3 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_3 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_3 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Barcelona (63)</th>
-<td headers="by group: stub_1_4 ATT.x" class="gt_row gt_right">796.40<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_4 lower.x" class="gt_row gt_right">702.98</td>
-<td headers="by group: stub_1_4 upper.x" class="gt_row gt_right">889.82</td>
-<td headers="by group: stub_1_4 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_4 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_4 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Bilbao, Valencia (84)</th>
-<td headers="by group: stub_1_5 ATT.x" class="gt_row gt_right">54.06</td>
-<td headers="by group: stub_1_5 lower.x" class="gt_row gt_right">−182.78</td>
-<td headers="by group: stub_1_5 upper.x" class="gt_row gt_right">290.90</td>
-<td headers="by group: stub_1_5 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_5 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_5 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille (66)</th>
-<td headers="by group: stub_1_6 ATT.x" class="gt_row gt_right">63.56</td>
-<td headers="by group: stub_1_6 lower.x" class="gt_row gt_right">−156.53</td>
-<td headers="by group: stub_1_6 upper.x" class="gt_row gt_right">283.65</td>
-<td headers="by group: stub_1_6 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_6 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_6 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Gdynia (38)</th>
-<td headers="by group: stub_1_7 ATT.x" class="gt_row gt_right">41.36</td>
-<td headers="by group: stub_1_7 lower.x" class="gt_row gt_right">−45.12</td>
-<td headers="by group: stub_1_7 upper.x" class="gt_row gt_right">127.83</td>
-<td headers="by group: stub_1_7 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_7 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_7 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Genova (81)</th>
-<td headers="by group: stub_1_8 ATT.x" class="gt_row gt_right">222.03<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_8 lower.x" class="gt_row gt_right">118.73</td>
-<td headers="by group: stub_1_8 upper.x" class="gt_row gt_right">325.33</td>
-<td headers="by group: stub_1_8 ATT.y" class="gt_row gt_right">197.20<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_8 lower.y" class="gt_row gt_right">84.70</td>
-<td headers="by group: stub_1_8 upper.y" class="gt_row gt_right">309.70</td></tr>
-    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Moerdijk, Rotterdam (21)</th>
-<td headers="by group: stub_1_9 ATT.x" class="gt_row gt_right">3,212.35<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_9 lower.x" class="gt_row gt_right">2,935.92</td>
-<td headers="by group: stub_1_9 upper.x" class="gt_row gt_right">3,488.77</td>
-<td headers="by group: stub_1_9 ATT.y" class="gt_row gt_right">−151.78<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_9 lower.y" class="gt_row gt_right">−259.44</td>
-<td headers="by group: stub_1_9 upper.y" class="gt_row gt_right">−44.12</td></tr>
-    <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Piraeus (52)</th>
-<td headers="by group: stub_1_10 ATT.x" class="gt_row gt_right">3,224.92<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_10 lower.x" class="gt_row gt_right">3,120.77</td>
-<td headers="by group: stub_1_10 upper.x" class="gt_row gt_right">3,329.08</td>
-<td headers="by group: stub_1_10 ATT.y" class="gt_row gt_right">3,206.82<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_10 lower.y" class="gt_row gt_right">3,112.06</td>
-<td headers="by group: stub_1_10 upper.y" class="gt_row gt_right">3,301.58</td></tr>
-    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Rotterdam (80)</th>
-<td headers="by group: stub_1_11 ATT.x" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_11 lower.x" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_11 upper.x" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_11 ATT.y" class="gt_row gt_right">2,435.24<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_11 lower.y" class="gt_row gt_right">2,341.79</td>
-<td headers="by group: stub_1_11 upper.y" class="gt_row gt_right">2,528.70</td></tr>
+<td headers="by group: stub_1_3 ATT.x" class="gt_row gt_right">−2,238.48</td>
+<td headers="by group: stub_1_3 lower.x" class="gt_row gt_right">−218,443.54</td>
+<td headers="by group: stub_1_3 upper.x" class="gt_row gt_right">213,966.59</td>
+<td headers="by group: stub_1_3 ATT.y" class="gt_row gt_right">−3,833.61</td>
+<td headers="by group: stub_1_3 lower.y" class="gt_row gt_right">−16,298.63</td>
+<td headers="by group: stub_1_3 upper.y" class="gt_row gt_right">8,631.42</td></tr>
+    <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Antwerpen (32)</th>
+<td headers="by group: stub_1_4 ATT.x" class="gt_row gt_right">866,346.94<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_4 lower.x" class="gt_row gt_right">764,641.09</td>
+<td headers="by group: stub_1_4 upper.x" class="gt_row gt_right">968,052.79</td>
+<td headers="by group: stub_1_4 ATT.y" class="gt_row gt_right">427,729.36<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_4 lower.y" class="gt_row gt_right">195,722.90</td>
+<td headers="by group: stub_1_4 upper.y" class="gt_row gt_right">659,735.82</td></tr>
+    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Barcelona (63)</th>
+<td headers="by group: stub_1_5 ATT.x" class="gt_row gt_right">213,341.43<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_5 lower.x" class="gt_row gt_right">94,203.74</td>
+<td headers="by group: stub_1_5 upper.x" class="gt_row gt_right">332,479.11</td>
+<td headers="by group: stub_1_5 ATT.y" class="gt_row gt_right">225,724.52<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_5 lower.y" class="gt_row gt_right">122,117.43</td>
+<td headers="by group: stub_1_5 upper.y" class="gt_row gt_right">329,331.60</td></tr>
+    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Bilbao, Valencia (84)</th>
+<td headers="by group: stub_1_6 ATT.x" class="gt_row gt_right">−2,871.33</td>
+<td headers="by group: stub_1_6 lower.x" class="gt_row gt_right">−252,138.27</td>
+<td headers="by group: stub_1_6 upper.x" class="gt_row gt_right">246,395.60</td>
+<td headers="by group: stub_1_6 ATT.y" class="gt_row gt_right">22,420.17</td>
+<td headers="by group: stub_1_6 lower.y" class="gt_row gt_right">−50,019.40</td>
+<td headers="by group: stub_1_6 upper.y" class="gt_row gt_right">94,859.75</td></tr>
+    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille, Nantes Saint Nazaire, Zeebrugge (66)</th>
+<td headers="by group: stub_1_7 ATT.x" class="gt_row gt_right">1,349.26</td>
+<td headers="by group: stub_1_7 lower.x" class="gt_row gt_right">−437,454.75</td>
+<td headers="by group: stub_1_7 upper.x" class="gt_row gt_right">440,153.27</td>
+<td headers="by group: stub_1_7 ATT.y" class="gt_row gt_right">−1,084.51</td>
+<td headers="by group: stub_1_7 lower.y" class="gt_row gt_right">−63,838.87</td>
+<td headers="by group: stub_1_7 upper.y" class="gt_row gt_right">61,669.84</td></tr>
+    <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Gdynia (38)</th>
+<td headers="by group: stub_1_8 ATT.x" class="gt_row gt_right">39,404.22</td>
+<td headers="by group: stub_1_8 lower.x" class="gt_row gt_right">−67,800.42</td>
+<td headers="by group: stub_1_8 upper.x" class="gt_row gt_right">146,608.85</td>
+<td headers="by group: stub_1_8 ATT.y" class="gt_row gt_right">22,332.38<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_8 lower.y" class="gt_row gt_right">7,101.93</td>
+<td headers="by group: stub_1_8 upper.y" class="gt_row gt_right">37,562.82</td></tr>
+    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Genova (81)</th>
+<td headers="by group: stub_1_9 ATT.x" class="gt_row gt_right">57,295.85</td>
+<td headers="by group: stub_1_9 lower.x" class="gt_row gt_right">−99,442.75</td>
+<td headers="by group: stub_1_9 upper.x" class="gt_row gt_right">214,034.45</td>
+<td headers="by group: stub_1_9 ATT.y" class="gt_row gt_right">83,574.61<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_9 lower.y" class="gt_row gt_right">50,347.68</td>
+<td headers="by group: stub_1_9 upper.y" class="gt_row gt_right">116,801.54</td></tr>
+    <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Moerdijk, Rotterdam (21)</th>
+<td headers="by group: stub_1_10 ATT.x" class="gt_row gt_right">346,145.31</td>
+<td headers="by group: stub_1_10 lower.x" class="gt_row gt_right">−3,606,408.66</td>
+<td headers="by group: stub_1_10 upper.x" class="gt_row gt_right">4,298,699.28</td>
+<td headers="by group: stub_1_10 ATT.y" class="gt_row gt_right">63,913.61</td>
+<td headers="by group: stub_1_10 lower.y" class="gt_row gt_right">−69,020.47</td>
+<td headers="by group: stub_1_10 upper.y" class="gt_row gt_right">196,847.70</td></tr>
+    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Piraeus (52)</th>
+<td headers="by group: stub_1_11 ATT.x" class="gt_row gt_right">702,775.04<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_11 lower.x" class="gt_row gt_right">575,268.57</td>
+<td headers="by group: stub_1_11 upper.x" class="gt_row gt_right">830,281.51</td>
+<td headers="by group: stub_1_11 ATT.y" class="gt_row gt_right">569,268.34<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_11 lower.y" class="gt_row gt_right">489,101.50</td>
+<td headers="by group: stub_1_11 upper.y" class="gt_row gt_right">649,435.18</td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">
@@ -691,23 +717,23 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
 
 
 ```{=html}
-<div id="lxcxiycdtr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#lxcxiycdtr table {
+<div id="tuilvwcxrp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#tuilvwcxrp table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#lxcxiycdtr thead, #lxcxiycdtr tbody, #lxcxiycdtr tfoot, #lxcxiycdtr tr, #lxcxiycdtr td, #lxcxiycdtr th {
+#tuilvwcxrp thead, #tuilvwcxrp tbody, #tuilvwcxrp tfoot, #tuilvwcxrp tr, #tuilvwcxrp td, #tuilvwcxrp th {
   border-style: none;
 }
 
-#lxcxiycdtr p {
+#tuilvwcxrp p {
   margin: 0;
   padding: 0;
 }
 
-#lxcxiycdtr .gt_table {
+#tuilvwcxrp .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -733,12 +759,12 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-left-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_caption {
+#tuilvwcxrp .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#lxcxiycdtr .gt_title {
+#tuilvwcxrp .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -750,7 +776,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-bottom-width: 0;
 }
 
-#lxcxiycdtr .gt_subtitle {
+#tuilvwcxrp .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -762,7 +788,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-top-width: 0;
 }
 
-#lxcxiycdtr .gt_heading {
+#tuilvwcxrp .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -774,13 +800,13 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-right-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_bottom_border {
+#tuilvwcxrp .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_col_headings {
+#tuilvwcxrp .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -795,7 +821,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-right-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_col_heading {
+#tuilvwcxrp .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -815,7 +841,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   overflow-x: hidden;
 }
 
-#lxcxiycdtr .gt_column_spanner_outer {
+#tuilvwcxrp .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -827,15 +853,15 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   padding-right: 4px;
 }
 
-#lxcxiycdtr .gt_column_spanner_outer:first-child {
+#tuilvwcxrp .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#lxcxiycdtr .gt_column_spanner_outer:last-child {
+#tuilvwcxrp .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#lxcxiycdtr .gt_column_spanner {
+#tuilvwcxrp .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -847,11 +873,11 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   width: 100%;
 }
 
-#lxcxiycdtr .gt_spanner_row {
+#tuilvwcxrp .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#lxcxiycdtr .gt_group_heading {
+#tuilvwcxrp .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -877,7 +903,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   text-align: left;
 }
 
-#lxcxiycdtr .gt_empty_group_heading {
+#tuilvwcxrp .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -892,15 +918,15 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   vertical-align: middle;
 }
 
-#lxcxiycdtr .gt_from_md > :first-child {
+#tuilvwcxrp .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#lxcxiycdtr .gt_from_md > :last-child {
+#tuilvwcxrp .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#lxcxiycdtr .gt_row {
+#tuilvwcxrp .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -919,7 +945,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   overflow-x: hidden;
 }
 
-#lxcxiycdtr .gt_stub {
+#tuilvwcxrp .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -932,7 +958,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   padding-right: 5px;
 }
 
-#lxcxiycdtr .gt_stub_row_group {
+#tuilvwcxrp .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -946,15 +972,15 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   vertical-align: top;
 }
 
-#lxcxiycdtr .gt_row_group_first td {
+#tuilvwcxrp .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#lxcxiycdtr .gt_row_group_first th {
+#tuilvwcxrp .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#lxcxiycdtr .gt_summary_row {
+#tuilvwcxrp .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -964,16 +990,16 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   padding-right: 5px;
 }
 
-#lxcxiycdtr .gt_first_summary_row {
+#tuilvwcxrp .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_first_summary_row.thick {
+#tuilvwcxrp .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#lxcxiycdtr .gt_last_summary_row {
+#tuilvwcxrp .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -983,7 +1009,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-bottom-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_grand_summary_row {
+#tuilvwcxrp .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -993,7 +1019,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   padding-right: 5px;
 }
 
-#lxcxiycdtr .gt_first_grand_summary_row {
+#tuilvwcxrp .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1003,7 +1029,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-top-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_last_grand_summary_row_top {
+#tuilvwcxrp .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1013,11 +1039,11 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-bottom-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_striped {
+#tuilvwcxrp .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#lxcxiycdtr .gt_table_body {
+#tuilvwcxrp .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1026,7 +1052,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-bottom-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_footnotes {
+#tuilvwcxrp .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1040,7 +1066,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-right-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_footnote {
+#tuilvwcxrp .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1049,7 +1075,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   padding-right: 5px;
 }
 
-#lxcxiycdtr .gt_sourcenotes {
+#tuilvwcxrp .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1063,7 +1089,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   border-right-color: #D3D3D3;
 }
 
-#lxcxiycdtr .gt_sourcenote {
+#tuilvwcxrp .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1071,63 +1097,63 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
   padding-right: 5px;
 }
 
-#lxcxiycdtr .gt_left {
+#tuilvwcxrp .gt_left {
   text-align: left;
 }
 
-#lxcxiycdtr .gt_center {
+#tuilvwcxrp .gt_center {
   text-align: center;
 }
 
-#lxcxiycdtr .gt_right {
+#tuilvwcxrp .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#lxcxiycdtr .gt_font_normal {
+#tuilvwcxrp .gt_font_normal {
   font-weight: normal;
 }
 
-#lxcxiycdtr .gt_font_bold {
+#tuilvwcxrp .gt_font_bold {
   font-weight: bold;
 }
 
-#lxcxiycdtr .gt_font_italic {
+#tuilvwcxrp .gt_font_italic {
   font-style: italic;
 }
 
-#lxcxiycdtr .gt_super {
+#tuilvwcxrp .gt_super {
   font-size: 65%;
 }
 
-#lxcxiycdtr .gt_footnote_marks {
+#tuilvwcxrp .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#lxcxiycdtr .gt_asterisk {
+#tuilvwcxrp .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#lxcxiycdtr .gt_indent_1 {
+#tuilvwcxrp .gt_indent_1 {
   text-indent: 5px;
 }
 
-#lxcxiycdtr .gt_indent_2 {
+#tuilvwcxrp .gt_indent_2 {
   text-indent: 10px;
 }
 
-#lxcxiycdtr .gt_indent_3 {
+#tuilvwcxrp .gt_indent_3 {
   text-indent: 15px;
 }
 
-#lxcxiycdtr .gt_indent_4 {
+#tuilvwcxrp .gt_indent_4 {
   text-indent: 20px;
 }
 
-#lxcxiycdtr .gt_indent_5 {
+#tuilvwcxrp .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -1137,15 +1163,15 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
       <td colspan="7" class="gt_heading gt_title gt_font_normal" style>Aggregation of group time average treatment effects</td>
     </tr>
     <tr class="gt_heading">
-      <td colspan="7" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>Control group: Never treated and not yet treated</td>
+      <td colspan="7" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>Control group: Not yet treated</td>
     </tr>
     <tr class="gt_col_headings gt_spanner_row">
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id=""></th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="Chinese ownership">
-        <span class="gt_column_spanner">Chinese ownership</span>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="uncond. PTA">
+        <span class="gt_column_spanner">uncond. PTA</span>
       </th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="Chinese operation">
-        <span class="gt_column_spanner">Chinese operation</span>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="cond. PTA">
+        <span class="gt_column_spanner">cond. PTA</span>
       </th>
     </tr>
     <tr class="gt_col_headings">
@@ -1162,85 +1188,78 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
       <th colspan="7" class="gt_empty_group_heading" scope="colgroup" id=""></th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">simple average</th>
-<td headers="NA stub_1_1 ATT.x" class="gt_row gt_right">1,183.05</td>
-<td headers="NA stub_1_1 lower.x" class="gt_row gt_right">−861.11</td>
-<td headers="NA stub_1_1 upper.x" class="gt_row gt_right">3,227.20</td>
-<td headers="NA stub_1_1 ATT.y" class="gt_row gt_right">1,207.22</td>
-<td headers="NA stub_1_1 lower.y" class="gt_row gt_right">−601.23</td>
-<td headers="NA stub_1_1 upper.y" class="gt_row gt_right">3,015.67</td></tr>
+<td headers="NA stub_1_1 ATT.x" class="gt_row gt_right">158,597.32</td>
+<td headers="NA stub_1_1 lower.x" class="gt_row gt_right">−38,850.18</td>
+<td headers="NA stub_1_1 upper.x" class="gt_row gt_right">356,044.83</td>
+<td headers="NA stub_1_1 ATT.y" class="gt_row gt_right">166,504.33<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="NA stub_1_1 lower.y" class="gt_row gt_right">3,176.30</td>
+<td headers="NA stub_1_1 upper.y" class="gt_row gt_right">329,832.35</td></tr>
     <tr class="gt_group_heading_row">
       <th colspan="7" class="gt_group_heading" scope="colgroup" id="by group:">by group:</th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Ambarli (76)</th>
-<td headers="by group: stub_1_2 ATT.x" class="gt_row gt_right">−461.60<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_2 lower.x" class="gt_row gt_right">−570.64</td>
-<td headers="by group: stub_1_2 upper.x" class="gt_row gt_right">−352.56</td>
-<td headers="by group: stub_1_2 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_2 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_2 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Amsterdam, Thessaloniki (85)</th>
-<td headers="by group: stub_1_3 ATT.x" class="gt_row gt_right">−8.06</td>
-<td headers="by group: stub_1_3 lower.x" class="gt_row gt_right">−134.77</td>
-<td headers="by group: stub_1_3 upper.x" class="gt_row gt_right">118.65</td>
-<td headers="by group: stub_1_3 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_3 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_3 upper.y" class="gt_row gt_right"><br /></td></tr>
+<td headers="by group: stub_1_2 ATT.x" class="gt_row gt_right">−43,370.01<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_2 lower.x" class="gt_row gt_right">−58,962.03</td>
+<td headers="by group: stub_1_2 upper.x" class="gt_row gt_right">−27,777.98</td>
+<td headers="by group: stub_1_2 ATT.y" class="gt_row gt_right">582,314.06<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_2 lower.y" class="gt_row gt_right">515,406.64</td>
+<td headers="by group: stub_1_2 upper.y" class="gt_row gt_right">649,221.49</td></tr>
+    <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Antwerpen (32)</th>
+<td headers="by group: stub_1_3 ATT.x" class="gt_row gt_right">578,043.76<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_3 lower.x" class="gt_row gt_right">445,871.81</td>
+<td headers="by group: stub_1_3 upper.x" class="gt_row gt_right">710,215.70</td>
+<td headers="by group: stub_1_3 ATT.y" class="gt_row gt_right">562,513.85<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_3 lower.y" class="gt_row gt_right">471,240.78</td>
+<td headers="by group: stub_1_3 upper.y" class="gt_row gt_right">653,786.91</td></tr>
     <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Barcelona (63)</th>
-<td headers="by group: stub_1_4 ATT.x" class="gt_row gt_right">796.40<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_4 lower.x" class="gt_row gt_right">702.98</td>
-<td headers="by group: stub_1_4 upper.x" class="gt_row gt_right">889.82</td>
-<td headers="by group: stub_1_4 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_4 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_4 upper.y" class="gt_row gt_right"><br /></td></tr>
+<td headers="by group: stub_1_4 ATT.x" class="gt_row gt_right">69,049.79<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_4 lower.x" class="gt_row gt_right">37,117.15</td>
+<td headers="by group: stub_1_4 upper.x" class="gt_row gt_right">100,982.43</td>
+<td headers="by group: stub_1_4 ATT.y" class="gt_row gt_right">57,638.95<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_4 lower.y" class="gt_row gt_right">37,886.70</td>
+<td headers="by group: stub_1_4 upper.y" class="gt_row gt_right">77,391.19</td></tr>
     <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Bilbao, Valencia (84)</th>
-<td headers="by group: stub_1_5 ATT.x" class="gt_row gt_right">54.06</td>
-<td headers="by group: stub_1_5 lower.x" class="gt_row gt_right">−182.78</td>
-<td headers="by group: stub_1_5 upper.x" class="gt_row gt_right">290.90</td>
-<td headers="by group: stub_1_5 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_5 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_5 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille (66)</th>
-<td headers="by group: stub_1_6 ATT.x" class="gt_row gt_right">63.56</td>
-<td headers="by group: stub_1_6 lower.x" class="gt_row gt_right">−156.53</td>
-<td headers="by group: stub_1_6 upper.x" class="gt_row gt_right">283.65</td>
-<td headers="by group: stub_1_6 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_6 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_6 upper.y" class="gt_row gt_right"><br /></td></tr>
+<td headers="by group: stub_1_5 ATT.x" class="gt_row gt_right">−38,203.50</td>
+<td headers="by group: stub_1_5 lower.x" class="gt_row gt_right">−136,942.01</td>
+<td headers="by group: stub_1_5 upper.x" class="gt_row gt_right">60,535.01</td>
+<td headers="by group: stub_1_5 ATT.y" class="gt_row gt_right">−31,801.12</td>
+<td headers="by group: stub_1_5 lower.y" class="gt_row gt_right">−119,808.91</td>
+<td headers="by group: stub_1_5 upper.y" class="gt_row gt_right">56,206.67</td></tr>
+    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille, Nantes Saint Nazaire, Zeebrugge (66)</th>
+<td headers="by group: stub_1_6 ATT.x" class="gt_row gt_right">−14,458.25</td>
+<td headers="by group: stub_1_6 lower.x" class="gt_row gt_right">−103,131.42</td>
+<td headers="by group: stub_1_6 upper.x" class="gt_row gt_right">74,214.91</td>
+<td headers="by group: stub_1_6 ATT.y" class="gt_row gt_right">2,864.56</td>
+<td headers="by group: stub_1_6 lower.y" class="gt_row gt_right">−68,965.78</td>
+<td headers="by group: stub_1_6 upper.y" class="gt_row gt_right">74,694.89</td></tr>
     <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Gdynia (38)</th>
-<td headers="by group: stub_1_7 ATT.x" class="gt_row gt_right">41.36</td>
-<td headers="by group: stub_1_7 lower.x" class="gt_row gt_right">−45.12</td>
-<td headers="by group: stub_1_7 upper.x" class="gt_row gt_right">127.83</td>
-<td headers="by group: stub_1_7 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_7 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_7 upper.y" class="gt_row gt_right"><br /></td></tr>
+<td headers="by group: stub_1_7 ATT.x" class="gt_row gt_right">−59,221.39</td>
+<td headers="by group: stub_1_7 lower.x" class="gt_row gt_right">−192,982.98</td>
+<td headers="by group: stub_1_7 upper.x" class="gt_row gt_right">74,540.21</td>
+<td headers="by group: stub_1_7 ATT.y" class="gt_row gt_right">−7,309.35</td>
+<td headers="by group: stub_1_7 lower.y" class="gt_row gt_right">−42,521.69</td>
+<td headers="by group: stub_1_7 upper.y" class="gt_row gt_right">27,902.99</td></tr>
     <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Genova (81)</th>
-<td headers="by group: stub_1_8 ATT.x" class="gt_row gt_right">222.03<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_8 lower.x" class="gt_row gt_right">118.73</td>
-<td headers="by group: stub_1_8 upper.x" class="gt_row gt_right">325.33</td>
-<td headers="by group: stub_1_8 ATT.y" class="gt_row gt_right">197.20<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_8 lower.y" class="gt_row gt_right">84.70</td>
-<td headers="by group: stub_1_8 upper.y" class="gt_row gt_right">309.70</td></tr>
+<td headers="by group: stub_1_8 ATT.x" class="gt_row gt_right">27,415.87</td>
+<td headers="by group: stub_1_8 lower.x" class="gt_row gt_right">−1,318.68</td>
+<td headers="by group: stub_1_8 upper.x" class="gt_row gt_right">56,150.43</td>
+<td headers="by group: stub_1_8 ATT.y" class="gt_row gt_right">36,622.77<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_8 lower.y" class="gt_row gt_right">21,415.55</td>
+<td headers="by group: stub_1_8 upper.y" class="gt_row gt_right">51,829.99</td></tr>
     <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Moerdijk, Rotterdam (21)</th>
-<td headers="by group: stub_1_9 ATT.x" class="gt_row gt_right">3,212.35<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_9 lower.x" class="gt_row gt_right">2,935.92</td>
-<td headers="by group: stub_1_9 upper.x" class="gt_row gt_right">3,488.77</td>
-<td headers="by group: stub_1_9 ATT.y" class="gt_row gt_right">−151.78<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_9 lower.y" class="gt_row gt_right">−259.44</td>
-<td headers="by group: stub_1_9 upper.y" class="gt_row gt_right">−44.12</td></tr>
+<td headers="by group: stub_1_9 ATT.x" class="gt_row gt_right">186,230.89</td>
+<td headers="by group: stub_1_9 lower.x" class="gt_row gt_right">−217,251.14</td>
+<td headers="by group: stub_1_9 upper.x" class="gt_row gt_right">589,712.93</td>
+<td headers="by group: stub_1_9 ATT.y" class="gt_row gt_right">161,395.18</td>
+<td headers="by group: stub_1_9 lower.y" class="gt_row gt_right">−290,545.02</td>
+<td headers="by group: stub_1_9 upper.y" class="gt_row gt_right">613,335.37</td></tr>
     <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Piraeus (52)</th>
-<td headers="by group: stub_1_10 ATT.x" class="gt_row gt_right">3,224.92<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_10 lower.x" class="gt_row gt_right">3,120.77</td>
-<td headers="by group: stub_1_10 upper.x" class="gt_row gt_right">3,329.08</td>
-<td headers="by group: stub_1_10 ATT.y" class="gt_row gt_right">3,206.82<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_10 lower.y" class="gt_row gt_right">3,112.06</td>
-<td headers="by group: stub_1_10 upper.y" class="gt_row gt_right">3,301.58</td></tr>
-    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Rotterdam (80)</th>
-<td headers="by group: stub_1_11 ATT.x" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_11 lower.x" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_11 upper.x" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_11 ATT.y" class="gt_row gt_right">2,435.24<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_11 lower.y" class="gt_row gt_right">2,341.79</td>
-<td headers="by group: stub_1_11 upper.y" class="gt_row gt_right">2,528.70</td></tr>
+<td headers="by group: stub_1_10 ATT.x" class="gt_row gt_right">428,419.61<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_10 lower.x" class="gt_row gt_right">321,546.76</td>
+<td headers="by group: stub_1_10 upper.x" class="gt_row gt_right">535,292.46</td>
+<td headers="by group: stub_1_10 ATT.y" class="gt_row gt_right">350,096.18<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_10 lower.y" class="gt_row gt_right">153,968.84</td>
+<td headers="by group: stub_1_10 upper.y" class="gt_row gt_right">546,223.53</td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">
@@ -1257,7 +1276,7 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
 
 # Parallel trend assumption
 ## Event study
-For the DiD framework to deliver unbiased results, the parallel trend assumptions needs to hold. While it is not possible to test this assumption directly, we conduct a few test to validate whether the pre-treatment trends run parallel or not. The following graph displays and event study type aggregation of the group-time average treatment effects calculated above. The aggregated average treatment effects before treatment (red) are all around zero, indicating that parallel trends holds in the pre-treatment period. The graphs clearly indicate a peristent positive treatment effect after the treatment. The point-wise estimates are only significant in a couple of periods, which is due to the fact that some ports experience a high positive treatment effect while others do not. In particular *insert portnames* show consistently higher throughputs after treatment than the control group. 
+For the DiD framework to deliver unbiased results, the parallel trend assumptions needs to hold. While it is not possible to test this assumption directly, we conduct a few test to validate whether the pre-treatment trends run parallel or not. The following graph displays and event study type aggregation of the group-time average treatment effects calculated above. The aggregated average treatment effects before treatment (red) are all around zero, indicating that parallel trends holds in the pre-treatment period. The graphs clearly indicate a persistent positive treatment effect after the treatment. The point-wise estimates are only significant in a couple of periods, which is due to the fact that some ports experience a high positive treatment effect while others do not. In particular *insert portnames* show consistently higher throughputs after treatment than the control group. 
 
 ![](Estimation_files/figure-html/unnamed-chunk-10-1.png)<!-- -->![](Estimation_files/figure-html/unnamed-chunk-10-2.png)<!-- -->
 
@@ -1266,7 +1285,7 @@ For the DiD framework to deliver unbiased results, the parallel trend assumption
 
 
 
-Due to the small number of treated ports, there exists the possibility that the treated ports are just coincidentally experiencing an increase in the throughput after treatment. To alleviate these concerns, we conduct a placebo test testing the sharp null of an average treatment effect of zero @Young.2019. We exclude all treated ports from the data and randomly assign 15 port to be treated at a random point in time and calculate the simple average treatment effect. Repeating this process for 100 times yields the empirical distribution of treatment effects depicted in the bar chart below. As expected, the distribution is centered around zero, indicating that there is no consistent average treatment effect, when the treatment is assigned randomly. The observed treatment effect of the actual treated ports (vertical line) clearly lies at the right end of the distribution. If the true treatment effect was in fact zero and the observed treatment effect was only due to a coincidental lucky pick of ports and time, that probability of the observed treatment to occur effect would be 0 percent.    
+Due to the small number of treated ports, there exists the possibility that the treated ports are just coincidentally experiencing an increase in the throughput after treatment. To alleviate these concerns, we conduct a placebo test testing the sharp null of an average treatment effect of zero @Young.2019. We exclude all treated ports from the data and randomly assign 18 port to be treated at a random point in time and calculate the simple average treatment effect. Repeating this process for 100 times yields the empirical distribution of treatment effects depicted in the bar chart below. As expected, the distribution is centered around zero, indicating that there is no consistent average treatment effect, when the treatment is assigned randomly. The observed treatment effect of the actual treated ports (vertical line) clearly lies at the right end of the distribution. If the true treatment effect was in fact zero and the observed treatment effect was only due to a coincidental lucky pick of ports and time, that probability of the observed treatment to occur effect would be 0 percent.    
 
 ![](Estimation_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
@@ -1274,7 +1293,8 @@ Due to the small number of treated ports, there exists the possibility that the 
 
 ## Shipments from China
 
-In this section, we look further into the effect of Chinese ownerhsip and the operation of the ports by investigating the effect of Chinese ownership on the throughput of Chinese container. To evaluate whether Chinese container were processed more often in ports that management was taken over by a Chinese investor, we employ a triple difference framework. In particular, we define our output variable as the share of Chinese containers processed in a particular port relative to containers from all other origins. 
+In this section, we look further into the effect of Chinese ownership and the operation of the ports by investigating the effect of Chinese ownership on the throughput of Chinese container. To evaluate whether Chinese container were processed more often in ports that management was taken over by a Chinese investor, we employ a triple difference framework. In particular, we define our output variable as the share of Chinese containers processed in a particular port relative to containers from all other origins. The identifying parallel trends assumption that needs to hold is that the relative throughput of Chinese containers in treated ports trend in the same way as the relative throughput of Chinese containers in untreated ports @Olden.2022.
+This setup has a number of advantages over a simple difference in difference using Chinese container throughput in levels as the outcome variable. In particular, the triple difference setup helps reducing potential bias that could be in a difference in difference estimation of Chinese container throughput versus container throughput of other origins for treated ports and untreated ports.   
 
 
 
@@ -1282,23 +1302,23 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
 
 
 ```{=html}
-<div id="omqwmqbwdi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#omqwmqbwdi table {
+<div id="ipwavxiswk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ipwavxiswk table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#omqwmqbwdi thead, #omqwmqbwdi tbody, #omqwmqbwdi tfoot, #omqwmqbwdi tr, #omqwmqbwdi td, #omqwmqbwdi th {
+#ipwavxiswk thead, #ipwavxiswk tbody, #ipwavxiswk tfoot, #ipwavxiswk tr, #ipwavxiswk td, #ipwavxiswk th {
   border-style: none;
 }
 
-#omqwmqbwdi p {
+#ipwavxiswk p {
   margin: 0;
   padding: 0;
 }
 
-#omqwmqbwdi .gt_table {
+#ipwavxiswk .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1324,12 +1344,12 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-left-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_caption {
+#ipwavxiswk .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#omqwmqbwdi .gt_title {
+#ipwavxiswk .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1341,7 +1361,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-bottom-width: 0;
 }
 
-#omqwmqbwdi .gt_subtitle {
+#ipwavxiswk .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1353,7 +1373,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-top-width: 0;
 }
 
-#omqwmqbwdi .gt_heading {
+#ipwavxiswk .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1365,13 +1385,13 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-right-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_bottom_border {
+#ipwavxiswk .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_col_headings {
+#ipwavxiswk .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1386,7 +1406,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-right-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_col_heading {
+#ipwavxiswk .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1406,7 +1426,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   overflow-x: hidden;
 }
 
-#omqwmqbwdi .gt_column_spanner_outer {
+#ipwavxiswk .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1418,15 +1438,15 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   padding-right: 4px;
 }
 
-#omqwmqbwdi .gt_column_spanner_outer:first-child {
+#ipwavxiswk .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#omqwmqbwdi .gt_column_spanner_outer:last-child {
+#ipwavxiswk .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#omqwmqbwdi .gt_column_spanner {
+#ipwavxiswk .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1438,11 +1458,11 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   width: 100%;
 }
 
-#omqwmqbwdi .gt_spanner_row {
+#ipwavxiswk .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#omqwmqbwdi .gt_group_heading {
+#ipwavxiswk .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1468,7 +1488,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   text-align: left;
 }
 
-#omqwmqbwdi .gt_empty_group_heading {
+#ipwavxiswk .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1483,15 +1503,15 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   vertical-align: middle;
 }
 
-#omqwmqbwdi .gt_from_md > :first-child {
+#ipwavxiswk .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#omqwmqbwdi .gt_from_md > :last-child {
+#ipwavxiswk .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#omqwmqbwdi .gt_row {
+#ipwavxiswk .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1510,7 +1530,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   overflow-x: hidden;
 }
 
-#omqwmqbwdi .gt_stub {
+#ipwavxiswk .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1523,7 +1543,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   padding-right: 5px;
 }
 
-#omqwmqbwdi .gt_stub_row_group {
+#ipwavxiswk .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1537,15 +1557,15 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   vertical-align: top;
 }
 
-#omqwmqbwdi .gt_row_group_first td {
+#ipwavxiswk .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#omqwmqbwdi .gt_row_group_first th {
+#ipwavxiswk .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#omqwmqbwdi .gt_summary_row {
+#ipwavxiswk .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1555,16 +1575,16 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   padding-right: 5px;
 }
 
-#omqwmqbwdi .gt_first_summary_row {
+#ipwavxiswk .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_first_summary_row.thick {
+#ipwavxiswk .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#omqwmqbwdi .gt_last_summary_row {
+#ipwavxiswk .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1574,7 +1594,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-bottom-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_grand_summary_row {
+#ipwavxiswk .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1584,7 +1604,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   padding-right: 5px;
 }
 
-#omqwmqbwdi .gt_first_grand_summary_row {
+#ipwavxiswk .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1594,7 +1614,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-top-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_last_grand_summary_row_top {
+#ipwavxiswk .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1604,11 +1624,11 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-bottom-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_striped {
+#ipwavxiswk .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#omqwmqbwdi .gt_table_body {
+#ipwavxiswk .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1617,7 +1637,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-bottom-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_footnotes {
+#ipwavxiswk .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1631,7 +1651,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-right-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_footnote {
+#ipwavxiswk .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1640,7 +1660,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   padding-right: 5px;
 }
 
-#omqwmqbwdi .gt_sourcenotes {
+#ipwavxiswk .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1654,7 +1674,7 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   border-right-color: #D3D3D3;
 }
 
-#omqwmqbwdi .gt_sourcenote {
+#ipwavxiswk .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1662,87 +1682,81 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   padding-right: 5px;
 }
 
-#omqwmqbwdi .gt_left {
+#ipwavxiswk .gt_left {
   text-align: left;
 }
 
-#omqwmqbwdi .gt_center {
+#ipwavxiswk .gt_center {
   text-align: center;
 }
 
-#omqwmqbwdi .gt_right {
+#ipwavxiswk .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#omqwmqbwdi .gt_font_normal {
+#ipwavxiswk .gt_font_normal {
   font-weight: normal;
 }
 
-#omqwmqbwdi .gt_font_bold {
+#ipwavxiswk .gt_font_bold {
   font-weight: bold;
 }
 
-#omqwmqbwdi .gt_font_italic {
+#ipwavxiswk .gt_font_italic {
   font-style: italic;
 }
 
-#omqwmqbwdi .gt_super {
+#ipwavxiswk .gt_super {
   font-size: 65%;
 }
 
-#omqwmqbwdi .gt_footnote_marks {
+#ipwavxiswk .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#omqwmqbwdi .gt_asterisk {
+#ipwavxiswk .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#omqwmqbwdi .gt_indent_1 {
+#ipwavxiswk .gt_indent_1 {
   text-indent: 5px;
 }
 
-#omqwmqbwdi .gt_indent_2 {
+#ipwavxiswk .gt_indent_2 {
   text-indent: 10px;
 }
 
-#omqwmqbwdi .gt_indent_3 {
+#ipwavxiswk .gt_indent_3 {
   text-indent: 15px;
 }
 
-#omqwmqbwdi .gt_indent_4 {
+#ipwavxiswk .gt_indent_4 {
   text-indent: 20px;
 }
 
-#omqwmqbwdi .gt_indent_5 {
+#ipwavxiswk .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
 <table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
   <thead>
     <tr class="gt_heading">
-      <td colspan="7" class="gt_heading gt_title gt_font_normal" style>Aggregation of group time average treatment effects</td>
+      <td colspan="4" class="gt_heading gt_title gt_font_normal" style>Aggregation of group time average treatment effects</td>
     </tr>
     <tr class="gt_heading">
-      <td colspan="7" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>Control group: Never treated</td>
+      <td colspan="4" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>Control group: Never treated</td>
     </tr>
     <tr class="gt_col_headings gt_spanner_row">
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id=""></th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="Chinese ownership">
-        <span class="gt_column_spanner">Chinese ownership</span>
-      </th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="Chinese operation">
-        <span class="gt_column_spanner">Chinese operation</span>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="uncond. PTA">
+        <span class="gt_column_spanner">uncond. PTA</span>
       </th>
     </tr>
     <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="ATT">ATT</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="[95%">[95%</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conf.int.]">conf.int.]</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="ATT">ATT</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="[95%">[95%</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conf.int.]">conf.int.]</th>
@@ -1750,96 +1764,63 @@ In this section, we look further into the effect of Chinese ownerhsip and the op
   </thead>
   <tbody class="gt_table_body">
     <tr class="gt_group_heading_row">
-      <th colspan="7" class="gt_empty_group_heading" scope="colgroup" id=""></th>
+      <th colspan="4" class="gt_empty_group_heading" scope="colgroup" id=""></th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">simple average</th>
-<td headers="NA stub_1_1 ATT.x" class="gt_row gt_right">0.01</td>
-<td headers="NA stub_1_1 lower.x" class="gt_row gt_right">−0.03</td>
-<td headers="NA stub_1_1 upper.x" class="gt_row gt_right">0.04</td>
-<td headers="NA stub_1_1 ATT.y" class="gt_row gt_right">0.01</td>
-<td headers="NA stub_1_1 lower.y" class="gt_row gt_right">−0.05</td>
-<td headers="NA stub_1_1 upper.y" class="gt_row gt_right">0.07</td></tr>
+<td headers="NA stub_1_1 ATT" class="gt_row gt_right">0.01</td>
+<td headers="NA stub_1_1 lower" class="gt_row gt_right">−0.02</td>
+<td headers="NA stub_1_1 upper" class="gt_row gt_right">0.03</td></tr>
     <tr class="gt_group_heading_row">
-      <th colspan="7" class="gt_group_heading" scope="colgroup" id="by group:">by group:</th>
+      <th colspan="4" class="gt_group_heading" scope="colgroup" id="by group:">by group:</th>
     </tr>
-    <tr class="gt_row_group_first"><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Ambarli (76)</th>
-<td headers="by group: stub_1_2 ATT.x" class="gt_row gt_right">−0.04<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_2 lower.x" class="gt_row gt_right">−0.05</td>
-<td headers="by group: stub_1_2 upper.x" class="gt_row gt_right">−0.02</td>
-<td headers="by group: stub_1_2 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_2 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_2 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Amsterdam, Thessaloniki (85)</th>
-<td headers="by group: stub_1_3 ATT.x" class="gt_row gt_right">0.01</td>
-<td headers="by group: stub_1_3 lower.x" class="gt_row gt_right">−0.01</td>
-<td headers="by group: stub_1_3 upper.x" class="gt_row gt_right">0.03</td>
-<td headers="by group: stub_1_3 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_3 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_3 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Barcelona (63)</th>
-<td headers="by group: stub_1_4 ATT.x" class="gt_row gt_right">−0.03<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_4 lower.x" class="gt_row gt_right">−0.05</td>
-<td headers="by group: stub_1_4 upper.x" class="gt_row gt_right">−0.01</td>
-<td headers="by group: stub_1_4 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_4 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_4 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Bilbao, Valencia (84)</th>
-<td headers="by group: stub_1_5 ATT.x" class="gt_row gt_right">−0.02</td>
-<td headers="by group: stub_1_5 lower.x" class="gt_row gt_right">−0.06</td>
-<td headers="by group: stub_1_5 upper.x" class="gt_row gt_right">0.03</td>
-<td headers="by group: stub_1_5 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_5 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_5 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille (66)</th>
-<td headers="by group: stub_1_6 ATT.x" class="gt_row gt_right">−0.01</td>
-<td headers="by group: stub_1_6 lower.x" class="gt_row gt_right">−0.18</td>
-<td headers="by group: stub_1_6 upper.x" class="gt_row gt_right">0.15</td>
-<td headers="by group: stub_1_6 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_6 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_6 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Gdynia (38)</th>
-<td headers="by group: stub_1_7 ATT.x" class="gt_row gt_right">−0.01</td>
-<td headers="by group: stub_1_7 lower.x" class="gt_row gt_right">−0.03</td>
-<td headers="by group: stub_1_7 upper.x" class="gt_row gt_right">0.01</td>
-<td headers="by group: stub_1_7 ATT.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_7 lower.y" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_7 upper.y" class="gt_row gt_right"><br /></td></tr>
-    <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Genova (81)</th>
-<td headers="by group: stub_1_8 ATT.x" class="gt_row gt_right">0.10<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_8 lower.x" class="gt_row gt_right">0.09</td>
-<td headers="by group: stub_1_8 upper.x" class="gt_row gt_right">0.11</td>
-<td headers="by group: stub_1_8 ATT.y" class="gt_row gt_right">0.10<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_8 lower.y" class="gt_row gt_right">0.09</td>
-<td headers="by group: stub_1_8 upper.y" class="gt_row gt_right">0.11</td></tr>
-    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Moerdijk, Rotterdam (21)</th>
-<td headers="by group: stub_1_9 ATT.x" class="gt_row gt_right">0.02</td>
-<td headers="by group: stub_1_9 lower.x" class="gt_row gt_right">−0.08</td>
-<td headers="by group: stub_1_9 upper.x" class="gt_row gt_right">0.12</td>
-<td headers="by group: stub_1_9 ATT.y" class="gt_row gt_right">−0.03<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_9 lower.y" class="gt_row gt_right">−0.05</td>
-<td headers="by group: stub_1_9 upper.y" class="gt_row gt_right">−0.02</td></tr>
-    <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Piraeus (52)</th>
-<td headers="by group: stub_1_10 ATT.x" class="gt_row gt_right">0.06<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_10 lower.x" class="gt_row gt_right">0.03</td>
-<td headers="by group: stub_1_10 upper.x" class="gt_row gt_right">0.08</td>
-<td headers="by group: stub_1_10 ATT.y" class="gt_row gt_right">0.06<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_10 lower.y" class="gt_row gt_right">0.04</td>
-<td headers="by group: stub_1_10 upper.y" class="gt_row gt_right">0.08</td></tr>
-    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Rotterdam (80)</th>
-<td headers="by group: stub_1_11 ATT.x" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_11 lower.x" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_11 upper.x" class="gt_row gt_right"><br /></td>
-<td headers="by group: stub_1_11 ATT.y" class="gt_row gt_right">−0.03<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_11 lower.y" class="gt_row gt_right">−0.04</td>
-<td headers="by group: stub_1_11 upper.y" class="gt_row gt_right">−0.01</td></tr>
+    <tr class="gt_row_group_first"><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Moerdijk, Rotterdam (21)</th>
+<td headers="by group: stub_1_2 ATT" class="gt_row gt_right">0.03</td>
+<td headers="by group: stub_1_2 lower" class="gt_row gt_right">−0.12</td>
+<td headers="by group: stub_1_2 upper" class="gt_row gt_right">0.17</td></tr>
+    <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Antwerpen (32)</th>
+<td headers="by group: stub_1_3 ATT" class="gt_row gt_right">−0.01</td>
+<td headers="by group: stub_1_3 lower" class="gt_row gt_right">−0.02</td>
+<td headers="by group: stub_1_3 upper" class="gt_row gt_right">0.01</td></tr>
+    <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Gdynia (38)</th>
+<td headers="by group: stub_1_4 ATT" class="gt_row gt_right">0.00</td>
+<td headers="by group: stub_1_4 lower" class="gt_row gt_right">−0.02</td>
+<td headers="by group: stub_1_4 upper" class="gt_row gt_right">0.01</td></tr>
+    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Piraeus (52)</th>
+<td headers="by group: stub_1_5 ATT" class="gt_row gt_right">0.07<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_5 lower" class="gt_row gt_right">0.04</td>
+<td headers="by group: stub_1_5 upper" class="gt_row gt_right">0.09</td></tr>
+    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Barcelona (63)</th>
+<td headers="by group: stub_1_6 ATT" class="gt_row gt_right">0.01<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_6 lower" class="gt_row gt_right">0.00</td>
+<td headers="by group: stub_1_6 upper" class="gt_row gt_right">0.02</td></tr>
+    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille, Nantes Saint Nazaire, Zeebrugge (66)</th>
+<td headers="by group: stub_1_7 ATT" class="gt_row gt_right">−0.02</td>
+<td headers="by group: stub_1_7 lower" class="gt_row gt_right">−0.11</td>
+<td headers="by group: stub_1_7 upper" class="gt_row gt_right">0.07</td></tr>
+    <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Ambarli (76)</th>
+<td headers="by group: stub_1_8 ATT" class="gt_row gt_right">−0.02<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_8 lower" class="gt_row gt_right">−0.04</td>
+<td headers="by group: stub_1_8 upper" class="gt_row gt_right">−0.01</td></tr>
+    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Genova (81)</th>
+<td headers="by group: stub_1_9 ATT" class="gt_row gt_right">0.07<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
+<td headers="by group: stub_1_9 lower" class="gt_row gt_right">0.06</td>
+<td headers="by group: stub_1_9 upper" class="gt_row gt_right">0.08</td></tr>
+    <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Bilbao, Valencia (84)</th>
+<td headers="by group: stub_1_10 ATT" class="gt_row gt_right">−0.02</td>
+<td headers="by group: stub_1_10 lower" class="gt_row gt_right">−0.06</td>
+<td headers="by group: stub_1_10 upper" class="gt_row gt_right">0.02</td></tr>
+    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Amsterdam, Thessaloniki (85)</th>
+<td headers="by group: stub_1_11 ATT" class="gt_row gt_right">0.00</td>
+<td headers="by group: stub_1_11 lower" class="gt_row gt_right">−0.01</td>
+<td headers="by group: stub_1_11 upper" class="gt_row gt_right">0.02</td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">
     <tr>
-      <td class="gt_footnote" colspan="7"> First treatment period in brackets.</td>
+      <td class="gt_footnote" colspan="4"> First treatment period in brackets.</td>
     </tr>
     <tr>
-      <td class="gt_footnote" colspan="7"><span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span> Confidence interval does not include zero.</td>
+      <td class="gt_footnote" colspan="4"><span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span> Confidence interval does not include zero.</td>
     </tr>
   </tfoot>
 </table>
