@@ -1,0 +1,349 @@
+---
+title: "Robustness Checks"
+author: "Paul Stricker"
+date: "2024-01-22"
+output: 
+ html_document:
+      keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r include=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(patchwork)
+library(ggplot2)
+library(fixest)
+library(did)
+library(gt)
+library(readxl)
+library(cowplot)
+
+
+load("port_data_TEU.RData")
+
+port_data_TEU <- filter(port_data_TEU, aggregate==0,
+                                       stat_port==1,              #filter out non-stat ports (and geographic aggregates)
+                                       TEU_yrly >=20000,          #filter out small ports
+                                       port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+             group_by(port_code, sender_code) %>%
+             mutate(pair_id=cur_group_id()) %>% ungroup() %>%
+             rename(container=total_TEU)
+
+port_data_agg <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container) & (sender_code=="CN_X_HK" | sender_code=="HK"),container,0)) %>%
+                               group_by(port, port_code, period, reporter_code, year, quarter) %>% 
+                               summarize(container = sum(container, na.rm=T),
+                                         real_gdp_reporter = mean(real_gdp_reporter),
+                                         origin_china = sum(origin_china),
+                                         group = max(group),
+                                         group_operation = max(group_operation),
+                                         ownership_china = max(ownership_china),
+                                         operation = max(operation)) %>% ungroup() %>%
+                              group_by(port_code) %>% 
+                              mutate(port_id = cur_group_id(),
+                                     mean_container = mean(container, na.rm=T)) %>% ungroup()
+
+port_data_agg_ny <- port_data_agg %>% filter(group!=0)
+
+port_group_list <- port_data_agg %>% filter(group!=0) %>% group_by(group) %>%
+                                     summarize(ports = toString(unique(port)))
+port_group_list_op <- port_data_agg %>% filter(group_operation!=0) %>% group_by(group_operation) %>%
+                                     summarize(ports = toString(unique(port))) %>% 
+                                     rename(group = group_operation)
+port_group_list <- rbind(port_group_list, port_group_list_op)
+port_group_list <- port_group_list[!duplicated(port_group_list$group),]
+port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$group, ")", sep = ""))
+
+
+# add Cosco and Terminal data to the data set
+terminal_data <- read_xlsx("terminal_throughput.xlsx")
+
+
+terminal_number <- read_xlsx("port_terminal_berth.xlsx") %>%
+                   filter(type == "General") %>%
+                   group_by(port_code, terminal) %>%
+                   summarize(no_berths=n()) %>%
+                   group_by(port_code) %>%
+                   summarize(no_terminal=n(),
+                             no_berths=sum(no_berths)) %>%
+                   ungroup() %>% 
+                   merge(read_xlsx(("port_manual_berth.xlsx")), all.x=T, all.y=T) %>%
+                   select(-port)
+
+
+terminal_data <- merge(port_data_agg, terminal_data, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>%
+                 merge(terminal_number, by.x = c("port_code"), by.y = c("port_code"), all.x = T) %>%
+                 mutate(port_code = case_when(port_code=="BEZEE" | port_code=="BEANR" ~ "BE003",
+                                              port_code=="ESVLC" ~ "ESBIO",
+                                              .default = port_code),
+                        port = case_when(port_code=="BE003" ~ "Zeebrugge and Antwerp",
+                                         port_code=="ESBIO" ~ "Valencia and Bilbao",
+                                         .default = port),
+                        cosco_owned_ships = case_when(port_code=="ITGAO" & year>=2017 ~ 4, 
+                                                      .default = cosco_owned_ships)) %>% # Vado Terminal was bought in 2017
+                 group_by(port_code, port, year, quarter, period) %>%
+                 summarize(across(c(terminal_TEU, container,no_berths, cont_berths, ships, cosco_owned_ships), ~sum(., na.rm=T), .names = "{.col}")) %>%
+                 mutate(terminal_TEU = ifelse(terminal_TEU==0, NA, terminal_TEU),
+                        cosco_owned_ships = ifelse(is.na(terminal_TEU), NA, cosco_owned_ships)) %>%
+                 group_by(port_code) %>% 
+                 mutate(change=container - lag(container),
+                        treated=(sum(!is.na(terminal_TEU))>0)) %>% ungroup() %>%
+                 mutate(terminal_TEU = terminal_TEU*1000,
+                        treat_TEU_per_ship = case_when(treated==1 & !is.na(terminal_TEU) & ships!=cosco_owned_ships ~ (container-terminal_TEU)/(ships-cosco_owned_ships),
+                                                       treated==1 & is.na(terminal_TEU) ~ container/ships,
+                                                       .default = NA),
+                        cosco_TEU_per_ship = terminal_TEU/cosco_owned_ships,
+                        untreat_TEU_per_ship = ifelse(treated==0, container/ships,NA))
+
+```
+
+
+# Cosco terminal level robustness check
+
+## Terminal-level Difference in Difference
+
+In the previous estimations, we used port-level data to measure the effect of Chinese investments on port performance. While this approach allowed us to control for various confounding variables in the fixed effects approach and gave us a nearly exhaustive coverage for the difference in difference calculations, it also comes with a lack in precision. Most of the Chinese investments do not target the whole port, but just one operational unit (usually a terminal). Therefore, our results might be driven by other terminals, which are part of the respective port but are not owned by Chinese investors. Vice versa, potentially poor performance of non-chinese terminals might negatively affect the estimated treatment effect. To tackle this shortcoming, this robustness check explores the effect of Chinese investments using terminal-level throughput data. The terminal-level throughput data is published on the Cosco website and covers all investments terminals Cosco invested in overseas. (footnote: unfortunately, CMP and Hutison ports do not publish terminal-level throughput data. However, given that most of the significant effects were found for Cosco-controlled ports, this robustness check covers most of the relevant ports.) The graphs below display the terminal-level throughput reportet by Coscos in relation to the total throughput of the respective port as reported by Eurostat. (footnote: Zeebruegge and Antwerp, and Bilbao and Valencia had to be combined due to Cosco's reporting practice) Clearly, besides Piraeus, none of the ports are fully under controll of Cosco. In som cases, the throughput associated with Cosco's terminal only makes up a fraction of the total port throughput. 
+
+```{r include=FALSE, warning=FALSE, message=FALSE}
+counterfactual <- terminal_data %>% filter(treated!=1, ships!=0) %>%
+                  group_by(period) %>%
+                  summarise(untreat_TEU_per_ship = mean(untreat_TEU_per_ship, na.rm=T),
+                            type="other") %>% ungroup()
+
+
+graph_list <- list()
+for (i in seq_along(unique(terminal_data$port_code[terminal_data$treated==1]))) {
+  port_c <- unique(terminal_data$port_code[terminal_data$treated==1])[i]
+  port_name <- terminal_data$port[match(port_c, terminal_data$port_code)]
+
+
+
+graph_list[[i]] <- terminal_data %>% mutate(residual = ifelse(!is.na(terminal_TEU), container-terminal_TEU, container)) %>% 
+                          pivot_longer(c("terminal_TEU", "residual"), names_to = "type", values_to = "throughput") %>% 
+                          filter(port_code==port_c) %>%
+                          ggplot(aes(x=period, y=throughput, fill=type)) + 
+                          geom_area() +
+                          scale_y_continuous(
+                            name="throughput") +
+                          labs(title=port_name,
+                               caption="Dotted line represents the mean of terminal-level throughput of untreated ports.") 
+}
+```
+
+```{r include=TRUE, message=FALSE, echo=FALSE, warning=FALSE}
+plot_grid(plotlist = graph_list, ncol=2) 
+```
+
+
+
+
+To pair Cosco's terminal-level data with our port-level data, we normalize the throughput by port size. Naturally, larger ports should have higher throughput and should have a higher capacity for growth. To make the port- and terminal-level data comparable, we consider the number of berths of each port (including berths used for passenger traffic), the number of berths that are predominantly used for container shippings, and the total number of container ships that can dock at containter terminal(s) (measured by quay length divided by 300m. For ports without quay length, the number of ships was guesstimated on google maps.). The graphs below illustrate how good each measure explains the container throughput of the ports in year 2020.  
+
+
+```{r include=TRUE, warning=FALSE, echo=FALSE, message=FALSE}
+graph_list <- list()
+i<-0
+for (level in c("container", "change")) {
+  for (terminal in c("no_berths" ,"cont_berths", "ships")) {
+  i <- i+1
+  graph_list[[i]] <- ggplot(data=terminal_data[terminal_data$year==2020,], aes_string(y=level,x=terminal)) + 
+                     geom_point() + 
+                     geom_smooth(method = "lm", se=FALSE)
+  }
+}
+
+plot_grid(plotlist=graph_list, ncol=3)
+
+```
+
+The graph above indicates that the length of the quay measured in container ship length best explains the port-level throughput. Therefore, we will normalize the terminal-level throughput of cosco-controlled terminals and the port-level throughput by the number of container ships that can dock at all container terminals. The graph below plots the normalized throughput figures for all six ports that have received Cosco investments. The solid lines represents the throughput per ship slot of the Cosco's terminals, the dashed line represents throughput per ship slot of all terminals in the treated port (excluding those taken over by Cosco). As an additional reference, we also plot the average throughput per ship scored by all non-treated ports (dotted line). 
+
+
+
+```{r include=TRUE, warning=FALSE, echo=FALSE, message=FALSE}
+graph_list <- list()
+for (i in seq_along(unique(terminal_data$port_code[terminal_data$treated==1]))) {
+  port_c <- unique(terminal_data$port_code[terminal_data$treated==1])[i]
+  port_name <- terminal_data$port[match(port_c, terminal_data$port_code)]
+
+
+graph_list[[i]] <- ggplot(data=terminal_data[terminal_data$port_code==port_c,], aes(x=period)) + 
+                          geom_line(aes(y=cosco_TEU_per_ship), linetype="solid") +
+                          geom_line(aes(y=treat_TEU_per_ship), linetype="dashed") +
+                          geom_line(data=counterfactual, aes(y=untreat_TEU_per_ship, x=period), linetype="dotted") +
+                          scale_y_continuous(
+                            name="throughput") +
+                          labs(title=port_name) 
+}
+
+plot_grid(plotlist = graph_list, ncol=2) 
+
+
+```
+
+The table below contrasts the throughput per ship slot of Cosco's terminals with the average throughput per ship slot of european port. While for some ports this might be a reasonable controlgroup, for others, it is not. In particular Valencia and Bilbao, and Ambarli expierenced much stronger growth in the periods before the Chinese investment. Therefore, other controlgroups might be a sensible option: 
+
+- use the remaining, non-chinese terminals in the treated port as control group. 
+- use only a specific subsample of equally developed ports as control group.
+- use ports that experienced a high than average growth rate as control group. 
+
+
+```{r include=FALSE, warning=FALSE, echo=FALSE}
+# Construct the dataset for DiD 
+
+#How many periods are allowed for adjustment process?
+treatmentlag <- 1
+
+robustness_cosco <- terminal_data[terminal_data$ships!=0,] %>% group_by(port_code) %>%
+                    mutate(group = ifelse(any(!is.na(terminal_TEU)), period[which.max(!is.na(terminal_TEU))] + treatmentlag, 0),
+                           port_id = cur_group_id()) %>%
+                    fill(group, .direction="downup") %>% ungroup() %>%
+                    mutate(cosco_vs_average = ifelse(treated==1, cosco_TEU_per_ship, untreat_TEU_per_ship))
+
+port_group_list_rob <- robustness_cosco %>% filter(group!=0) %>% group_by(group) %>%
+                                     summarize(ports = toString(unique(port)))
+port_group_list_rob$ports <- paste(port_group_list_rob$ports,paste("(", port_group_list_rob$group, ")", sep = ""))
+
+attgt_rob <- att_gt(yname = "cosco_vs_average",            #outcome variable
+                tname = "period",                 #time variable
+                idname = "port_id",                    #id for units (should be port_code*sender)
+                gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+                #xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                allow_unbalanced_panel = T,  #allows he use of unbalanced panel data. Increases computation time.
+                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                bstrap = FALSE,
+                data = robustness_cosco)
+
+#results
+agg_simple_rob <- aggte(attgt_rob, type = "simple", bstrap=FALSE, na.rm=T)
+agg_gs_rob <- aggte(attgt_rob, type = "group", na.rm=T, bstrap=FALSE)
+agg_es_rob <- aggte(attgt_rob, type = "dynamic", na.rm=T, bstrap=FALSE)
+
+#making a table
+results <- data.frame(Estimate = c("simple average", port_group_list_rob$ports[match(as.character(agg_gs_rob$egt), port_group_list_rob$group)]),
+                       ATT = c(agg_simple_rob$overall.att,
+                                   agg_gs_rob$att.egt),
+                      lower = c(agg_simple_rob$overall.att-(agg_simple_rob$overall.se*1.95), agg_gs_rob$att.egt-(agg_gs_rob$se.egt*agg_gs_rob$crit.val.egt)),
+                      upper = c(agg_simple_rob$overall.att+(agg_simple_rob$overall.se*1.95), agg_gs_rob$att.egt+(agg_gs_rob$se.egt*agg_gs_rob$crit.val.egt)))
+
+results_gt_rob <- gt(results, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                ATT="ATT",
+                lower="[95%",
+                upper="conf.int.]",
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              tab_row_group(label = "by group:",
+                            rows = contains("(")) |>
+              row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+
+
+```
+
+
+```{r include=TRUE, echo=FALSE}
+results_gt_rob
+
+```
+
+The main disadvantage of this robustness check is that it cannot provide any indication of the validity of the PTA, since there is no terminal-level data before the Chinese investment available. To circumvent this, the first period of the treatment is used as the untreated throughput of each treated terminal. This assumption might be reasonable, considering that it is unlikely to see stark changes in infrastructure and management just one quarter after the take-over. On the other side, some might argue that the first period might a unfitting comparison, as ther port needs some adjustment time to the management change. This would cause an upward bias in the results. Additionally, in some cases, it appears likely that the investment targeted a more productive terminal of the port, which would result in an selection bias. To counteract this, either more information on port equipment (cranes or storage) could be used to construct counterfactuals. 
+
+## The role of Chinese Containers
+
+The previous analysis has shown that ports controlled by Chinese investors outperform other comparable European ports. One possible explanation is, that Chinese owned ports are the preferred destination of the Chinese container ships. That fits well with the literature on (add cosco line paper, maybe investment selection? Ports owned by a chinese company with a own fleet grow more that others. Media reports on "foot in the door strategy"). In this extension, we look into how much of the port growth after Chinese investment is indeed caused by more container arriving from China. To investigate this question, we return to the bilateral port-level data from Eurostat and estimate two additional DiD. In the first, we again aggregate the container throughput on port-quarter level but exclude all container traffic with China Mainland and Hong Kong. In the second, we use the share of chinese containers relative to containers from other origins in each port as dependent variable. With the help of these two setups, we can infer whether the growth in throughput has been carried primarily by Chinese container shipments and whether that growth came at the expense of container shipments from other origins. 
+
+
+```{r include=F}
+port_data_agg_woCHN <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container) & (sender_code=="CN_X_HK" | sender_code=="HK"),container,0)) %>%
+                                         filter(origin_china==0) %>%
+                               group_by(port, port_code, period, reporter_code, year, quarter) %>% 
+                               summarize(container = sum(container, na.rm=T),
+                                         real_gdp_reporter = mean(real_gdp_reporter),
+                                         origin_china = sum(origin_china),
+                                         group = max(group),
+                                         group_operation = max(group_operation),
+                                         ownership_china = max(ownership_china),
+                                         operation = max(operation)) %>% ungroup() %>%
+                              group_by(port_code) %>% 
+                              mutate(port_id = cur_group_id(),
+                                     mean_container = mean(container, na.rm=T)) %>% ungroup()
+
+
+attgt_woCHN <- att_gt(yname = "container",            #outcome variable
+                tname = "period",                 #time variable
+                idname = "port_id",                    #id for units (should be port_code*sender)
+                gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+                #xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                allow_unbalanced_panel = T,  #allows he use of unbalanced panel data. Increases computation time.
+                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                bstrap = FALSE,
+                data = port_data_agg_woCHN)
+
+agg_simple_woCHN <- aggte(attgt_woCHN, type = "simple", bstrap=FALSE, na.rm=T)
+agg_gs_woCHN <- aggte(attgt_woCHN, type = "group", na.rm=T, bstrap=FALSE)
+agg_es_woCHN <- aggte(attgt_woCHN, type = "dynamic", na.rm=T, bstrap=FALSE)
+
+
+# putting together the results
+results <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_woCHN$egt), port_group_list$group)]),
+                       ATT = c(agg_simple_woCHN$overall.att,
+                                   agg_gs_woCHN$att.egt),
+                      lower = c(agg_simple_woCHN$overall.att-(agg_simple_woCHN$overall.se*1.95), agg_gs_woCHN$att.egt-(agg_gs_woCHN$se.egt*agg_gs_woCHN$crit.val.egt)),
+                      upper = c(agg_simple_woCHN$overall.att+(agg_simple_woCHN$overall.se*1.95), agg_gs_woCHN$att.egt+(agg_gs_woCHN$se.egt*agg_gs_woCHN$crit.val.egt)))
+
+results_gt_woCHN <- gt(results, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                ATT="ATT",
+                lower="[95%",
+                upper="conf.int.]",
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              tab_row_group(label = "by group:",
+                            rows = contains("(")) |>
+              row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+
+
+```
+
+```{r include=T, echo=FALSE}
+
+results_gt_woCHN
+```
+
