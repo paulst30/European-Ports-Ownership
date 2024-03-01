@@ -254,35 +254,37 @@ agg_es_rob <- aggte(attgt_rob, type = "dynamic", na.rm=T, bstrap=FALSE)
 results <- data.frame(Estimate = c("simple average", port_group_list_rob$ports[match(as.character(agg_gs_rob$egt), port_group_list_rob$group)]),
                        ATT = c(agg_simple_rob$overall.att,
                                    agg_gs_rob$att.egt),
-                      lower = c(agg_simple_rob$overall.att-(agg_simple_rob$overall.se*1.95), agg_gs_rob$att.egt-(agg_gs_rob$se.egt*agg_gs_rob$crit.val.egt)),
-                      upper = c(agg_simple_rob$overall.att+(agg_simple_rob$overall.se*1.95), agg_gs_rob$att.egt+(agg_gs_rob$se.egt*agg_gs_rob$crit.val.egt)))
+                       se = c(agg_simple_rob$overall.se,agg_gs_rob$se.egt)) %>%
+               mutate(pval = 2*pnorm(-abs(ATT/se)),
+                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
+                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
+                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
+                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
+                                      pval>=0.05 ~ ATT),
+                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
+              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est")  %>%
+              select(Estimate, est) %>% 
+              mutate(Estimate= ifelse(duplicated(Estimate)>0,"",Estimate))
+
 
 results_gt_rob <- gt(results, rowname_col = "Estimate") |>
               tab_header(
                 title = "Aggregation of group time average treatment effects",
                 subtitle = "Control group: Never treated") |>
               cols_label(
-                ATT="ATT",
-                lower="[95%",
-                upper="conf.int.]",
+                est="ATT"
               ) |>
-              tab_spanner(label = "uncond. PTA",
-                          columns = c("ATT", "lower", "upper")) |>
               tab_row_group(label = "by group:",
-                            rows = contains("(")) |>
+                            rows = c(3:14)) |>
               row_group_order(groups = c(NA,"by group:")) |>
               sub_missing(columns = everything(),
                           rows = everything(),
                           missing_text = "") |>
-              tab_footnote(footnote = "Confidence interval does not include zero.",
-                           location = list(cells_body(columns=c(ATT),
-                                                 rows = lower > 0 | upper < 0)),
-                           placement = "right") |>
-              tab_footnote(footnote = "First treatment period in brackets.") |>
-              opt_footnote_marks(marks = "standard") |>
-              fmt_number(decimals = 2)
+              tab_footnote(footnote = "Signif. Codes: ***: 0.001, **: 0.01, *: 0.05.") |>
+              tab_footnote(footnote = "Analytical standard errors in parentheses.")
 
-
+#save in separate directory
+gtsave(results_gt_rob, filename = "robustness_cosco_results.tex", path = file.path(getwd(),"results_tables"))
 
 ```
 
@@ -336,8 +338,15 @@ agg_es_woCHN <- aggte(attgt_woCHN, type = "dynamic", na.rm=T, bstrap=FALSE)
 results <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_woCHN$egt), port_group_list$group)]),
                        ATT = c(agg_simple_woCHN$overall.att,
                                    agg_gs_woCHN$att.egt),
-                      lower = c(agg_simple_woCHN$overall.att-(agg_simple_woCHN$overall.se*1.95), agg_gs_woCHN$att.egt-(agg_gs_woCHN$se.egt*agg_gs_woCHN$crit.val.egt)),
-                      upper = c(agg_simple_woCHN$overall.att+(agg_simple_woCHN$overall.se*1.95), agg_gs_woCHN$att.egt+(agg_gs_woCHN$se.egt*agg_gs_woCHN$crit.val.egt)))
+                      se = c(agg_simple_woCHN$overall.se, agg_gs_woCHN$se.egt)) %>%
+               mutate(pval = 2*pnorm(-abs(ATT/se)),
+                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
+                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
+                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
+                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
+                                      pval>=0.05 ~ ATT),
+                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
+              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est") %>% select(est, Estimate, measure)  
 
 #### DiD with china share ####
 port_data_agg <- mutate(port_data_agg, share_china=origin_china/(container)) 
@@ -360,12 +369,22 @@ agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
 share_results <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_share$egt), port_group_list$group)]),
                        ATT = c(agg_simple_share$overall.att,
                                    agg_gs_share$att.egt),
-                      lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
-                      upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
+                       se = c(agg_simple_share$overall.se, agg_gs_share$se.egt)) %>%
+               mutate(pval = 2*pnorm(-abs(ATT/se)),
+                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
+                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
+                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
+                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
+                                      pval>=0.05 ~ ATT),
+                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
+              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est") %>% select(est, Estimate, measure)  
 
 # combining results
-results <- merge(results, share_results, by = "Estimate")
-results <- results[c(11,seq(1,10,1)),]
+results <- merge(results, share_results, by = c("Estimate", "measure")) %>%
+           mutate(Estimate= ifelse(duplicated(Estimate)>0,"",Estimate)) %>% 
+           slice(c(21,22), c(1:20))
+
+results_final <- rbind(results[c(1,2),],c("by group", rep("", ncol(results)-1)) ,results[3:22,]) 
 
 # putting together the results
 results_gt_woCHN <- gt(results, rowname_col = "Estimate") |>
@@ -373,31 +392,21 @@ results_gt_woCHN <- gt(results, rowname_col = "Estimate") |>
                 title = "Aggregated average treatment effects on container throughput from different origins",
                 subtitle = "Control group: Never treated, PTA: Unconditional") |>
               cols_label(
-                ATT.x="TEU without China",
-                lower.x="[95%",
-                upper.x="conf.int.]",
-                ATT.y="Share of chinese TEU",
-                lower.y="[95%",
-                upper.y="conf.int.]") |>
+                est.x="TEU without China",
+                est.y="Share of chinese TEU") |>
               tab_stubhead(label = "Dependent variable:")|>
               tab_row_group(label = "by group:",
-                            rows = contains("(")) |>
+                            rows = c(3:22)) |>
               row_group_order(groups = c(NA,"by group:")) |>
-              cols_hide(c("lower.x","upper.x", "lower.y","upper.y")) |>
+              cols_hide("measure") |>
               sub_missing(columns = everything(),
                           rows = everything(),
                           missing_text = "") |>
-              tab_footnote(footnote = "Confidence interval does not include zero.",
-                           location = list(cells_body(columns= ATT.x,
-                                                 rows = lower.x > 0 | upper.x < 0),
-                                           cells_body(columns=ATT.y,
-                                                      rows = lower.y > 0 | upper.y < 0)),
-                           placement = "right") |>
-              tab_footnote(footnote = "First treatment period in brackets.") |>
-              opt_footnote_marks(marks = "standard") |>
-              fmt_number(decimals = 2)
+              tab_footnote(footnote = "Signif. Codes: ***: 0.001, **: 0.01, *: 0.05.") |>
+              tab_footnote(footnote = "Analytical standard errors in parentheses.")
 
-
+#save in separate directory
+gtsave(results_gt_woCHN, filename = "robustness_china_results.tex", path = file.path(getwd(),"results_tables"))
 
 ```
 

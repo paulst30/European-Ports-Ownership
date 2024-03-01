@@ -20,6 +20,7 @@ library(ggplot2)
 library(fixest)
 library(did)
 library(gt)
+library(xtable)
 
 set.seed(100)
 
@@ -57,6 +58,8 @@ port_group_list_op <- port_data_agg %>% filter(group_operation!=0) %>% group_by(
 port_group_list <- rbind(port_group_list, port_group_list_op)
 port_group_list <- port_group_list[!duplicated(port_group_list$group),]
 port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$group, ")", sep = ""))
+
+
 ```
 
 
@@ -88,52 +91,73 @@ Lastly, we add another Dummy variable $ChineseOperation_{it}$, which indicates w
 ```{r include=FALSE}
 spec1 <- feols(container ~ ownership_china  | port_code + period + reporter_code^period,
                data = port_data_agg)
-spec2 <- feols(container ~ ownership_china + ownership_china*s_china  | port_code + sender + period,
+spec2 <- feols(container ~ ownership_china + ownership_china:s_china  | port_code + sender + period,
                data = port_data_TEU)
-spec3 <- feols(container ~ ownership_china + ownership_china*s_china | port_code^sender + period,
+spec3 <- feols(container ~ ownership_china + ownership_china:s_china | port_code^sender + sender^period,
                data = port_data_TEU)
-spec4 <- feols(container ~ ownership_china + ownership_china*s_china | port_code^sender + sender^period,
-               data = port_data_TEU)
-spec5 <- feols(container ~ ownership_china + ownership_china*s_china + operation | port_code^sender + sender^period,
-               data = port_data_TEU)
-spec6 <- feols(container ~ ownership_china  | port_code^sender + sender^period + reporter_code^period,
+spec4 <- feols(container ~ ownership_china + ownership_china:s_china  | port_code^sender + sender^period + reporter_code^period,
                data = port_data_TEU)
 
-fe_results<- etable(spec1, spec2, spec3, spec4, spec5, spec6,
+
+
+
+#set formatting names
+setFixest_dict(c(ownership_china = "Ownership Chinese SOE",
+                 s_china = "Origin China",
+                 port_code = "Port",
+                 period = "Period",
+                 reporter_code = "Reporter",
+                 sender = "Partner"))
+
+#save table to latex 
+cat(esttex(spec1, spec2, spec3, spec4,
                     depvar = FALSE,
                     style.df = style.df(depvar.title = "",
                                         fixef.title = "",
                                         fixef.suffix = "", yesNo = "yes"),
+                    vcov = "twoway",
+                    adjustbox = TRUE,
+                    title = "Fixed effects Results"
+                    #tex = TRUE
+           ), file = file.path(getwd(),"results_tables","fe_results.tex"))
+
+#prepare table for Markdownfile
+fe_results<- etable(spec1, spec2, spec3, spec4,
+                    depvar = FALSE,
+                    style.df = style.df(depvar.title = "",
+                                        fixef.title = "",
+                                        stats.title = "",
+                                        fixef.suffix = "", yesNo = "yes"),
                     vcov = "twoway")
-
 colnames(fe_results)[1] <- "col1"
-fe_results$col1 <- gsub("_code", "", fe_results$col1)
-fe_results$spec1 <- gsub("_code", "", fe_results$spec1)
-fe_results$col1 <- gsub("-", " x ", fe_results$col1)
-fe_results <- fe_results[-grep("___", fe_results$col1),]
 
-fe_results_gt <- gt(fe_results, rowname_col = "col1") |>
+fe_results_gt <- fe_results %>%  
+                  gt(rowname_col = "col1") |>
                  tab_header(title = "Fixed effects estimation results",
                             subtitle = "Dependent variable: Total throughput in thousand TEU") |>
               cols_label(
                 spec1 = "Eq. 1",
                 spec2 = "Eq. 2",
                 spec3 = "Eq. 3",
-                spec4 = "Eq. 4",
-                spec5 = "Eq. 5",
-                spec6 = "Eq. 6") |>
+                spec4 = "Eq. 4") |>
               tab_row_group(label = "Fixed effects:",
-                            rows = c("port", "period", "reporter x period", "sender", "port x sender", "sender x period"))  |>
+                            rows = c("Port", "Period", "Reporter-Period", "Partner", "Port-Partner", "Partner-Period"))  |>
               tab_row_group(label = "Diagnostics:",
                             rows = c("S.E.: Clustered", "Observations", "R2", "Within R2")) |>
-              row_group_order(groups = c(NA, "Fixed effects:", "Diagnostics:")) 
-                 
+              row_group_order(groups = c(NA, "Fixed effects:", "Diagnostics:")) |>
+  cols_align(align = "center", columns = c("spec1", "spec2", "spec3", "spec4"))
+
+
 
 ```
 
 ```{r include=TRUE, echo=F}
-fe_results_gt |>
-  cols_align(align = "center", columns = c("spec1", "spec2", "spec3", "spec4", "spec5", "spec6"))
+fe_results_gt %>% 
+  tab_options(row_group.border.bottom.color = "transparent",
+              table_body.hlines.color = "transparent",
+              stub.border.width = 0,
+              stub.border.color = "transparent",
+              row_group.padding = 0) 
 
         
 ```
@@ -197,15 +221,32 @@ agg_gs_cond <- aggte(attgt_cond, type = "group", na.rm=T, bstrap=FALSE)
 results1 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs$egt), port_group_list$group)]),
                        ATT = c(agg_simple$overall.att,
                                    agg_gs$att.egt),
-                      lower = c(agg_simple$overall.att-(agg_simple$overall.se*1.95), agg_gs$att.egt-(agg_gs$se.egt*agg_gs$crit.val.egt)),
-                      upper = c(agg_simple$overall.att+(agg_simple$overall.se*1.95), agg_gs$att.egt+(agg_gs$se.egt*agg_gs$crit.val.egt)))
+                      se = c(agg_simple$overall.se, agg_gs$se.egt))%>%
+               mutate(pval = 2*pnorm(-abs(ATT/se)),
+                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
+                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
+                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
+                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
+                                      pval>=0.05 ~ ATT),
+                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
+              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est")  %>%
+              select(Estimate,measure, est)
 
 results2 <- data.frame(Estimate = c("simple average",port_group_list$ports[match(as.character(agg_gs_cond$eg), port_group_list$group)]),
                        ATT = c(agg_simple_cond$overall.att,
                                    agg_gs_cond$att.egt),
-                      lower = c(agg_simple_cond$overall.att-(agg_simple_cond$overall.se*1.95), agg_gs_cond$att.egt-(agg_gs_cond$se.egt*agg_gs_cond$crit.val.egt)),
-                      upper = c(agg_simple_cond$overall.att+(agg_simple_cond$overall.se*1.95), agg_gs_cond$att.egt+(agg_gs_cond$se.egt*agg_gs_cond$crit.val.egt)))
-results <- merge(results1, results2, by.x = "Estimate", by.y = "Estimate", all =  T, suffixes = c(".uc", ".c"))
+                       se = c(agg_simple_cond$overall.se,agg_gs_cond$se.egt)) %>%
+               mutate(pval = 2*pnorm(-abs(ATT/se)),
+                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
+                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
+                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
+                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
+                                      pval>=0.05 ~ ATT),
+                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
+              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est")  %>%
+              select(Estimate,measure, est)
+                    
+results <- merge(results1, results2, by.x = c("Estimate", "measure"), by.y = c("Estimate", "measure"), all =  T, suffixes = c(".uc", ".c"))
 #results <- results[c(11, 1:10),]
 
 
@@ -243,24 +284,81 @@ ny_agg_gs_cond <- aggte(ny_attgt_cond, type = "group", na.rm=T)
 ny_results1 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(ny_agg_gs$egt), port_group_list$group)]),
                        ATT = c(ny_agg_simple$overall.att,
                                    ny_agg_gs$att.egt),
-                      lower = c(ny_agg_simple$overall.att-(ny_agg_simple$overall.se*1.95), ny_agg_gs$att.egt-(ny_agg_gs$se.egt*ny_agg_gs$crit.val.egt)),
-                      upper = c(ny_agg_simple$overall.att+(ny_agg_simple$overall.se*1.95), ny_agg_gs$att.egt+(ny_agg_gs$se.egt*ny_agg_gs$crit.val.egt)))
+                      se = c(ny_agg_simple$overall.se,ny_agg_gs$se.egt)) %>%
+               mutate(pval = 2*pnorm(-abs(ATT/se)),
+                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
+                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
+                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
+                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
+                                      pval>=0.05 ~ ATT),
+                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
+              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est")  %>%
+              select(Estimate,measure, est)
+
 
 ny_results2 <- data.frame(Estimate = c("simple average",port_group_list$ports[match(as.character(ny_agg_gs_cond$egt), port_group_list$group)]),
                        ATT = c(ny_agg_simple_cond$overall.att,
                                    ny_agg_gs_cond$att.egt),
-                      lower = c(ny_agg_simple_cond$overall.att-(ny_agg_simple_cond$overall.se*1.95), ny_agg_gs_cond$att.egt-(ny_agg_gs_cond$se.egt*ny_agg_gs_cond$crit.val.egt)),
-                      upper = c(ny_agg_simple_cond$overall.att+(ny_agg_simple_cond$overall.se*1.95), ny_agg_gs_cond$att.egt+(ny_agg_gs_cond$se.egt*ny_agg_gs_cond$crit.val.egt)))
-ny_results <- merge(ny_results1, ny_results2, by.x = "Estimate", by.y = "Estimate", all =  T,  suffixes = c(".uc", ".c"))
+                       se = c(ny_agg_simple_cond$overall.se, ny_agg_gs_cond$se.egt)) %>%
+                    mutate(pval = 2*pnorm(-abs(ATT/se)),
+                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
+                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
+                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
+                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
+                                      pval>=0.05 ~ ATT),
+                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
+              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est")  %>%
+              select(Estimate, measure, est)
+
+ny_results <- merge(ny_results1, ny_results2, by.x = c("Estimate", "measure"), by.y = c("Estimate", "measure"), all =  T,  suffixes = c(".uc", ".c"))
 #ny_results <- ny_results[c(11, 1:10),]
 
 
 #bring output table together
-results <- merge(results, ny_results, by="Estimate",  suffixes = c(".nt", ".nyt"))
+results <- merge(results, ny_results, by=c("Estimate","measure"),  suffixes = c(".nt", ".nyt"))
 
 ```
 
 ```{r include=F}
+# generate a Latex table
+results <- results %>% select(starts_with("est"), Estimate) %>%
+           mutate(Estimate= ifelse(duplicated(Estimate)>0,"",Estimate)) %>% 
+           slice(c(19,20), c(1:18))
+results_final <- rbind(results[c(1,2),],c("by group", rep("", ncol(results)-1)) ,results[3:20,]) 
+
+# Insert multirow cell into the appropriate position in the LaTeX code
+addtorow <- list()
+addtorow$pos <- list(nrow(results_final),2, 3, 5 , 7 , 9, 11, 13, 15, 17, 19)
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{\\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}\\\\ First treatment period indicated in brackets after the portname.\\\\ Analytical standard errors in paranthesis.}}", 
+                      "[2ex]",
+                      "[1ex]",
+                      "[2ex]",
+                      "[2ex]",
+                      "[2ex]",
+                      "[2ex]",
+                      "[2ex]",
+                      "[2ex]",
+                      "[2ex]",
+                      "[2ex]")
+
+# Modify the LaTeX code
+latex_code <- print.xtable(xtable(results_final, caption = "Aggregation of group time average treatment effects"),
+                           label = "tab:did_baseline",
+                           caption.placement = "top",
+                           include.rownames = FALSE,
+                           add.to.row = addtorow,
+                           hline.after = c(-1,-1,0, 2),
+                           size = "\\begin{adjustbox}{max width=\\textwidth}")
+
+latex_code <- gsub("Estimate & est\\.uc\\.nt & est\\.c\\.nt & est\\.uc\\.nyt & est\\.c\\.nyt","Control group: & \\\\multicolumn{2}{c}{Never treated} & \\\\multicolumn{2}{c}{Not yet treated} \\\\\\\\\n PTA: & Uncond. & Cond. & Uncond. & Cond. ", latex_code)
+latex_code <- gsub("Dunkerque\\, Le Havre\\, Marsaxlokk\\, Marseille\\, Nantes Saint Nazaire\\, Zeebrugge \\(66\\)",
+                   "\\\\multirow{2}{*}{\\\\shortstack[l]{Dunkerque, Le Havre, Marsaxlokk, Marseille,\\\\\\\\ Nantes Saint Nazaire, Zeebrugge (66)} }", latex_code)
+latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox}", latex_code)
+latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
+
+# Save modified LaTeX code to a .tex file
+cat(latex_code, file = file.path(getwd(), "results_tables", "did_results.tex"))
+
 
 
 # generating a gt table
@@ -269,37 +367,30 @@ results_gt <- gt(results, rowname_col = "Estimate") |>
                 title = "Aggregation of group time average treatment effects",
                 subtitle = "Dependent variable: Total throughput in thousand TEU") |>
               cols_label(
-                ATT.uc.nt="unconditional",
-                ATT.c.nt="conditional",
-                ATT.uc.nyt="unconditional",
-                ATT.c.nyt="conditional"
+                est.uc.nt="unconditional",
+                est.c.nt="conditional",
+                est.uc.nyt="unconditional",
+                est.c.nyt="conditional"
               ) |>
               tab_spanner(label = "Never treated",
-                          columns = c("ATT.uc.nt", "ATT.c.nt")) |>
+                          columns = c("est.uc.nt", "est.c.nt")) |>
               tab_spanner(label = "Not yet treated",
-                          columns = c("ATT.uc.nyt", "ATT.c.nyt")) |>
-              tab_stubhead(md("Control group:<br>PTA:"))|>
-              cols_hide(starts_with("lower") | starts_with("upper")) |>
+                          columns = c("est.uc.nyt", "est.c.nyt")) |>
               tab_row_group(label = "by group:",
-                            rows = contains("(")) |>
+                            rows = c(3:20)) |>
               row_group_order(groups = c(NA,"by group:")) |>
               sub_missing(columns = everything(),
                           rows = everything(),
                           missing_text = "") |>
-              tab_footnote(footnote = "Confidence interval does not include zero.",
-                           location = list(cells_body(columns=c(ATT.uc.nt),
-                                                 rows = lower.uc.nt > 0 | upper.uc.nt < 0),
-                                            cells_body(columns=c(ATT.c.nt),
-                                                 rows = lower.c.nt > 0 | upper.c.nt < 0),
-                                           cells_body(columns=c(ATT.uc.nyt),
-                                                 rows = lower.uc.nyt > 0 | upper.uc.nyt < 0),
-                                           cells_body(columns=c(ATT.c.nyt),
-                                                 rows = lower.c.nyt > 0 | upper.c.nyt < 0)),
-                           placement = "right") |>
               tab_footnote(footnote = "First treatment period in brackets.") |>
-              opt_footnote_marks(marks = "standard") |>
-              fmt_number(decimals = 2)
-             
+              tab_options(stub.border.width = 0,
+                          table_body.hlines.width = 0
+              )
+
+
+
+
+
 
 ```
 

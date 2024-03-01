@@ -50,23 +50,23 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
 
 
 ```{=html}
-<div id="oezbkggfkh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#oezbkggfkh table {
+<div id="biiflpykrx" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#biiflpykrx table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#oezbkggfkh thead, #oezbkggfkh tbody, #oezbkggfkh tfoot, #oezbkggfkh tr, #oezbkggfkh td, #oezbkggfkh th {
+#biiflpykrx thead, #biiflpykrx tbody, #biiflpykrx tfoot, #biiflpykrx tr, #biiflpykrx td, #biiflpykrx th {
   border-style: none;
 }
 
-#oezbkggfkh p {
+#biiflpykrx p {
   margin: 0;
   padding: 0;
 }
 
-#oezbkggfkh .gt_table {
+#biiflpykrx .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -92,12 +92,12 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-left-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_caption {
+#biiflpykrx .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#oezbkggfkh .gt_title {
+#biiflpykrx .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -109,7 +109,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-bottom-width: 0;
 }
 
-#oezbkggfkh .gt_subtitle {
+#biiflpykrx .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -121,7 +121,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-top-width: 0;
 }
 
-#oezbkggfkh .gt_heading {
+#biiflpykrx .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -133,13 +133,13 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-right-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_bottom_border {
+#biiflpykrx .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_col_headings {
+#biiflpykrx .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -154,7 +154,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-right-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_col_heading {
+#biiflpykrx .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -174,7 +174,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   overflow-x: hidden;
 }
 
-#oezbkggfkh .gt_column_spanner_outer {
+#biiflpykrx .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -186,15 +186,15 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   padding-right: 4px;
 }
 
-#oezbkggfkh .gt_column_spanner_outer:first-child {
+#biiflpykrx .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#oezbkggfkh .gt_column_spanner_outer:last-child {
+#biiflpykrx .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#oezbkggfkh .gt_column_spanner {
+#biiflpykrx .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -206,11 +206,11 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   width: 100%;
 }
 
-#oezbkggfkh .gt_spanner_row {
+#biiflpykrx .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#oezbkggfkh .gt_group_heading {
+#biiflpykrx .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -236,7 +236,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   text-align: left;
 }
 
-#oezbkggfkh .gt_empty_group_heading {
+#biiflpykrx .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -251,15 +251,15 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   vertical-align: middle;
 }
 
-#oezbkggfkh .gt_from_md > :first-child {
+#biiflpykrx .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#oezbkggfkh .gt_from_md > :last-child {
+#biiflpykrx .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#oezbkggfkh .gt_row {
+#biiflpykrx .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -278,7 +278,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   overflow-x: hidden;
 }
 
-#oezbkggfkh .gt_stub {
+#biiflpykrx .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -291,7 +291,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   padding-right: 5px;
 }
 
-#oezbkggfkh .gt_stub_row_group {
+#biiflpykrx .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -305,15 +305,15 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   vertical-align: top;
 }
 
-#oezbkggfkh .gt_row_group_first td {
+#biiflpykrx .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#oezbkggfkh .gt_row_group_first th {
+#biiflpykrx .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#oezbkggfkh .gt_summary_row {
+#biiflpykrx .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -323,16 +323,16 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   padding-right: 5px;
 }
 
-#oezbkggfkh .gt_first_summary_row {
+#biiflpykrx .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_first_summary_row.thick {
+#biiflpykrx .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#oezbkggfkh .gt_last_summary_row {
+#biiflpykrx .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -342,7 +342,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-bottom-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_grand_summary_row {
+#biiflpykrx .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -352,7 +352,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   padding-right: 5px;
 }
 
-#oezbkggfkh .gt_first_grand_summary_row {
+#biiflpykrx .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -362,7 +362,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-top-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_last_grand_summary_row_top {
+#biiflpykrx .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -372,11 +372,11 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-bottom-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_striped {
+#biiflpykrx .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#oezbkggfkh .gt_table_body {
+#biiflpykrx .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -385,7 +385,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-bottom-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_footnotes {
+#biiflpykrx .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -399,7 +399,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-right-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_footnote {
+#biiflpykrx .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -408,7 +408,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   padding-right: 5px;
 }
 
-#oezbkggfkh .gt_sourcenotes {
+#biiflpykrx .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -422,7 +422,7 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   border-right-color: #D3D3D3;
 }
 
-#oezbkggfkh .gt_sourcenote {
+#biiflpykrx .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -430,129 +430,122 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
   padding-right: 5px;
 }
 
-#oezbkggfkh .gt_left {
+#biiflpykrx .gt_left {
   text-align: left;
 }
 
-#oezbkggfkh .gt_center {
+#biiflpykrx .gt_center {
   text-align: center;
 }
 
-#oezbkggfkh .gt_right {
+#biiflpykrx .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#oezbkggfkh .gt_font_normal {
+#biiflpykrx .gt_font_normal {
   font-weight: normal;
 }
 
-#oezbkggfkh .gt_font_bold {
+#biiflpykrx .gt_font_bold {
   font-weight: bold;
 }
 
-#oezbkggfkh .gt_font_italic {
+#biiflpykrx .gt_font_italic {
   font-style: italic;
 }
 
-#oezbkggfkh .gt_super {
+#biiflpykrx .gt_super {
   font-size: 65%;
 }
 
-#oezbkggfkh .gt_footnote_marks {
+#biiflpykrx .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#oezbkggfkh .gt_asterisk {
+#biiflpykrx .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#oezbkggfkh .gt_indent_1 {
+#biiflpykrx .gt_indent_1 {
   text-indent: 5px;
 }
 
-#oezbkggfkh .gt_indent_2 {
+#biiflpykrx .gt_indent_2 {
   text-indent: 10px;
 }
 
-#oezbkggfkh .gt_indent_3 {
+#biiflpykrx .gt_indent_3 {
   text-indent: 15px;
 }
 
-#oezbkggfkh .gt_indent_4 {
+#biiflpykrx .gt_indent_4 {
   text-indent: 20px;
 }
 
-#oezbkggfkh .gt_indent_5 {
+#biiflpykrx .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
 <table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
   <thead>
     <tr class="gt_heading">
-      <td colspan="4" class="gt_heading gt_title gt_font_normal" style>Aggregation of group time average treatment effects</td>
+      <td colspan="2" class="gt_heading gt_title gt_font_normal" style>Aggregation of group time average treatment effects</td>
     </tr>
     <tr class="gt_heading">
-      <td colspan="4" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>Control group: Never treated</td>
-    </tr>
-    <tr class="gt_col_headings gt_spanner_row">
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id=""></th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="3" scope="colgroup" id="uncond. PTA">
-        <span class="gt_column_spanner">uncond. PTA</span>
-      </th>
+      <td colspan="2" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>Control group: Never treated</td>
     </tr>
     <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id=""></th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="ATT">ATT</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="[95%">[95%</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conf.int.]">conf.int.]</th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
     <tr class="gt_group_heading_row">
-      <th colspan="4" class="gt_empty_group_heading" scope="colgroup" id=""></th>
+      <th colspan="2" class="gt_empty_group_heading" scope="colgroup" id=""></th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">simple average</th>
-<td headers="NA stub_1_1 ATT" class="gt_row gt_right">38,434.06<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="NA stub_1_1 lower" class="gt_row gt_right">12,263.25</td>
-<td headers="NA stub_1_1 upper" class="gt_row gt_right">64,604.87</td></tr>
+<td headers="NA stub_1_1 est" class="gt_row gt_right">38,434**</td></tr>
+    <tr><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="NA stub_1_2 est" class="gt_row gt_right">(13,421)</td></tr>
     <tr class="gt_group_heading_row">
-      <th colspan="4" class="gt_group_heading" scope="colgroup" id="by group:">by group:</th>
+      <th colspan="2" class="gt_group_heading" scope="colgroup" id="by group:">by group:</th>
     </tr>
-    <tr class="gt_row_group_first"><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Zeebrugge and Antwerp (36)</th>
-<td headers="by group: stub_1_2 ATT" class="gt_row gt_right">37,149.11<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_2 lower" class="gt_row gt_right">33,161.62</td>
-<td headers="by group: stub_1_2 upper" class="gt_row gt_right">41,136.59</td></tr>
-    <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Piraeus (53)</th>
-<td headers="by group: stub_1_3 ATT" class="gt_row gt_right">86,165.12<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_3 lower" class="gt_row gt_right">80,628.49</td>
-<td headers="by group: stub_1_3 upper" class="gt_row gt_right">91,701.74</td></tr>
-    <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Ambarli (78)</th>
-<td headers="by group: stub_1_4 ATT" class="gt_row gt_right">14,208.92<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_4 lower" class="gt_row gt_right">9,724.81</td>
-<td headers="by group: stub_1_4 upper" class="gt_row gt_right">18,693.03</td></tr>
-    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Rotterdam (81)</th>
-<td headers="by group: stub_1_5 ATT" class="gt_row gt_right">1,208.66</td>
-<td headers="by group: stub_1_5 lower" class="gt_row gt_right">−4,805.58</td>
-<td headers="by group: stub_1_5 upper" class="gt_row gt_right">7,222.90</td></tr>
-    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Genova (83)</th>
-<td headers="by group: stub_1_6 ATT" class="gt_row gt_right">8,420.59<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_6 lower" class="gt_row gt_right">3,320.07</td>
-<td headers="by group: stub_1_6 upper" class="gt_row gt_right">13,521.11</td></tr>
-    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Valencia and Bilbao (85)</th>
-<td headers="by group: stub_1_7 ATT" class="gt_row gt_right">34,842.36<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_7 lower" class="gt_row gt_right">29,935.50</td>
-<td headers="by group: stub_1_7 upper" class="gt_row gt_right">39,749.23</td></tr>
+    <tr class="gt_row_group_first"><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Zeebrugge and Antwerp (36)</th>
+<td headers="by group: stub_1_3 est" class="gt_row gt_right">37,149***</td></tr>
+    <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_4 est" class="gt_row gt_right">(1,806)</td></tr>
+    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Piraeus (53)</th>
+<td headers="by group: stub_1_5 est" class="gt_row gt_right">86,165***</td></tr>
+    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_6 est" class="gt_row gt_right">(2,507)</td></tr>
+    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Ambarli (78)</th>
+<td headers="by group: stub_1_7 est" class="gt_row gt_right">14,209***</td></tr>
+    <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_8 est" class="gt_row gt_right">(2,030)</td></tr>
+    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Rotterdam (81)</th>
+<td headers="by group: stub_1_9 est" class="gt_row gt_right"> 1,209</td></tr>
+    <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_10 est" class="gt_row gt_right">(2,723)</td></tr>
+    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Genova (83)</th>
+<td headers="by group: stub_1_11 est" class="gt_row gt_right"> 8,421***</td></tr>
+    <tr><th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_12 est" class="gt_row gt_right">(2,310)</td></tr>
+    <tr><th id="stub_1_13" scope="row" class="gt_row gt_left gt_stub">Valencia and Bilbao (85)</th>
+<td headers="by group: stub_1_13 est" class="gt_row gt_right">34,842***</td></tr>
+    <tr><th id="stub_1_14" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_14 est" class="gt_row gt_right">(2,222)</td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">
     <tr>
-      <td class="gt_footnote" colspan="4"> First treatment period in brackets.</td>
+      <td class="gt_footnote" colspan="2"> Signif. Codes: ***: 0.001, **: 0.01, *: 0.05.</td>
     </tr>
     <tr>
-      <td class="gt_footnote" colspan="4"><span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span> Confidence interval does not include zero.</td>
+      <td class="gt_footnote" colspan="2"> Analytical standard errors in parentheses.</td>
     </tr>
   </tfoot>
 </table>
@@ -570,23 +563,23 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
 
 
 ```{=html}
-<div id="itzyuamejh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#itzyuamejh table {
+<div id="hurwdhtojn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#hurwdhtojn table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#itzyuamejh thead, #itzyuamejh tbody, #itzyuamejh tfoot, #itzyuamejh tr, #itzyuamejh td, #itzyuamejh th {
+#hurwdhtojn thead, #hurwdhtojn tbody, #hurwdhtojn tfoot, #hurwdhtojn tr, #hurwdhtojn td, #hurwdhtojn th {
   border-style: none;
 }
 
-#itzyuamejh p {
+#hurwdhtojn p {
   margin: 0;
   padding: 0;
 }
 
-#itzyuamejh .gt_table {
+#hurwdhtojn .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -612,12 +605,12 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-left-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_caption {
+#hurwdhtojn .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#itzyuamejh .gt_title {
+#hurwdhtojn .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -629,7 +622,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-bottom-width: 0;
 }
 
-#itzyuamejh .gt_subtitle {
+#hurwdhtojn .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -641,7 +634,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-top-width: 0;
 }
 
-#itzyuamejh .gt_heading {
+#hurwdhtojn .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -653,13 +646,13 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-right-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_bottom_border {
+#hurwdhtojn .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_col_headings {
+#hurwdhtojn .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -674,7 +667,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-right-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_col_heading {
+#hurwdhtojn .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -694,7 +687,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   overflow-x: hidden;
 }
 
-#itzyuamejh .gt_column_spanner_outer {
+#hurwdhtojn .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -706,15 +699,15 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   padding-right: 4px;
 }
 
-#itzyuamejh .gt_column_spanner_outer:first-child {
+#hurwdhtojn .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#itzyuamejh .gt_column_spanner_outer:last-child {
+#hurwdhtojn .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#itzyuamejh .gt_column_spanner {
+#hurwdhtojn .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -726,11 +719,11 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   width: 100%;
 }
 
-#itzyuamejh .gt_spanner_row {
+#hurwdhtojn .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#itzyuamejh .gt_group_heading {
+#hurwdhtojn .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -756,7 +749,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   text-align: left;
 }
 
-#itzyuamejh .gt_empty_group_heading {
+#hurwdhtojn .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -771,15 +764,15 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   vertical-align: middle;
 }
 
-#itzyuamejh .gt_from_md > :first-child {
+#hurwdhtojn .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#itzyuamejh .gt_from_md > :last-child {
+#hurwdhtojn .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#itzyuamejh .gt_row {
+#hurwdhtojn .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -798,7 +791,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   overflow-x: hidden;
 }
 
-#itzyuamejh .gt_stub {
+#hurwdhtojn .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -811,7 +804,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   padding-right: 5px;
 }
 
-#itzyuamejh .gt_stub_row_group {
+#hurwdhtojn .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -825,15 +818,15 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   vertical-align: top;
 }
 
-#itzyuamejh .gt_row_group_first td {
+#hurwdhtojn .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#itzyuamejh .gt_row_group_first th {
+#hurwdhtojn .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#itzyuamejh .gt_summary_row {
+#hurwdhtojn .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -843,16 +836,16 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   padding-right: 5px;
 }
 
-#itzyuamejh .gt_first_summary_row {
+#hurwdhtojn .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_first_summary_row.thick {
+#hurwdhtojn .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#itzyuamejh .gt_last_summary_row {
+#hurwdhtojn .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -862,7 +855,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-bottom-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_grand_summary_row {
+#hurwdhtojn .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -872,7 +865,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   padding-right: 5px;
 }
 
-#itzyuamejh .gt_first_grand_summary_row {
+#hurwdhtojn .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -882,7 +875,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-top-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_last_grand_summary_row_top {
+#hurwdhtojn .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -892,11 +885,11 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-bottom-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_striped {
+#hurwdhtojn .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#itzyuamejh .gt_table_body {
+#hurwdhtojn .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -905,7 +898,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-bottom-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_footnotes {
+#hurwdhtojn .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -919,7 +912,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-right-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_footnote {
+#hurwdhtojn .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -928,7 +921,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   padding-right: 5px;
 }
 
-#itzyuamejh .gt_sourcenotes {
+#hurwdhtojn .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -942,7 +935,7 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   border-right-color: #D3D3D3;
 }
 
-#itzyuamejh .gt_sourcenote {
+#hurwdhtojn .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -950,63 +943,63 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
   padding-right: 5px;
 }
 
-#itzyuamejh .gt_left {
+#hurwdhtojn .gt_left {
   text-align: left;
 }
 
-#itzyuamejh .gt_center {
+#hurwdhtojn .gt_center {
   text-align: center;
 }
 
-#itzyuamejh .gt_right {
+#hurwdhtojn .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#itzyuamejh .gt_font_normal {
+#hurwdhtojn .gt_font_normal {
   font-weight: normal;
 }
 
-#itzyuamejh .gt_font_bold {
+#hurwdhtojn .gt_font_bold {
   font-weight: bold;
 }
 
-#itzyuamejh .gt_font_italic {
+#hurwdhtojn .gt_font_italic {
   font-style: italic;
 }
 
-#itzyuamejh .gt_super {
+#hurwdhtojn .gt_super {
   font-size: 65%;
 }
 
-#itzyuamejh .gt_footnote_marks {
+#hurwdhtojn .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#itzyuamejh .gt_asterisk {
+#hurwdhtojn .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#itzyuamejh .gt_indent_1 {
+#hurwdhtojn .gt_indent_1 {
   text-indent: 5px;
 }
 
-#itzyuamejh .gt_indent_2 {
+#hurwdhtojn .gt_indent_2 {
   text-indent: 10px;
 }
 
-#itzyuamejh .gt_indent_3 {
+#hurwdhtojn .gt_indent_3 {
   text-indent: 15px;
 }
 
-#itzyuamejh .gt_indent_4 {
+#hurwdhtojn .gt_indent_4 {
   text-indent: 20px;
 }
 
-#itzyuamejh .gt_indent_5 {
+#hurwdhtojn .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -1029,49 +1022,82 @@ The previous analysis has shown that ports controlled by Chinese investors outpe
       <th colspan="3" class="gt_empty_group_heading" scope="colgroup" id=""></th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">simple average</th>
-<td headers="NA stub_1_1 ATT.x" class="gt_row gt_right">159,926.35<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="NA stub_1_1 ATT.y" class="gt_row gt_right">0.01</td></tr>
+<td headers="NA stub_1_1 est.x" class="gt_row gt_right">159,926*</td>
+<td headers="NA stub_1_1 est.y" class="gt_row gt_right"> 0.0060</td></tr>
+    <tr><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="NA stub_1_2 est.x" class="gt_row gt_right">(70,933)</td>
+<td headers="NA stub_1_2 est.y" class="gt_row gt_right">(0.0136)</td></tr>
     <tr class="gt_group_heading_row">
       <th colspan="3" class="gt_group_heading" scope="colgroup" id="by group:">by group:</th>
     </tr>
-    <tr class="gt_row_group_first"><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Ambarli (76)</th>
-<td headers="by group: stub_1_2 ATT.x" class="gt_row gt_right">−23,060.17<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_2 ATT.y" class="gt_row gt_right">−0.02<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td></tr>
-    <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Amsterdam, Thessaloniki (85)</th>
-<td headers="by group: stub_1_3 ATT.x" class="gt_row gt_right">−4,058.38</td>
-<td headers="by group: stub_1_3 ATT.y" class="gt_row gt_right">0.00</td></tr>
-    <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Antwerpen (32)</th>
-<td headers="by group: stub_1_4 ATT.x" class="gt_row gt_right">774,003.48<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_4 ATT.y" class="gt_row gt_right">−0.01</td></tr>
-    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Barcelona (63)</th>
-<td headers="by group: stub_1_5 ATT.x" class="gt_row gt_right">164,129.07<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_5 ATT.y" class="gt_row gt_right">0.01</td></tr>
-    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Bilbao, Valencia (84)</th>
-<td headers="by group: stub_1_6 ATT.x" class="gt_row gt_right">21,218.84</td>
-<td headers="by group: stub_1_6 ATT.y" class="gt_row gt_right">−0.02</td></tr>
-    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille, Nantes Saint Nazaire, Zeebrugge (66)</th>
-<td headers="by group: stub_1_7 ATT.x" class="gt_row gt_right">5,375.86</td>
-<td headers="by group: stub_1_7 ATT.y" class="gt_row gt_right">−0.02</td></tr>
-    <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Gdynia (38)</th>
-<td headers="by group: stub_1_8 ATT.x" class="gt_row gt_right">43,000.53<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_8 ATT.y" class="gt_row gt_right">0.00</td></tr>
-    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Genova (81)</th>
-<td headers="by group: stub_1_9 ATT.x" class="gt_row gt_right">5,896.62</td>
-<td headers="by group: stub_1_9 ATT.y" class="gt_row gt_right">0.07<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td></tr>
-    <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Moerdijk, Rotterdam (21)</th>
-<td headers="by group: stub_1_10 ATT.x" class="gt_row gt_right">198,293.74</td>
-<td headers="by group: stub_1_10 ATT.y" class="gt_row gt_right">0.03</td></tr>
-    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Piraeus (52)</th>
-<td headers="by group: stub_1_11 ATT.x" class="gt_row gt_right">530,618.85<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td>
-<td headers="by group: stub_1_11 ATT.y" class="gt_row gt_right">0.07<span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span></td></tr>
+    <tr class="gt_row_group_first"><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Ambarli (76)</th>
+<td headers="by group: stub_1_3 est.x" class="gt_row gt_right">-23,060**</td>
+<td headers="by group: stub_1_3 est.y" class="gt_row gt_right">-0.0242***</td></tr>
+    <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_4 est.x" class="gt_row gt_right">(7,371)</td>
+<td headers="by group: stub_1_4 est.y" class="gt_row gt_right">(0.0048)</td></tr>
+    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Amsterdam, Thessaloniki (85)</th>
+<td headers="by group: stub_1_5 est.x" class="gt_row gt_right"> -4,058</td>
+<td headers="by group: stub_1_5 est.y" class="gt_row gt_right"> 0.0047</td></tr>
+    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_6 est.x" class="gt_row gt_right">(11,776)</td>
+<td headers="by group: stub_1_6 est.y" class="gt_row gt_right">(0.0044)</td></tr>
+    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Antwerpen (32)</th>
+<td headers="by group: stub_1_7 est.x" class="gt_row gt_right">774,003***</td>
+<td headers="by group: stub_1_7 est.y" class="gt_row gt_right">-0.0052</td></tr>
+    <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_8 est.x" class="gt_row gt_right">(5,522)</td>
+<td headers="by group: stub_1_8 est.y" class="gt_row gt_right">(0.0060)</td></tr>
+    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Barcelona (63)</th>
+<td headers="by group: stub_1_9 est.x" class="gt_row gt_right">164,129***</td>
+<td headers="by group: stub_1_9 est.y" class="gt_row gt_right"> 0.0124**</td></tr>
+    <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_10 est.x" class="gt_row gt_right">(6,634)</td>
+<td headers="by group: stub_1_10 est.y" class="gt_row gt_right">(0.0039)</td></tr>
+    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Bilbao, Valencia (84)</th>
+<td headers="by group: stub_1_11 est.x" class="gt_row gt_right"> 21,219</td>
+<td headers="by group: stub_1_11 est.y" class="gt_row gt_right">-0.0171</td></tr>
+    <tr><th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_12 est.x" class="gt_row gt_right">(31,467)</td>
+<td headers="by group: stub_1_12 est.y" class="gt_row gt_right">(0.0129)</td></tr>
+    <tr><th id="stub_1_13" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille, Nantes Saint Nazaire, Zeebrugge (66)</th>
+<td headers="by group: stub_1_13 est.x" class="gt_row gt_right">  5,376</td>
+<td headers="by group: stub_1_13 est.y" class="gt_row gt_right">-0.0169</td></tr>
+    <tr><th id="stub_1_14" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_14 est.x" class="gt_row gt_right">(22,259)</td>
+<td headers="by group: stub_1_14 est.y" class="gt_row gt_right">(0.0354)</td></tr>
+    <tr><th id="stub_1_15" scope="row" class="gt_row gt_left gt_stub">Gdynia (38)</th>
+<td headers="by group: stub_1_15 est.x" class="gt_row gt_right"> 43,001***</td>
+<td headers="by group: stub_1_15 est.y" class="gt_row gt_right">-0.0025</td></tr>
+    <tr><th id="stub_1_16" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_16 est.x" class="gt_row gt_right">(5,825)</td>
+<td headers="by group: stub_1_16 est.y" class="gt_row gt_right">(0.0058)</td></tr>
+    <tr><th id="stub_1_17" scope="row" class="gt_row gt_left gt_stub">Genova (81)</th>
+<td headers="by group: stub_1_17 est.x" class="gt_row gt_right">  5,897</td>
+<td headers="by group: stub_1_17 est.y" class="gt_row gt_right"> 0.0712***</td></tr>
+    <tr><th id="stub_1_18" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_18 est.x" class="gt_row gt_right">(8,016)</td>
+<td headers="by group: stub_1_18 est.y" class="gt_row gt_right">(0.0040)</td></tr>
+    <tr><th id="stub_1_19" scope="row" class="gt_row gt_left gt_stub">Moerdijk, Rotterdam (21)</th>
+<td headers="by group: stub_1_19 est.x" class="gt_row gt_right">198,294</td>
+<td headers="by group: stub_1_19 est.y" class="gt_row gt_right"> 0.0271</td></tr>
+    <tr><th id="stub_1_20" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_20 est.x" class="gt_row gt_right">(137,696)</td>
+<td headers="by group: stub_1_20 est.y" class="gt_row gt_right">(0.0584)</td></tr>
+    <tr><th id="stub_1_21" scope="row" class="gt_row gt_left gt_stub">Piraeus (52)</th>
+<td headers="by group: stub_1_21 est.x" class="gt_row gt_right">530,619***</td>
+<td headers="by group: stub_1_21 est.y" class="gt_row gt_right"> 0.0685***</td></tr>
+    <tr><th id="stub_1_22" scope="row" class="gt_row gt_left gt_stub"></th>
+<td headers="by group: stub_1_22 est.x" class="gt_row gt_right">(7,292)</td>
+<td headers="by group: stub_1_22 est.y" class="gt_row gt_right">(0.0095)</td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">
     <tr>
-      <td class="gt_footnote" colspan="3"> First treatment period in brackets.</td>
+      <td class="gt_footnote" colspan="3"> Signif. Codes: ***: 0.001, **: 0.01, *: 0.05.</td>
     </tr>
     <tr>
-      <td class="gt_footnote" colspan="3"><span class="gt_footnote_marks gt_asterisk" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>*</sup></span> Confidence interval does not include zero.</td>
+      <td class="gt_footnote" colspan="3"> Analytical standard errors in parentheses.</td>
     </tr>
   </tfoot>
 </table>
