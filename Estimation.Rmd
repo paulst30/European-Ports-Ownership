@@ -424,114 +424,114 @@ ggdid(agg_es_cond) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title 
 
 ```
 
-<!-- ## Placebo test -->
+## Placebo test
 
 
-<!-- ```{r include=FALSE, warning=FALSE} -->
-<!-- placebo_data <- port_data_agg %>% filter(group==0) -->
+```{r include=FALSE, warning=FALSE}
+# placebo_data <- port_data_agg %>% filter(group==0)
+# 
+# placebo_atts <- list()
+# for (j in 1:100) {
+# fake_treated <- slice_sample(as.data.frame(unique(placebo_data$port_id)),n=15,replace = F)
+# colnames(fake_treated)[1] <- "port_id"
+# 
+# for (i in 1:nrow(fake_treated)) {
+#   sampled_period <- placebo_data %>%
+#     filter(port_id == fake_treated$port_id[i] & !is.na(container)) %>%
+#     slice_sample(n = 1) %>%
+#     pull(period)  # Extract the sampled period value
+# 
+#   fake_treated$fake_group[i] <- sampled_period
+# }
+# 
+# placebo_data$fake_group  <- fake_treated$fake_group[match(placebo_data$port_id, fake_treated$port_id)]
+# placebo_data$fake_group[is.na(placebo_data$fake_group)] <- 0
+# placebo_data$fake_group <- as.numeric(placebo_data$fake_group)
+# 
+# placebo_attgt <- att_gt(yname = "container",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*sender)
+#                 gname = "fake_group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 #xformla = ~X,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = placebo_data)
+# 
+# placebo_agg_simple <- aggte(placebo_attgt, type = "simple", na.rm=T)
+# 
+# placebo_atts[j] <- placebo_agg_simple$overall.att
+# }
+# 
+# placebo_atts_df <- as.data.frame(do.call(rbind,placebo_atts))
+# 
+# p_value <- (sum(placebo_atts_df$V1>agg_simple[[1]]) + sum(placebo_atts_df$V1<(2*mean(placebo_atts_df$V1)-agg_simple[[1]])))/100
 
-<!-- placebo_atts <- list() -->
-<!-- for (j in 1:100) { -->
-<!-- fake_treated <- slice_sample(as.data.frame(unique(placebo_data$port_id)),n=15,replace = F) -->
-<!-- colnames(fake_treated)[1] <- "port_id" -->
+```
 
-<!-- for (i in 1:nrow(fake_treated)) { -->
-<!--   sampled_period <- placebo_data %>% -->
-<!--     filter(port_id == fake_treated$port_id[i] & !is.na(container)) %>% -->
-<!--     slice_sample(n = 1) %>% -->
-<!--     pull(period)  # Extract the sampled period value -->
+<!-- Due to the small number of treated ports, there exists the possibility that the treated ports are just coincidentally experiencing an increase in the throughput after treatment. To alleviate these concerns, we conduct a placebo test testing the sharp null of an average treatment effect of zero @Young.2019. We exclude all treated ports from the data and randomly assign `r n_distinct(port_data_agg$port[port_data_agg$ownership_china==1])` port to be treated at a random point in time and calculate the simple average treatment effect. Repeating this process for 100 times yields the empirical distribution of treatment effects depicted in the bar chart below. As expected, the distribution is centered around zero, indicating that there is no consistent average treatment effect, when the treatment is assigned randomly. The observed treatment effect of the actual treated ports (vertical line) clearly lies at the right end of the distribution. If the true treatment effect was in fact zero and the observed treatment effect was only due to a coincidental lucky pick of ports and time, that probability of the observed treatment to occur effect would be p_value*100 percent. -->
 
-<!--   fake_treated$fake_group[i] <- sampled_period -->
-<!-- } -->
+```{r echo=FALSE, message=FALSE}
+# 
+# ggplot(data = placebo_atts_df) + geom_histogram(aes(x=V1), stat = "bin") +
+#                                  geom_vline(xintercept = agg_simple[[1]]) +
+#                                  xlab("Simple average treatment effect") +
+#                                  labs(title = "Average Treatment Effects of Placebo Treatments",caption = "Vertical line represents the observed treatment effect.")
 
-<!-- placebo_data$fake_group  <- fake_treated$fake_group[match(placebo_data$port_id, fake_treated$port_id)] -->
-<!-- placebo_data$fake_group[is.na(placebo_data$fake_group)] <- 0 -->
-<!-- placebo_data$fake_group <- as.numeric(placebo_data$fake_group) -->
-
-<!-- placebo_attgt <- att_gt(yname = "container",            #outcome variable -->
-<!--                 tname = "period",                 #time variable -->
-<!--                 idname = "port_id",                    #id for units (should be port_code*sender) -->
-<!--                 gname = "fake_group",                    #grouping variable for first treatment. Is zero for never treated units -->
-<!--                 #xformla = ~X,                  #for potential covariates -->
-<!--                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units -->
-<!--                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time. -->
-<!--                 #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression) -->
-<!--                 data = placebo_data) -->
-
-<!-- placebo_agg_simple <- aggte(placebo_attgt, type = "simple", na.rm=T) -->
-
-<!-- placebo_atts[j] <- placebo_agg_simple$overall.att -->
-<!-- } -->
-
-<!-- placebo_atts_df <- as.data.frame(do.call(rbind,placebo_atts)) -->
-
-<!-- p_value <- (sum(placebo_atts_df$V1>agg_simple[[1]]) + sum(placebo_atts_df$V1<(2*mean(placebo_atts_df$V1)-agg_simple[[1]])))/100 -->
-
-<!-- ``` -->
-
-<!-- Due to the small number of treated ports, there exists the possibility that the treated ports are just coincidentally experiencing an increase in the throughput after treatment. To alleviate these concerns, we conduct a placebo test testing the sharp null of an average treatment effect of zero @Young.2019. We exclude all treated ports from the data and randomly assign `r n_distinct(port_data_agg$port[port_data_agg$ownership_china==1])` port to be treated at a random point in time and calculate the simple average treatment effect. Repeating this process for 100 times yields the empirical distribution of treatment effects depicted in the bar chart below. As expected, the distribution is centered around zero, indicating that there is no consistent average treatment effect, when the treatment is assigned randomly. The observed treatment effect of the actual treated ports (vertical line) clearly lies at the right end of the distribution. If the true treatment effect was in fact zero and the observed treatment effect was only due to a coincidental lucky pick of ports and time, that probability of the observed treatment to occur effect would be `r p_value*100` percent.     -->
-
-<!-- ```{r echo=FALSE, message=FALSE} -->
-
-<!-- ggplot(data = placebo_atts_df) + geom_histogram(aes(x=V1), stat = "bin") + -->
-<!--                                  geom_vline(xintercept = agg_simple[[1]]) + -->
-<!--                                  xlab("Simple average treatment effect") + -->
-<!--                                  labs(title = "Average Treatment Effects of Placebo Treatments",caption = "Vertical line represents the observed treatment effect.") -->
-
-<!-- ``` -->
+```
 
 
 
-<!-- # Placebo test -->
+# Placebo test
 
-<!-- ```{r include=FALSE, warning=FALSE} -->
-<!-- placebo_data <- port_data_agg %>% filter(group==0) -->
+```{r include=FALSE, warning=FALSE}
+# placebo_data <- port_data_agg %>% filter(group==0)
+# 
+# placebo_atts_share <- list()
+# for (j in 1:100) {
+# fake_treated <- slice_sample(as.data.frame(unique(placebo_data$port_id)),n=15,replace = F)
+# colnames(fake_treated)[1] <- "port_id"
+# 
+# for (i in 1:nrow(fake_treated)) {
+#   sampled_period <- placebo_data %>%
+#     filter(port_id == fake_treated$port_id[i] & !is.na(container)) %>%
+#     slice_sample(n = 1) %>%
+#     pull(period)  # Extract the sampled period value
+# 
+#   fake_treated$fake_group[i] <- sampled_period
+# }
+# 
+# placebo_data$fake_group  <- fake_treated$fake_group[match(placebo_data$port_id, fake_treated$port_id)]
+# placebo_data$fake_group[is.na(placebo_data$fake_group)] <- 0
+# placebo_data$fake_group <- as.numeric(placebo_data$fake_group)
+# 
+# placebo_attgt <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*sender)
+#                 gname = "fake_group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 #xformla = ~X,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = placebo_data)
+# 
+# placebo_agg_simple <- aggte(placebo_attgt, type = "simple", na.rm=T)
+# 
+# placebo_atts[j] <- placebo_agg_simple$overall.att
+# }
+# 
+# placebo_atts_share_df <- as.data.frame(do.call(rbind,placebo_atts))
+# 
+# p_value_share <- (sum(placebo_atts_df$V1>agg_simple_share[[1]]) + sum(placebo_atts_df$V1<(2*mean(placebo_atts_df$V1)-agg_simple_share[[1]])))/100
+```
 
-<!-- placebo_atts_share <- list() -->
-<!-- for (j in 1:100) { -->
-<!-- fake_treated <- slice_sample(as.data.frame(unique(placebo_data$port_id)),n=15,replace = F) -->
-<!-- colnames(fake_treated)[1] <- "port_id" -->
+```{r include=T, echo=F}
+# ggplot(data = placebo_atts_share_df) + geom_histogram(aes(x=V1), stat = "bin") +
+#                                  geom_vline(xintercept = agg_simple_share[[1]]) +
+#                                  xlab("Simple average treatment effect") +
+#                                  labs(title = "Average Treatment Effects of Placebo Treatments",caption = "Vertical line represents the observed treatment effect.")
 
-<!-- for (i in 1:nrow(fake_treated)) { -->
-<!--   sampled_period <- placebo_data %>% -->
-<!--     filter(port_id == fake_treated$port_id[i] & !is.na(container)) %>% -->
-<!--     slice_sample(n = 1) %>% -->
-<!--     pull(period)  # Extract the sampled period value -->
-
-<!--   fake_treated$fake_group[i] <- sampled_period -->
-<!-- } -->
-
-<!-- placebo_data$fake_group  <- fake_treated$fake_group[match(placebo_data$port_id, fake_treated$port_id)] -->
-<!-- placebo_data$fake_group[is.na(placebo_data$fake_group)] <- 0 -->
-<!-- placebo_data$fake_group <- as.numeric(placebo_data$fake_group) -->
-
-<!-- placebo_attgt <- att_gt(yname = "share_china",            #outcome variable -->
-<!--                 tname = "period",                 #time variable -->
-<!--                 idname = "port_id",                    #id for units (should be port_code*sender) -->
-<!--                 gname = "fake_group",                    #grouping variable for first treatment. Is zero for never treated units -->
-<!--                 #xformla = ~X,                  #for potential covariates -->
-<!--                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units -->
-<!--                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time. -->
-<!--                 #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression) -->
-<!--                 data = placebo_data) -->
-
-<!-- placebo_agg_simple <- aggte(placebo_attgt, type = "simple", na.rm=T) -->
-
-<!-- placebo_atts[j] <- placebo_agg_simple$overall.att -->
-<!-- } -->
-
-<!-- placebo_atts_share_df <- as.data.frame(do.call(rbind,placebo_atts)) -->
-
-<!-- p_value_share <- (sum(placebo_atts_df$V1>agg_simple_share[[1]]) + sum(placebo_atts_df$V1<(2*mean(placebo_atts_df$V1)-agg_simple_share[[1]])))/100 -->
-<!-- ``` -->
-
-<!-- ```{r include=T, echo=F} -->
-<!-- ggplot(data = placebo_atts_share_df) + geom_histogram(aes(x=V1), stat = "bin") + -->
-<!--                                  geom_vline(xintercept = agg_simple_share[[1]]) + -->
-<!--                                  xlab("Simple average treatment effect") + -->
-<!--                                  labs(title = "Average Treatment Effects of Placebo Treatments",caption = "Vertical line represents the observed treatment effect.") -->
-
-<!-- ``` -->
+```
 
 
 # References
