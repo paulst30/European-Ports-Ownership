@@ -225,7 +225,7 @@ graph_list[[i]] <- ggplot(data=terminal_data[terminal_data$port_code==port_c,], 
                           geom_line(data=counterfactual, aes(y=untreat_TEU_per_ship, linetype="dotted")) +
                           scale_y_continuous(
                             name="throughput") +
-                          scale_linetype_identity(name = 'linetype', guide = 'legend',labels = c('treated port','untreated port','cosco terminal')) +
+                          scale_linetype_identity(name = 'linetype', guide = 'legend',labels = c('treated port','untreated port','Cosco terminal')) +
                           labs(title=port_name) +
                           theme_minimal() +
                           theme(panel.background = element_blank(),
