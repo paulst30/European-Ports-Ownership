@@ -12,7 +12,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r include=FALSE, warning=FALSE}
+```{r include=FALSE, warning=FALSE, message=FALSE}
 library(dplyr)
 library(tidyr)
 library(patchwork)
@@ -21,9 +21,12 @@ library(fixest)
 library(did)
 library(gt)
 library(xtable)
+library(extrafont)
 
+loadfonts(device = "win")
 set.seed(100)
 
+#load data
 load("port_data_TEU.RData")
 
 port_data_TEU <- filter(port_data_TEU, aggregate==0,
@@ -75,7 +78,7 @@ $Thrpt_{ijt}=\alpha_{i}+\beta_{j}+\gamma_{t}+ChineseOwnership_{it}+ChineseOwners
 
 In equation (1), the quarterly ($t$) container throughput ($Thrpt$) is explained by a set of port fixed-effects ($\alpha_{i}$), sender country fixed effects (\beta_{j}), and time fixed effects (\gamma_{t}). This specification controls for all time-invariant port-specific, and all time-invariant sender-specific unobserved covariates. The time fixed effects account for common shocks that affect all European ports equally.  
 
-$Thrpt_{ijt}=\alpha_{ij}+\gamma_{t}+ChineseOwnership_{it}}+ChineseOwnership_{it}*ChineseOrigin_{ij}+e_{ijt}$ \left (3)
+$Thrpt_{ijt}=\alpha_{ij}+\gamma_{t}+ChineseOwnership_{it}+ChineseOwnership_{it}*ChineseOrigin_{ij}+e_{ijt}$ \left (3)
 
 Equation (2) increases the restrictiveness of th fixed effects by replacing the port-level fixed effects with port-sender fixed effects. This set of fixed effects controls for all time-invariant sender-port specfic covariates like regular shipping routes and preferences. This setup is often referred to as a difference-in-differences (DiD) set-up, as in the two-period case, equation (2) estimates a standard DiD effect. However, recent studies have shown, that this similarity does not extend to the multi-period case. 
 
@@ -418,16 +421,48 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
 ## Event study
 For the DiD framework to deliver unbiased results, the parallel trend assumptions needs to hold. While it is not possible to test this assumption directly, we conduct a few test to validate whether the pre-treatment trends run parallel or not. The following graph displays and event study type aggregation of the group-time average treatment effects calculated above. The aggregated average treatment effects before treatment (red) are all around zero, indicating that parallel trends holds in the pre-treatment period. The graphs clearly indicate a persistent positive treatment effect after the treatment. The point-wise estimates are only significant in a couple of periods, which is due to the fact that some ports experience a high positive treatment effect while others do not. In particular *insert portnames* show consistently higher throughputs after treatment than the control group. 
 
-```{r include=TRUE, message=FALSE, echo=FALSE}
-ggdid(agg_es) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title = "Average Effect by Length of Exposure of Ports under unconditional PTA")
-ggdid(agg_es_cond) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title = "Average Effect by Length of Exposure of Ports under conditional PTA")
+```{r include=TRUE, message=FALSE, echo=FALSE, warning=FALSE, fig.dim = c(8, 14)}
+# ggdid(agg_es) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title = "Average Effect by Length of Exposure of Ports under unconditional PTA")
+# ggdid(agg_es_cond) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title = "Average Effect by Length of Exposure of Ports under conditional PTA")
+
+
+#manually putting together eventstudy graph 
+graph_results <- data.frame(group = attgt$group,
+                           period = attgt$t,
+                           att = attgt$att,
+                           se = attgt$se,
+                           c_value = attgt$c) %>%
+                  mutate(treatment = ifelse(period < group, "pre", "post"),
+                         ymin=att-se*c_value,
+                         ymax=att+se*c_value)
+
+graph_results$port <- port_group_list$ports[match(graph_results$group, port_group_list$group)]
+
+ggplot(graph_results, aes(x = period, y = att/1000)) + 
+  geom_point(aes(shape = treatment ),fill= "white", size = 1.2) +
+  geom_ribbon(aes(ymin = ymin/1000, ymax = ymax/1000), fill = "lightgrey", alpha = 0.3) +
+  facet_wrap(~port, ncol = 1, scales = "free_y") +
+  labs(x = "Period", y = "ATT (mil. TEU)", caption = "Footnote: Confidence interval is based on analytical standard errors.") +
+  theme_minimal() +
+  theme(panel.background = element_blank(),
+        strip.text = element_text(hjust = 0, size=12),
+        text = element_text(size=10, family="LM Roman 10"),
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.caption = element_text(hjust = 0)) +
+  scale_shape_manual(values = c(19,1))
+
+ggsave(width=10, height=15, filename = "ATT_graph.pdf", path = file.path(getwd(), "figures"))
+  
+
 
 ```
 
-## Placebo test
+
 
 
 ```{r include=FALSE, warning=FALSE}
+## Placebo test
 # placebo_data <- port_data_agg %>% filter(group==0)
 # 
 # placebo_atts <- list()
@@ -482,9 +517,10 @@ ggdid(agg_es_cond) + scale_x_continuous(breaks = seq(-80, 80, 10)) + labs(title 
 
 
 
-# Placebo test
 
 ```{r include=FALSE, warning=FALSE}
+
+# Placebo test
 # placebo_data <- port_data_agg %>% filter(group==0)
 # 
 # placebo_atts_share <- list()

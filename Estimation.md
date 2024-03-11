@@ -25,7 +25,7 @@ $Thrpt_{ijt}=\alpha_{i}+\beta_{j}+\gamma_{t}+ChineseOwnership_{it}+ChineseOwners
 
 In equation (1), the quarterly ($t$) container throughput ($Thrpt$) is explained by a set of port fixed-effects ($\alpha_{i}$), sender country fixed effects (\beta_{j}), and time fixed effects (\gamma_{t}). This specification controls for all time-invariant port-specific, and all time-invariant sender-specific unobserved covariates. The time fixed effects account for common shocks that affect all European ports equally.  
 
-$Thrpt_{ijt}=\alpha_{ij}+\gamma_{t}+ChineseOwnership_{it}}+ChineseOwnership_{it}*ChineseOrigin_{ij}+e_{ijt}$ \left (3)
+$Thrpt_{ijt}=\alpha_{ij}+\gamma_{t}+ChineseOwnership_{it}+ChineseOwnership_{it}*ChineseOrigin_{ij}+e_{ijt}$ \left (3)
 
 Equation (2) increases the restrictiveness of th fixed effects by replacing the port-level fixed effects with port-sender fixed effects. This set of fixed effects controls for all time-invariant sender-port specfic covariates like regular shipping routes and preferences. This setup is often referred to as a difference-in-differences (DiD) set-up, as in the two-period case, equation (2) estimates a standard DiD effect. However, recent studies have shown, that this similarity does not extend to the multi-period case. 
 
@@ -1201,9 +1201,9 @@ Hence $ATT(g,t)$ represents the average treatment effect of group $G$ in period 
 ## Event study
 For the DiD framework to deliver unbiased results, the parallel trend assumptions needs to hold. While it is not possible to test this assumption directly, we conduct a few test to validate whether the pre-treatment trends run parallel or not. The following graph displays and event study type aggregation of the group-time average treatment effects calculated above. The aggregated average treatment effects before treatment (red) are all around zero, indicating that parallel trends holds in the pre-treatment period. The graphs clearly indicate a persistent positive treatment effect after the treatment. The point-wise estimates are only significant in a couple of periods, which is due to the fact that some ports experience a high positive treatment effect while others do not. In particular *insert portnames* show consistently higher throughputs after treatment than the control group. 
 
-![](Estimation_files/figure-html/unnamed-chunk-7-1.png)<!-- -->![](Estimation_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
+![](Estimation_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
-## Placebo test
+
 
 
 
@@ -1214,7 +1214,6 @@ For the DiD framework to deliver unbiased results, the parallel trend assumption
 
 
 
-# Placebo test
 
 
 
