@@ -442,7 +442,7 @@ ggplot(graph_results, aes(x = period, y = att/1000)) +
   geom_point(aes(shape = treatment ),fill= "white", size = 1.2) +
   geom_ribbon(aes(ymin = ymin/1000, ymax = ymax/1000), fill = "lightgrey", alpha = 0.3) +
   facet_wrap(~port, ncol = 1, scales = "free_y") +
-  labs(x = "Period", y = "ATT (mil. TEU)", caption = "Footnote: Confidence interval is based on analytical standard errors.") +
+  labs(x = "Period", y = "TEU (millions)", caption = "Note: Confidence interval is based on analytical standard errors.") +
   theme_minimal() +
   theme(panel.background = element_blank(),
         strip.text = element_text(hjust = 0, size=12),
