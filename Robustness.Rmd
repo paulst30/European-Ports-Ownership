@@ -23,6 +23,9 @@ library(did)
 library(gt)
 library(readxl)
 library(cowplot)
+library(extrafont)
+
+loadfonts(device = "win")
 
 #load data
 load("port_data_TEU.RData")
@@ -131,23 +134,48 @@ for (i in seq_along(unique(terminal_data$port_code[terminal_data$treated==1]))) 
 graph_list[[i]] <- terminal_data %>% mutate(residual = ifelse(!is.na(terminal_TEU), container-terminal_TEU, container)) %>% 
                           pivot_longer(c("terminal_TEU", "residual"), names_to = "type", values_to = "throughput") %>% 
                           filter(port_code==port_c) %>%
-                          ggplot(aes(x=period, y=throughput, fill=type)) + 
+                          ggplot(aes(x=period, y=throughput/1000, fill=type)) + 
                           geom_area() +
                           scale_y_continuous(
                             name="throughput") +
-                          labs(title=port_name) 
+                          scale_fill_manual(values=c("grey50", "grey30"),
+                                            labels=c( "total port", "cosco terminal")) +
+                          labs(title=port_name) +
+                          theme_minimal() +
+                          theme(panel.background = element_blank(),
+                                strip.text = element_text(hjust = 0, size=12),
+                                text = element_text(size=10, family="LM Roman 10"),
+                                legend.position = "none",
+                                axis.title.x = element_blank(),
+                                axis.title.y = element_blank())
 }
 ```
 
-```{r include=TRUE, message=FALSE, echo=FALSE, warning=FALSE}
-title <- ggdraw() +
-  draw_text("Cosco's terminals and total port throughput", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 14)
+```{r include=TRUE, message=FALSE, echo=FALSE, warning=FALSE, fig.dim = c(6, 9),fig.align = 'center'}
 
-plots <- plot_grid(plotlist = graph_list, ncol=2) 
 
-note <- ggdraw() + draw_text("Note: The blue areas represent the throughput of Cosco's terminals.\n The red area represents the container throughput of other non-chinese terminals within the respective port.", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 8)
+# plots <- plot_grid(plotlist = graph_list, ncol=2) 
+# 
+# note <- ggdraw() + draw_text("Note: The blue areas represent the throughput of Cosco's terminals.\n The red area represents the container throughput of other non-chinese terminals within the respective port.", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 8)
+# 
+# plot_grid(title, plots, note, ncol = 1, rel_heights = c(0.1, 0.9)) 
 
-plot_grid(title, plots, note, ncol = 1, rel_heights = c(0.1, 0.9)) 
+x.title <- ggdraw() + geom_text(aes(label="TEU (millions)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
+y.title <- ggdraw() + geom_text(aes(label="Period"), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
+
+#note <- ggdraw() + geom_text(aes(label="Note:"), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 3, family="LM Roman 10")
+
+legend <- get_legend(graph_list[[1]] + 
+                       theme(legend.position="bottom", legend.title = element_blank()))
+
+plots1 <- plot_grid(plotlist = graph_list, ncol=2, align = "hv") 
+
+plots1 <- plot_grid(plots1, y.title, legend, ncol=1, rel_heights = c(0.925,0.05, 0.025) ) 
+#plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
+
+plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
+
+ggsave(width=10, height=11, filename = "rob_ts_graph.pdf", path = file.path(getwd(), "figures"))
   
 ```
 
@@ -157,7 +185,7 @@ plot_grid(title, plots, note, ncol = 1, rel_heights = c(0.1, 0.9))
 To pair Cosco's terminal-level data with our port-level data, we normalize the throughput by port size. Naturally, larger ports should have higher throughput and should have a higher capacity for growth. To make the port- and terminal-level data comparable, we consider the number of berths of each port (including berths used for passenger traffic), the number of berths that are predominantly used for container shippings, and the total number of container ships that can dock at containter terminal(s) (measured by quay length divided by 300m. For ports without quay length, the number of ships was guesstimated on google maps.). The graphs below illustrate how good each measure explains the container throughput of the ports in year 2020.  
 
 
-```{r include=TRUE, warning=FALSE, echo=FALSE, message=FALSE}
+```{r include=TRUE, warning=FALSE, echo=FALSE, message=FALSE, fig.align = 'center'}
 graph_list <- list()
 i<-0
 for (level in c("container", "change")) {
@@ -184,7 +212,7 @@ The graph above indicates that the length of the quay measured in container ship
 
 
 
-```{r include=TRUE, warning=FALSE, echo=FALSE, message=FALSE}
+```{r include=TRUE, warning=FALSE, echo=FALSE, message=FALSE, fig.dim = c(6, 8), fig.align = 'center'}
 graph_list <- list()
 for (i in seq_along(unique(terminal_data$port_code[terminal_data$treated==1]))) {
   port_c <- unique(terminal_data$port_code[terminal_data$treated==1])[i]
@@ -192,22 +220,48 @@ for (i in seq_along(unique(terminal_data$port_code[terminal_data$treated==1]))) 
 
 
 graph_list[[i]] <- ggplot(data=terminal_data[terminal_data$port_code==port_c,], aes(x=period)) + 
-                          geom_line(aes(y=cosco_TEU_per_ship), linetype="solid") +
-                          geom_line(aes(y=treat_TEU_per_ship), linetype="dashed") +
-                          geom_line(data=counterfactual, aes(y=untreat_TEU_per_ship, x=period), linetype="dotted") +
+                          geom_line(aes(y=cosco_TEU_per_ship, linetype="solid")) +
+                          geom_line(aes(y=treat_TEU_per_ship, linetype="dashed")) +
+                          geom_line(data=counterfactual, aes(y=untreat_TEU_per_ship, linetype="dotted")) +
                           scale_y_continuous(
                             name="throughput") +
-                          labs(title=port_name) 
+                          scale_linetype_identity(name = 'linetype', guide = 'legend',labels = c('treated port','untreated port','cosco terminal')) +
+                          labs(title=port_name) +
+                          theme_minimal() +
+                          theme(panel.background = element_blank(),
+                                strip.text = element_text(hjust = 0, size=12),
+                                text = element_text(size=10, family="LM Roman 10"),
+                                legend.position = "none",
+                                axis.title.x = element_blank(),
+                                axis.title.y = element_blank())
 }
 
-title <- ggdraw() +
-  draw_text("Container throughput per berth", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 14)
+# title <- ggdraw() +
+#   draw_text("Container throughput per berth", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 14)
+# 
+# note <- ggdraw() + draw_text("Note: Solid line represents Cosco'terminal, dashed line represents\n the respective treated port (excluding Cosco's throughput), and dotted line represents the average of all untreated ports.", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 8)
+# 
+# plots <- plot_grid(plotlist = graph_list, ncol=2) 
+# 
+# plot_grid(title, plots, note, ncol = 1, rel_heights = c(0.1, 0.9)) 
 
-note <- ggdraw() + draw_text("Note: Solid line represents Cosco'terminal, dashed line represents\n the respective treated port (excluding Cosco's throughput), and dotted line represents the average of all untreated ports.", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 8)
 
-plots <- plot_grid(plotlist = graph_list, ncol=2) 
+x.title <- ggdraw() + geom_text(aes(label="TEU (millions)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
+y.title <- ggdraw() + geom_text(aes(label="Period"), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
 
-plot_grid(title, plots, note, ncol = 1, rel_heights = c(0.1, 0.9)) 
+#note <- ggdraw() + geom_text(aes(label="Note:"), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 3, family="LM Roman 10")
+
+legend <- get_legend(graph_list[[1]] + 
+                       theme(legend.position="bottom", legend.title = element_blank()))
+
+plots1 <- plot_grid(plotlist = graph_list, ncol=2, align = "hv") 
+
+plots1 <- plot_grid(plots1, y.title, legend, ncol=1, rel_heights = c(0.925,0.05, 0.025) ) 
+#plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
+
+plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
+
+ggsave(width=10, height=11, filename = "rob_by_berth_graph.pdf", path = file.path(getwd(), "figures"))
 
 ```
 
