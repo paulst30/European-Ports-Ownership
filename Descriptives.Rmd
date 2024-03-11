@@ -21,6 +21,9 @@ library(readxl)
 library(knitr)
 library(cowplot)
 library(lattice)
+library(extrafont)
+
+loadfonts(device = "win")
 
 load("port_data.RData")
 load("port_data_TEU.RData")
@@ -106,7 +109,7 @@ cut_offs <- port_data_TEU %>% filter(year>=2010) %>% mutate(china = ((sender == 
 ```
 
 
-An alternative to filtering by the aggregated throughput could be filtering by the average throughput. The graph below display the cumulative total throughput relative to the average yearly throughput. The graph indicates that possible cut-off thresholds of 10, 20, and 30 million TEUs of yearly average container throughput are associated with a loss of `r round(max(cut_offs$cumsum[cut_offs$average_yrly<=10000])*100, digits = 1 )`, `r round(max(cut_offs$cumsum[cut_offs$average_yrly<=20000])*100, digits = 1 )`, and `r round(max(cut_offs$cumsum[cut_offs$average_yrly<=30000])*100, digits = 1 )` percent of the cumulative total container throughput. In the following, the sample is constructed by applying a threshold of 20 million TEUs of average yearly container throughput.  
+An alternative to filtering by the aggregated throughput could be filtering by the average throughput. The graph below display the cumulative total throughput relative to the average yearly throughput. The graph indicates that possible cut-off thresholds of 10, 20, and 30 thousand TEUs of yearly average container throughput are associated with a loss of `r round(max(cut_offs$cumsum[cut_offs$average_yrly<=10000])*100, digits = 1 )`, `r round(max(cut_offs$cumsum[cut_offs$average_yrly<=20000])*100, digits = 1 )`, and `r round(max(cut_offs$cumsum[cut_offs$average_yrly<=30000])*100, digits = 1 )` percent of the cumulative total container throughput. In the following, the sample is constructed by applying a threshold of 20 thousand TEUs of average yearly container throughput.  
 
 ```{r echo=FALSE,message=FALSE}
 
@@ -324,7 +327,11 @@ Originally, we found 26 ports which were at some point at least partly owned by 
 The following graph display all 18 treated ports and their annual container throughput as a share of their mean container throughput. The vertical lines indicate treatment time. Solid line represent the container throughput of the respective port. The dashed line represents the average throughput of the control group. Note that not all ports report the throughput for every period. This might influence the average.
 
 ```{r echo=FALSE, message=FALSE, fig.dim = c(8, 14)}
-treated_ports <- unique(port_data_TEU$port_code[port_data_TEU$group!=0])
+treated_ports <- port_data_TEU %>% filter(group!=0) %>% 
+                 group_by(port_code, time) %>% 
+                 summarize(total_TEU = sum(total_TEU, na.rm=T)) %>% 
+                 group_by(port_code) %>% summarise(max = max(total_TEU, na.rm=T)) %>% 
+                 arrange(desc(max)) %>% pull(port_code)
 plot_list <- list()
 
 for (i in 1:length(treated_ports)){
@@ -342,13 +349,36 @@ for (i in 1:length(treated_ports)){
                                          summarize(count = n_distinct(port_code),
                                                    container = sum(sum, na.rm=T)/count,
                                                    ownership_china = max(ownership_china)) %>%
-              ggplot(aes(x=time, y=container)) + geom_line(aes(linetype=as.factor(group))) +
+              ggplot(aes(x=time, y=container/1000)) + geom_line(aes(linetype=as.factor(group))) +
               geom_vline(xintercept = treatment_time) +
               scale_linetype_manual(values=c("dotted", "solid")) +
-              labs(title = port_name ) 
+              labs(title = port_name ) +
+              theme_minimal() +
+              theme(panel.background = element_blank(),
+                    strip.text = element_text(hjust = 0, size=12),
+                    text = element_text(size=10, family="LM Roman 10"),
+                    legend.position = "none",
+                    axis.title.x = element_blank(),
+                    axis.title.y = element_blank())
 }
 
-plot_grid(plotlist = plot_list, ncol=3) 
+x.title <- ggdraw() + geom_text(aes(label="TEU (millions)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
+y.title <- ggdraw() + geom_text(aes(label="Year"), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
+
+note <- ggdraw() + geom_text(aes(label="Note: Vertical line indicates treatment timing."), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 3, family="LM Roman 10")
+
+legend <- get_legend(plot_list[[1]] + 
+                       scale_linetype_discrete(labels=c( "treated", "average of untreated")) +
+                       theme(legend.position="bottom", legend.title = element_blank()))
+
+plots <- plot_grid(plotlist = plot_list, ncol=3, align = "hv") 
+
+plots1 <- plot_grid(plots, y.title, legend,note, ncol=1, rel_heights = c(0.925,0.025, 0.025, 0.025) ) 
+#plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
+
+plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
+
+ggsave(width=10, height=15, filename = "port_ts_graph.pdf", path = file.path(getwd(), "figures"))
 ```
 
 ## Data availability for treated ports

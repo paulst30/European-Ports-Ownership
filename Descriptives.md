@@ -38,7 +38,7 @@ Most of the throughput concentrates in a few hundred ports. Limiting the sample 
 
 
 
-An alternative to filtering by the aggregated throughput could be filtering by the average throughput. The graph below display the cumulative total throughput relative to the average yearly throughput. The graph indicates that possible cut-off thresholds of 10, 20, and 30 million TEUs of yearly average container throughput are associated with a loss of 0.8, 1.4, and 2.9 percent of the cumulative total container throughput. In the following, the sample is constructed by applying a threshold of 20 million TEUs of average yearly container throughput.  
+An alternative to filtering by the aggregated throughput could be filtering by the average throughput. The graph below display the cumulative total throughput relative to the average yearly throughput. The graph indicates that possible cut-off thresholds of 10, 20, and 30 thousand TEUs of yearly average container throughput are associated with a loss of 0.8, 1.4, and 2.9 percent of the cumulative total container throughput. In the following, the sample is constructed by applying a threshold of 20 thousand TEUs of average yearly container throughput.  
 
 ![](Descriptives_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
