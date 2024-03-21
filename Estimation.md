@@ -1068,16 +1068,16 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
     <tr class="gt_group_heading_row">
       <th colspan="5" class="gt_empty_group_heading" scope="colgroup" id=""></th>
     </tr>
-    <tr class="gt_row_group_first"><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">simple average</th>
-<td headers="NA stub_1_1 est.uc.nt" class="gt_row gt_right">212,233*</td>
-<td headers="NA stub_1_1 est.c.nt" class="gt_row gt_right">106,025*</td>
-<td headers="NA stub_1_1 est.uc.nyt" class="gt_row gt_right">158,597</td>
-<td headers="NA stub_1_1 est.c.nyt" class="gt_row gt_right">166,504*</td></tr>
+    <tr class="gt_row_group_first"><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">Piraeus (52)</th>
+<td headers="NA stub_1_1 est.uc.nt" class="gt_row gt_right">702,775***</td>
+<td headers="NA stub_1_1 est.c.nt" class="gt_row gt_right">569,268***</td>
+<td headers="NA stub_1_1 est.uc.nyt" class="gt_row gt_right">428,420***</td>
+<td headers="NA stub_1_1 est.c.nyt" class="gt_row gt_right">350,096***</td></tr>
     <tr><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub"></th>
-<td headers="NA stub_1_2 est.uc.nt" class="gt_row gt_right">(93,580)</td>
-<td headers="NA stub_1_2 est.c.nt" class="gt_row gt_right">(50,369)</td>
-<td headers="NA stub_1_2 est.uc.nyt" class="gt_row gt_right">(102,969)</td>
-<td headers="NA stub_1_2 est.c.nyt" class="gt_row gt_right">(79,538)</td></tr>
+<td headers="NA stub_1_2 est.uc.nt" class="gt_row gt_right">(7,926)</td>
+<td headers="NA stub_1_2 est.c.nt" class="gt_row gt_right">(35,850)</td>
+<td headers="NA stub_1_2 est.uc.nyt" class="gt_row gt_right">(46,578)</td>
+<td headers="NA stub_1_2 est.c.nyt" class="gt_row gt_right">(88,129)</td></tr>
     <tr class="gt_group_heading_row">
       <th colspan="5" class="gt_group_heading" scope="colgroup" id="by group:">by group:</th>
     </tr>
@@ -1091,86 +1091,86 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
 <td headers="by group: stub_1_4 est.c.nt" class="gt_row gt_right">(47,530)</td>
 <td headers="by group: stub_1_4 est.uc.nyt" class="gt_row gt_right">(6,176)</td>
 <td headers="by group: stub_1_4 est.c.nyt" class="gt_row gt_right">(30,638)</td></tr>
-    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Antwerpen (32)</th>
-<td headers="by group: stub_1_5 est.uc.nt" class="gt_row gt_right">866,347***</td>
-<td headers="by group: stub_1_5 est.c.nt" class="gt_row gt_right">427,729***</td>
-<td headers="by group: stub_1_5 est.uc.nyt" class="gt_row gt_right">578,044***</td>
-<td headers="by group: stub_1_5 est.c.nyt" class="gt_row gt_right">562,514***</td></tr>
+    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Amsterdam, Thessaloniki (85)</th>
+<td headers="by group: stub_1_5 est.uc.nt" class="gt_row gt_right"> -2,238</td>
+<td headers="by group: stub_1_5 est.c.nt" class="gt_row gt_right"> -3,834</td>
+<td headers="by group: stub_1_5 est.uc.nyt" class="gt_row gt_right"><br /></td>
+<td headers="by group: stub_1_5 est.c.nyt" class="gt_row gt_right"><br /></td></tr>
     <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub"></th>
-<td headers="by group: stub_1_6 est.uc.nt" class="gt_row gt_right">(6,322)</td>
-<td headers="by group: stub_1_6 est.c.nt" class="gt_row gt_right">(103,752)</td>
-<td headers="by group: stub_1_6 est.uc.nyt" class="gt_row gt_right">(52,034)</td>
-<td headers="by group: stub_1_6 est.c.nyt" class="gt_row gt_right">(41,016)</td></tr>
-    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Barcelona (63)</th>
-<td headers="by group: stub_1_7 est.uc.nt" class="gt_row gt_right">213,341***</td>
-<td headers="by group: stub_1_7 est.c.nt" class="gt_row gt_right">225,725***</td>
-<td headers="by group: stub_1_7 est.uc.nyt" class="gt_row gt_right"> 69,050***</td>
-<td headers="by group: stub_1_7 est.c.nyt" class="gt_row gt_right"> 57,639***</td></tr>
+<td headers="by group: stub_1_6 est.uc.nt" class="gt_row gt_right">(13,439)</td>
+<td headers="by group: stub_1_6 est.c.nt" class="gt_row gt_right">(5,574)</td>
+<td headers="by group: stub_1_6 est.uc.nyt" class="gt_row gt_right"><br /></td>
+<td headers="by group: stub_1_6 est.c.nyt" class="gt_row gt_right"><br /></td></tr>
+    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Antwerpen (32)</th>
+<td headers="by group: stub_1_7 est.uc.nt" class="gt_row gt_right">866,347***</td>
+<td headers="by group: stub_1_7 est.c.nt" class="gt_row gt_right">427,729***</td>
+<td headers="by group: stub_1_7 est.uc.nyt" class="gt_row gt_right">578,044***</td>
+<td headers="by group: stub_1_7 est.c.nyt" class="gt_row gt_right">562,514***</td></tr>
     <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub"></th>
-<td headers="by group: stub_1_8 est.uc.nt" class="gt_row gt_right">(7,405)</td>
-<td headers="by group: stub_1_8 est.c.nt" class="gt_row gt_right">(46,332)</td>
-<td headers="by group: stub_1_8 est.uc.nyt" class="gt_row gt_right">(13,239)</td>
-<td headers="by group: stub_1_8 est.c.nyt" class="gt_row gt_right">(9,578)</td></tr>
-    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Bilbao, Valencia (84)</th>
-<td headers="by group: stub_1_9 est.uc.nt" class="gt_row gt_right"> -2,871</td>
-<td headers="by group: stub_1_9 est.c.nt" class="gt_row gt_right"> 22,420</td>
-<td headers="by group: stub_1_9 est.uc.nyt" class="gt_row gt_right">-38,203</td>
-<td headers="by group: stub_1_9 est.c.nyt" class="gt_row gt_right">-31,801</td></tr>
+<td headers="by group: stub_1_8 est.uc.nt" class="gt_row gt_right">(6,322)</td>
+<td headers="by group: stub_1_8 est.c.nt" class="gt_row gt_right">(103,752)</td>
+<td headers="by group: stub_1_8 est.uc.nyt" class="gt_row gt_right">(52,034)</td>
+<td headers="by group: stub_1_8 est.c.nyt" class="gt_row gt_right">(41,016)</td></tr>
+    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Barcelona (63)</th>
+<td headers="by group: stub_1_9 est.uc.nt" class="gt_row gt_right">213,341***</td>
+<td headers="by group: stub_1_9 est.c.nt" class="gt_row gt_right">225,725***</td>
+<td headers="by group: stub_1_9 est.uc.nyt" class="gt_row gt_right"> 69,050***</td>
+<td headers="by group: stub_1_9 est.c.nyt" class="gt_row gt_right"> 57,639***</td></tr>
     <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub"></th>
-<td headers="by group: stub_1_10 est.uc.nt" class="gt_row gt_right">(15,494)</td>
-<td headers="by group: stub_1_10 est.c.nt" class="gt_row gt_right">(32,394)</td>
-<td headers="by group: stub_1_10 est.uc.nyt" class="gt_row gt_right">(40,111)</td>
-<td headers="by group: stub_1_10 est.c.nyt" class="gt_row gt_right">(80,172)</td></tr>
-    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille, Nantes Saint Nazaire, Zeebrugge (66)</th>
-<td headers="by group: stub_1_11 est.uc.nt" class="gt_row gt_right">  1,349</td>
-<td headers="by group: stub_1_11 est.c.nt" class="gt_row gt_right"> -1,085</td>
-<td headers="by group: stub_1_11 est.uc.nyt" class="gt_row gt_right">-14,458</td>
-<td headers="by group: stub_1_11 est.c.nyt" class="gt_row gt_right">  2,865</td></tr>
+<td headers="by group: stub_1_10 est.uc.nt" class="gt_row gt_right">(7,405)</td>
+<td headers="by group: stub_1_10 est.c.nt" class="gt_row gt_right">(46,332)</td>
+<td headers="by group: stub_1_10 est.uc.nyt" class="gt_row gt_right">(13,239)</td>
+<td headers="by group: stub_1_10 est.c.nyt" class="gt_row gt_right">(9,578)</td></tr>
+    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Bilbao, Valencia (84)</th>
+<td headers="by group: stub_1_11 est.uc.nt" class="gt_row gt_right"> -2,871</td>
+<td headers="by group: stub_1_11 est.c.nt" class="gt_row gt_right"> 22,420</td>
+<td headers="by group: stub_1_11 est.uc.nyt" class="gt_row gt_right">-38,203</td>
+<td headers="by group: stub_1_11 est.c.nyt" class="gt_row gt_right">-31,801</td></tr>
     <tr><th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub"></th>
-<td headers="by group: stub_1_12 est.uc.nt" class="gt_row gt_right">(27,276)</td>
-<td headers="by group: stub_1_12 est.c.nt" class="gt_row gt_right">(28,063)</td>
-<td headers="by group: stub_1_12 est.uc.nyt" class="gt_row gt_right">(37,216)</td>
-<td headers="by group: stub_1_12 est.c.nyt" class="gt_row gt_right">(33,891)</td></tr>
-    <tr><th id="stub_1_13" scope="row" class="gt_row gt_left gt_stub">Gdynia (38)</th>
-<td headers="by group: stub_1_13 est.uc.nt" class="gt_row gt_right"> 39,404***</td>
-<td headers="by group: stub_1_13 est.c.nt" class="gt_row gt_right"> 22,332**</td>
-<td headers="by group: stub_1_13 est.uc.nyt" class="gt_row gt_right">-59,221</td>
-<td headers="by group: stub_1_13 est.c.nyt" class="gt_row gt_right"> -7,309</td></tr>
+<td headers="by group: stub_1_12 est.uc.nt" class="gt_row gt_right">(15,494)</td>
+<td headers="by group: stub_1_12 est.c.nt" class="gt_row gt_right">(32,394)</td>
+<td headers="by group: stub_1_12 est.uc.nyt" class="gt_row gt_right">(40,111)</td>
+<td headers="by group: stub_1_12 est.c.nyt" class="gt_row gt_right">(80,172)</td></tr>
+    <tr><th id="stub_1_13" scope="row" class="gt_row gt_left gt_stub">Dunkerque, Le Havre, Marsaxlokk, Marseille, Nantes Saint Nazaire, Zeebrugge (66)</th>
+<td headers="by group: stub_1_13 est.uc.nt" class="gt_row gt_right">  1,349</td>
+<td headers="by group: stub_1_13 est.c.nt" class="gt_row gt_right"> -1,085</td>
+<td headers="by group: stub_1_13 est.uc.nyt" class="gt_row gt_right">-14,458</td>
+<td headers="by group: stub_1_13 est.c.nyt" class="gt_row gt_right">  2,865</td></tr>
     <tr><th id="stub_1_14" scope="row" class="gt_row gt_left gt_stub"></th>
-<td headers="by group: stub_1_14 est.uc.nt" class="gt_row gt_right">(6,664)</td>
-<td headers="by group: stub_1_14 est.c.nt" class="gt_row gt_right">(6,811)</td>
-<td headers="by group: stub_1_14 est.uc.nyt" class="gt_row gt_right">(56,624)</td>
-<td headers="by group: stub_1_14 est.c.nyt" class="gt_row gt_right">(17,829)</td></tr>
-    <tr><th id="stub_1_15" scope="row" class="gt_row gt_left gt_stub">Genova (81)</th>
-<td headers="by group: stub_1_15 est.uc.nt" class="gt_row gt_right"> 57,296***</td>
-<td headers="by group: stub_1_15 est.c.nt" class="gt_row gt_right"> 83,575***</td>
-<td headers="by group: stub_1_15 est.uc.nyt" class="gt_row gt_right"> 27,416**</td>
-<td headers="by group: stub_1_15 est.c.nyt" class="gt_row gt_right"> 36,623**</td></tr>
+<td headers="by group: stub_1_14 est.uc.nt" class="gt_row gt_right">(27,276)</td>
+<td headers="by group: stub_1_14 est.c.nt" class="gt_row gt_right">(28,063)</td>
+<td headers="by group: stub_1_14 est.uc.nyt" class="gt_row gt_right">(37,216)</td>
+<td headers="by group: stub_1_14 est.c.nyt" class="gt_row gt_right">(33,891)</td></tr>
+    <tr><th id="stub_1_15" scope="row" class="gt_row gt_left gt_stub">Gdynia (38)</th>
+<td headers="by group: stub_1_15 est.uc.nt" class="gt_row gt_right"> 39,404***</td>
+<td headers="by group: stub_1_15 est.c.nt" class="gt_row gt_right"> 22,332**</td>
+<td headers="by group: stub_1_15 est.uc.nyt" class="gt_row gt_right">-59,221</td>
+<td headers="by group: stub_1_15 est.c.nyt" class="gt_row gt_right"> -7,309</td></tr>
     <tr><th id="stub_1_16" scope="row" class="gt_row gt_left gt_stub"></th>
-<td headers="by group: stub_1_16 est.uc.nt" class="gt_row gt_right">(9,743)</td>
-<td headers="by group: stub_1_16 est.c.nt" class="gt_row gt_right">(14,859)</td>
-<td headers="by group: stub_1_16 est.uc.nyt" class="gt_row gt_right">(10,115)</td>
-<td headers="by group: stub_1_16 est.c.nyt" class="gt_row gt_right">(13,210)</td></tr>
-    <tr><th id="stub_1_17" scope="row" class="gt_row gt_left gt_stub">Moerdijk, Rotterdam (21)</th>
-<td headers="by group: stub_1_17 est.uc.nt" class="gt_row gt_right">346,145</td>
-<td headers="by group: stub_1_17 est.c.nt" class="gt_row gt_right"> 63,914</td>
-<td headers="by group: stub_1_17 est.uc.nyt" class="gt_row gt_right">186,231</td>
-<td headers="by group: stub_1_17 est.c.nyt" class="gt_row gt_right">161,395</td></tr>
+<td headers="by group: stub_1_16 est.uc.nt" class="gt_row gt_right">(6,664)</td>
+<td headers="by group: stub_1_16 est.c.nt" class="gt_row gt_right">(6,811)</td>
+<td headers="by group: stub_1_16 est.uc.nyt" class="gt_row gt_right">(56,624)</td>
+<td headers="by group: stub_1_16 est.c.nyt" class="gt_row gt_right">(17,829)</td></tr>
+    <tr><th id="stub_1_17" scope="row" class="gt_row gt_left gt_stub">Genova (81)</th>
+<td headers="by group: stub_1_17 est.uc.nt" class="gt_row gt_right"> 57,296***</td>
+<td headers="by group: stub_1_17 est.c.nt" class="gt_row gt_right"> 83,575***</td>
+<td headers="by group: stub_1_17 est.uc.nyt" class="gt_row gt_right"> 27,416**</td>
+<td headers="by group: stub_1_17 est.c.nyt" class="gt_row gt_right"> 36,623**</td></tr>
     <tr><th id="stub_1_18" scope="row" class="gt_row gt_left gt_stub"></th>
-<td headers="by group: stub_1_18 est.uc.nt" class="gt_row gt_right">(245,686)</td>
-<td headers="by group: stub_1_18 est.c.nt" class="gt_row gt_right">(59,447)</td>
-<td headers="by group: stub_1_18 est.uc.nyt" class="gt_row gt_right">(220,528)</td>
-<td headers="by group: stub_1_18 est.c.nyt" class="gt_row gt_right">(158,551)</td></tr>
-    <tr><th id="stub_1_19" scope="row" class="gt_row gt_left gt_stub">Piraeus (52)</th>
-<td headers="by group: stub_1_19 est.uc.nt" class="gt_row gt_right">702,775***</td>
-<td headers="by group: stub_1_19 est.c.nt" class="gt_row gt_right">569,268***</td>
-<td headers="by group: stub_1_19 est.uc.nyt" class="gt_row gt_right">428,420***</td>
-<td headers="by group: stub_1_19 est.c.nyt" class="gt_row gt_right">350,096***</td></tr>
+<td headers="by group: stub_1_18 est.uc.nt" class="gt_row gt_right">(9,743)</td>
+<td headers="by group: stub_1_18 est.c.nt" class="gt_row gt_right">(14,859)</td>
+<td headers="by group: stub_1_18 est.uc.nyt" class="gt_row gt_right">(10,115)</td>
+<td headers="by group: stub_1_18 est.c.nyt" class="gt_row gt_right">(13,210)</td></tr>
+    <tr><th id="stub_1_19" scope="row" class="gt_row gt_left gt_stub">Moerdijk, Rotterdam (21)</th>
+<td headers="by group: stub_1_19 est.uc.nt" class="gt_row gt_right">346,145</td>
+<td headers="by group: stub_1_19 est.c.nt" class="gt_row gt_right"> 63,914</td>
+<td headers="by group: stub_1_19 est.uc.nyt" class="gt_row gt_right">186,231</td>
+<td headers="by group: stub_1_19 est.c.nyt" class="gt_row gt_right">161,395</td></tr>
     <tr><th id="stub_1_20" scope="row" class="gt_row gt_left gt_stub"></th>
-<td headers="by group: stub_1_20 est.uc.nt" class="gt_row gt_right">(7,926)</td>
-<td headers="by group: stub_1_20 est.c.nt" class="gt_row gt_right">(35,850)</td>
-<td headers="by group: stub_1_20 est.uc.nyt" class="gt_row gt_right">(46,578)</td>
-<td headers="by group: stub_1_20 est.c.nyt" class="gt_row gt_right">(88,129)</td></tr>
+<td headers="by group: stub_1_20 est.uc.nt" class="gt_row gt_right">(245,686)</td>
+<td headers="by group: stub_1_20 est.c.nt" class="gt_row gt_right">(59,447)</td>
+<td headers="by group: stub_1_20 est.uc.nyt" class="gt_row gt_right">(220,528)</td>
+<td headers="by group: stub_1_20 est.c.nyt" class="gt_row gt_right">(158,551)</td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">

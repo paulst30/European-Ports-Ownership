@@ -318,7 +318,7 @@ ny_results <- merge(ny_results1, ny_results2, by.x = c("Estimate", "measure"), b
 
 
 #bring output table together
-results <- merge(results, ny_results, by=c("Estimate","measure"),  suffixes = c(".nt", ".nyt"))
+results <- merge(results, ny_results, by=c("Estimate","measure"),  suffixes = c(".nt", ".nyt"), all = T)
 
 ```
 
