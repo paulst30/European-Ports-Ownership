@@ -285,57 +285,47 @@ robustness_cosco <- terminal_data[terminal_data$ships!=0,] %>% group_by(port_cod
                     mutate(cosco_vs_average = ifelse(treated==1, cosco_TEU_per_ship, untreat_TEU_per_ship))
 
 port_group_list_rob <- robustness_cosco %>% filter(group!=0) %>% group_by(group) %>%
-                                     summarize(ports = toString(unique(port)))
-port_group_list_rob$ports <- paste(port_group_list_rob$ports,paste("(", port_group_list_rob$group, ")", sep = ""))
+                                     summarize(ports = toString(unique(port)),
+                                               id = mean(port_id))
 
-attgt_rob <- att_gt(yname = "cosco_vs_average",            #outcome variable
+
+
+attgt_rob <- simple_staggered_did(yname = "cosco_vs_average",            #outcome variable
                 tname = "period",                 #time variable
                 idname = "port_id",                    #id for units (should be port_code*sender)
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
-                #xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
-                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
-                allow_unbalanced_panel = T,  #allows he use of unbalanced panel data. Increases computation time.
-                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
-                bstrap = FALSE,
                 data = robustness_cosco)
 
-#results
-agg_simple_rob <- aggte(attgt_rob, type = "simple", bstrap=FALSE, na.rm=T)
-agg_gs_rob <- aggte(attgt_rob, type = "group", na.rm=T, bstrap=FALSE)
-agg_es_rob <- aggte(attgt_rob, type = "dynamic", na.rm=T, bstrap=FALSE)
-
 #making a table
-results <- data.frame(Estimate = c("simple average", port_group_list_rob$ports[match(as.character(agg_gs_rob$egt), port_group_list_rob$group)]),
-                       ATT = c(agg_simple_rob$overall.att,
-                                   agg_gs_rob$att.egt),
-                       se = c(agg_simple_rob$overall.se,agg_gs_rob$se.egt)) %>%
-               mutate(pval = 2*pnorm(-abs(ATT/se)),
-                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
-                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
-                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
-                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
-                                      pval>=0.05 ~ ATT),
-                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
-              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est")  %>%
-              select(Estimate, est) %>% 
-              mutate(Estimate= ifelse(duplicated(Estimate)>0,"",Estimate))
+results <- data.frame(Estimate = c("simple average", port_group_list_rob$ports[match(as.character(attgt_rob$groupwise_treatment_effects$id), port_group_list_rob$id)]),
+                       ATT = c(attgt_rob$average_treatment_effect$att,
+                                   attgt_rob$groupwise_treatment_effects$att),
+                       lower = c(attgt_rob$average_treatment_effect$att - attgt_rob$average_treatment_effect$crit_val,
+                                attgt_rob$groupwise_treatment_effects$att - attgt_rob$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt_rob$average_treatment_effect$att + attgt_rob$average_treatment_effect$crit_val,
+                                  attgt_rob$groupwise_treatment_effects$att + attgt_rob$groupwise_treatment_effects$crit_val)) %>%
+               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      across(c("ATT","lower","upper"), ~ format(round(.,digits=0), big.mark = ",")),
+                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      Conf = paste0("[",str_trim(lower),"; ",str_trim(upper),"]"))
 
+results <- results[c("Estimate", "ATT", "Conf")]
 
+# make a gt table
 results_gt_rob <- gt(results, rowname_col = "Estimate") |>
               tab_header(
                 title = "Aggregation of group time average treatment effects",
                 subtitle = "Control group: Never treated") |>
               cols_label(
-                est="ATT"
+                Conf="95% CI"
               ) |>
               tab_row_group(label = "by group:",
-                            rows = c(3:14)) |>
+                            rows = c(2:7)) |>
               row_group_order(groups = c(NA,"by group:")) |>
               sub_missing(columns = everything(),
                           rows = everything(),
                           missing_text = "") |>
-              tab_footnote(footnote = "Signif. Codes: ***: 0.001, **: 0.01, *: 0.05.") |>
-              tab_footnote(footnote = "Analytical standard errors in parentheses.")
+              tab_footnote(footnote = "Uniform confidence intervals are based on bootstrapped errors.")
 
 #save in separate directory
 gtsave(results_gt_rob, filename = "robustness_cosco_results.tex", path = file.path(getwd(),"results_tables"))
@@ -373,91 +363,78 @@ port_data_agg_woCHN <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(con
                                      mean_container = mean(container, na.rm=T)) %>% ungroup()
 
 
-attgt_woCHN <- att_gt(yname = "container",            #outcome variable
+attgt_woCHN <- simple_staggered_did(yname = "container",            #outcome variable
                 tname = "period",                 #time variable
                 idname = "port_id",                    #id for units (should be port_code*sender)
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
-                #xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
-                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
-                allow_unbalanced_panel = T,  #allows he use of unbalanced panel data. Increases computation time.
-                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
-                bstrap = FALSE,
+                #xformula = c("ships"),
+                #varformula = c("ships"),
                 data = port_data_agg_woCHN)
 
-agg_simple_woCHN <- aggte(attgt_woCHN, type = "simple", bstrap=FALSE, na.rm=T)
-agg_gs_woCHN <- aggte(attgt_woCHN, type = "group", na.rm=T, bstrap=FALSE)
-agg_es_woCHN <- aggte(attgt_woCHN, type = "dynamic", na.rm=T, bstrap=FALSE)
+# results table
+results <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_woCHN$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT = c(attgt_woCHN$average_treatment_effect$att,
+                                   attgt_woCHN$groupwise_treatment_effects$att),
+                       lower = c(attgt_woCHN$average_treatment_effect$att - attgt_woCHN$average_treatment_effect$crit_val,
+                                attgt_woCHN$groupwise_treatment_effects$att - attgt_woCHN$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt_woCHN$average_treatment_effect$att + attgt_woCHN$average_treatment_effect$crit_val,
+                                  attgt_woCHN$groupwise_treatment_effects$att + attgt_woCHN$groupwise_treatment_effects$crit_val)) %>%
+               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      across(c("ATT","lower","upper"), ~ format(round(.,digits=0), big.mark = ",")),
+                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      Conf = paste0("[",str_trim(lower),"; ",str_trim(upper),"]"))
 
-#results
-results <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_woCHN$egt), port_group_list$group)]),
-                       ATT = c(agg_simple_woCHN$overall.att,
-                                   agg_gs_woCHN$att.egt),
-                      se = c(agg_simple_woCHN$overall.se, agg_gs_woCHN$se.egt)) %>%
-               mutate(pval = 2*pnorm(-abs(ATT/se)),
-                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
-                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
-                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
-                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
-                                      pval>=0.05 ~ ATT),
-                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
-              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est") %>% select(est, Estimate, measure)  
+results <- results[c("Estimate", "ATT", "Conf")]
+
 
 #### DiD with china share ####
 port_data_agg <- mutate(port_data_agg, share_china=origin_china/(container)) 
 
-attgt_share <- att_gt(yname = "share_china",            #outcome variable
+attgt_share <- simple_staggered_did(yname = "share_china",            #outcome variable
                 tname = "period",                 #time variable
                 idname = "port_id",                    #id for units (should be port_code*sender)
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
-                #xformla = ~X,                  #for potential covariates
-                #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
-                allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
-                #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
                 data = port_data_agg)
 
-agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
-agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
-agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
+# results table
+results_share <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_share$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT = c(attgt_share$average_treatment_effect$att,
+                                   attgt_share$groupwise_treatment_effects$att),
+                       lower = c(attgt_share$average_treatment_effect$att - attgt_share$average_treatment_effect$crit_val,
+                                attgt_share$groupwise_treatment_effects$att - attgt_share$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt_share$average_treatment_effect$att + attgt_share$average_treatment_effect$crit_val,
+                                  attgt_share$groupwise_treatment_effects$att + attgt_share$groupwise_treatment_effects$crit_val)) %>%
+               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      across(c("ATT","lower","upper"), ~ format(round(.,digits=4), big.mark = ",")),
+                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      Conf = paste0("[",str_trim(lower),"; ",str_trim(upper),"]"))
 
-#results
-share_results <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_share$egt), port_group_list$group)]),
-                       ATT = c(agg_simple_share$overall.att,
-                                   agg_gs_share$att.egt),
-                       se = c(agg_simple_share$overall.se, agg_gs_share$se.egt)) %>%
-               mutate(pval = 2*pnorm(-abs(ATT/se)),
-                      across(c("ATT","se"), ~ format(., big.mark = ",", digits = 2)),
-                      ATT = case_when(pval<0.001 ~ paste0(ATT, "***"),
-                                      pval>=0.001 & pval<0.01 ~ paste0(ATT, "**"),
-                                      pval>=0.01 & pval<0.05 ~ paste0(ATT, "*"),
-                                      pval>=0.05 ~ ATT),
-                      se = gsub("\\s+", "",paste0("(",se,")"))) %>%
-              pivot_longer(c("ATT","se"), names_to = "measure", values_to = "est") %>% select(est, Estimate, measure)  
+results_share <- results_share[c("Estimate", "ATT", "Conf")]
 
 # combining results
-results <- merge(results, share_results, by = c("Estimate", "measure")) %>%
-           mutate(Estimate= ifelse(duplicated(Estimate)>0,"",Estimate)) %>% 
-           slice(c(21,22), c(1:20))
+results_final <- cbind(results, results_share[,c(2,3)]) 
+colnames(results_final)[c(4,5)] <- c("ATT1","Conf1")
 
-results_final <- rbind(results[c(1,2),],c("by group", rep("", ncol(results)-1)) ,results[3:22,]) 
+
 
 # putting together the results
-results_gt_woCHN <- gt(results, rowname_col = "Estimate") |>
+results_gt_woCHN <- gt(results_final, rowname_col = "Estimate") |>
               tab_header(
                 title = "Aggregated average treatment effects on container throughput from different origins",
                 subtitle = "Control group: Never treated, PTA: Unconditional") |>
               cols_label(
-                est.x="TEU without China",
-                est.y="Share of chinese TEU") |>
+                ATT="TEU without China",
+                ATT1="Share of chinese TEU",
+                Conf="95% CI",
+                Conf1="95% CI") |>
               tab_stubhead(label = "Dependent variable:")|>
               tab_row_group(label = "by group:",
-                            rows = c(3:22)) |>
+                            rows = c(2:19)) |>
               row_group_order(groups = c(NA,"by group:")) |>
-              cols_hide("measure") |>
               sub_missing(columns = everything(),
                           rows = everything(),
                           missing_text = "") |>
-              tab_footnote(footnote = "Signif. Codes: ***: 0.001, **: 0.01, *: 0.05.") |>
-              tab_footnote(footnote = "Analytical standard errors in parentheses.")
+              tab_footnote(footnote = "Uniform confidence intervals are based on bootstrapped errors.")
 
 #save in separate directory
 gtsave(results_gt_woCHN, filename = "robustness_china_results.tex", path = file.path(getwd(),"results_tables"))

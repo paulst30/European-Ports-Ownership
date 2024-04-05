@@ -1,43 +1,39 @@
 \setlength{\LTpost}{0mm}
-\begin{longtable}{l|rr}
+\begin{longtable}{l|rlrl}
 \caption*{
 {\large Aggregated average treatment effects on container throughput from different origins} \\ 
 {\small Control group: Never treated, PTA: Unconditional}
 } \\ 
 \toprule
-\multicolumn{1}{l}{Dependent variable:} & TEU without China & Share of chinese TEU \\ 
+\multicolumn{1}{l}{Dependent variable:} & TEU without China & 95\% CI & Share of chinese TEU & 95\% CI \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{3}{l}{\vspace*{-5mm}} \\ 
+\multicolumn{5}{l}{\vspace*{-5mm}} \\ 
 \midrule\addlinespace[2.5pt]
-simple average & 159,926* &  0.0060 \\ 
- & (70,933) & (0.0133) \\ 
+simple average &  79,298* & [49,754; 108,843] &  0.0042 & [-0.0195; 0.0279] \\ 
 \midrule\addlinespace[2.5pt]
-\multicolumn{3}{l}{by group:} \\ 
+\multicolumn{5}{l}{by group:} \\ 
 \midrule\addlinespace[2.5pt]
-Ambarli (76) & -23,060** & -0.0242*** \\ 
- & (7,371) & (0.0052) \\ 
-Amsterdam, Thessaloniki (85) &  -4,058 &  0.0047 \\ 
- & (11,776) & (0.0042) \\ 
-Antwerpen (32) & 774,003*** & -0.0052 \\ 
- & (5,522) & (0.0055) \\ 
-Barcelona (63) & 164,129*** &  0.0124** \\ 
- & (6,634) & (0.0039) \\ 
-Bilbao, Valencia (84) &  21,219 & -0.0171 \\ 
- & (31,467) & (0.0168) \\ 
-Dunkerque, Le Havre, Marsaxlokk, Marseille, Nantes Saint Nazaire, Zeebrugge (66) &   5,376 & -0.0169 \\ 
- & (22,259) & (0.0348) \\ 
-Gdynia (38) &  43,001*** & -0.0025 \\ 
- & (5,825) & (0.0055) \\ 
-Genova (81) &   5,897 &  0.0712*** \\ 
- & (8,016) & (0.0044) \\ 
-Moerdijk, Rotterdam (21) & 198,294 &  0.0271 \\ 
- & (137,696) & (0.0365) \\ 
-Piraeus (52) & 530,619*** &  0.0685*** \\ 
- & (7,292) & (0.0089) \\ 
+Antwerpen & 542,530* & [312,761; 772,299] & -0.0047 & [-0.2041; 0.1947] \\ 
+Zeebrugge & -23,574 & [-253,343; 206,195] & -0.0154 & [-0.2148; 0.1840] \\ 
+Barcelona &  77,643 & [-152,126; 307,412] &  0.0060 & [-0.1934; 0.2053] \\ 
+Bilbao &  -3,985 & [-233,754; 225,784] &  0.0007 & [-0.1987; 0.2001] \\ 
+Valencia &  23,590 & [-206,179; 253,359] & -0.0098 & [-0.2092; 0.1896] \\ 
+Dunkerque &   5,869 & [-223,900; 235,638] &  0.0430 & [-0.1564; 0.2423] \\ 
+Le Havre &  57,698 & [-172,071; 287,467] & -0.0202 & [-0.2196; 0.1792] \\ 
+Marseille &  17,969 & [-211,800; 247,738] & -0.0054 & [-0.2048; 0.1939] \\ 
+Nantes Saint Nazaire &  -6,432 & [-236,201; 223,337] & -0.0206 & [-0.2200; 0.1788] \\ 
+Piraeus & 311,456* & [81,687; 541,225] &  0.0385 & [-0.1609; 0.2379] \\ 
+Thessaloniki &  -2,326 & [-232,095; 227,443] & -0.0003 & [-0.1997; 0.1991] \\ 
+Genova &   3,247 & [-226,522; 233,016] &  0.0183 & [-0.1810; 0.2177] \\ 
+Marsaxlokk &  -8,511 & [-238,280; 221,258] &  0.0098 & [-0.1896; 0.2091] \\ 
+Amsterdam &   1,391 & [-228,378; 231,160] &  0.0009 & [-0.1985; 0.2002] \\ 
+Moerdijk &     248 & [-229,521; 230,017] & -0.0172 & [-0.2165; 0.1822] \\ 
+Rotterdam & 317,936* & [88,167; 547,705] &  0.0594 & [-0.1400; 0.2588] \\ 
+Gdynia &  43,866 & [-185,903; 273,635] & -0.0056 & [-0.2050; 0.1938] \\ 
+Ambarli &  -8,687 & [-238,456; 221,082] & -0.0158 & [-0.2152; 0.1836] \\ 
 \bottomrule
 \end{longtable}
 \begin{minipage}{\linewidth}
-\textsuperscript{\textit{NA}}Signif. Codes: ***: 0.001, **: 0.01, *: 0.05.\\
-\textsuperscript{\textit{NA}}Analytical standard errors in parentheses.\\
+Uniform confidence intervals are based on bootstrapped errors.\\
 \end{minipage}
 
