@@ -363,7 +363,7 @@ results_gt <- gt(results, rowname_col = "Estimate") |>
               sub_missing(columns = everything(),
                           rows = everything(),
                           missing_text = "") |>
-              tab_footnote(footnote = "Stars indicate that the uniform confidence interval does not include zero.") |>
+              tab_footnote(footnote = "Stars indicate that the confidence interval does not include zero.") |>
               tab_options(stub.border.width = 0,
                           table_body.hlines.width = 0
               )
@@ -407,8 +407,8 @@ For the DiD framework to deliver unbiased results, the parallel trend assumption
 #manually putting together eventstudy graph 
 graph_results <- attgt_cond$grouptime_treatment_effects %>%
                   mutate(treatment = ifelse(t < g, "pre", "post"),
-                         ymin=att-crit_val,
-                         ymax=att+crit_val)
+                         ymin=att-uniform_crit_val,
+                         ymax=att+uniform_crit_val)
 
 graph_results$port <- port_list$port[match(graph_results$id, port_list$id)]
 
