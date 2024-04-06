@@ -20,8 +20,10 @@ library(patchwork)
 library(ggplot2)
 library(fixest)
 library(did)
+library(CInf)
 library(gt)
 library(readxl)
+library(stringr)
 library(cowplot)
 library(extrafont)
 
@@ -63,6 +65,8 @@ port_group_list_op <- port_data_agg %>% filter(group_operation!=0) %>% group_by(
 port_group_list <- rbind(port_group_list, port_group_list_op)
 port_group_list <- port_group_list[!duplicated(port_group_list$group),]
 port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$group, ")", sep = ""))
+
+port_list <- port_data_agg %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
 
 
 # add Cosco and Terminal data to the data set
@@ -325,7 +329,7 @@ results_gt_rob <- gt(results, rowname_col = "Estimate") |>
               sub_missing(columns = everything(),
                           rows = everything(),
                           missing_text = "") |>
-              tab_footnote(footnote = "Uniform confidence intervals are based on bootstrapped errors.")
+              tab_footnote(footnote = "Confidence intervals are based on bootstrapped errors.")
 
 #save in separate directory
 gtsave(results_gt_rob, filename = "robustness_cosco_results.tex", path = file.path(getwd(),"results_tables"))
@@ -434,7 +438,7 @@ results_gt_woCHN <- gt(results_final, rowname_col = "Estimate") |>
               sub_missing(columns = everything(),
                           rows = everything(),
                           missing_text = "") |>
-              tab_footnote(footnote = "Uniform confidence intervals are based on bootstrapped errors.")
+              tab_footnote(footnote = "Confidence intervals are based on bootstrapped errors.")
 
 #save in separate directory
 gtsave(results_gt_woCHN, filename = "robustness_china_results.tex", path = file.path(getwd(),"results_tables"))
