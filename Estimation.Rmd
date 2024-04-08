@@ -69,23 +69,29 @@ port_group_list <- rbind(port_group_list, port_group_list_op)
 port_group_list <- port_group_list[!duplicated(port_group_list$group),]
 port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$group, ")", sep = ""))
 
-# add Cosco and Terminal data to the data set
-terminal_data <- read_xlsx("terminal_throughput.xlsx")
+# Add Control variables --------------------------------------------------------
+
+# add terminal data to the data set
+terminal_data <- read_xlsx("port_manual_berth.xlsx")
+
+# add channel depth and cranes from World port index
+wpi_data <- read.csv("WPI_data.csv")
+
+# control variables
+control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
+               select(port_code, cont_berths, ships, cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth)
 
 
-terminal_number <- read_xlsx("port_terminal_berth.xlsx") %>%
-                   filter(type == "General") %>%
-                   group_by(port_code, terminal) %>%
-                   summarize(no_berths=n()) %>%
-                   group_by(port_code) %>%
-                   summarize(no_terminal=n(),
-                             no_berths=sum(no_berths)) %>%
-                   ungroup() %>% 
-                   merge(read_xlsx(("port_manual_berth.xlsx")), all.x=T, all.y=T) %>%
-                   select(-port)
+# merge with aggregated data
+port_data_agg <- merge(port_data_agg, control_var, by.x = c("port_code"), by.y = c("port_code"), all.x = T) 
 
+port_data_agg$cont_berths[port_data_agg$cont_berths==0] <- 1
+port_data_agg$ships[port_data_agg$ships==0] <- 1
 
-port_data_agg <- merge(port_data_agg, terminal_number, by.x = c("port_code"), by.y = c("port_code"), all.x = T) 
+### Control variables for DID ####
+
+controls <- c("ships", "cargo_depth", "max_lift")
+var_controls <- c("ships")
 
 ```
 
@@ -225,8 +231,8 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              xformula = c("ships"),
-                              varformula = c("ships"),
+                              xformula = controls,
+                              varformula = var_controls,
                               #control_group = "not_yet_treated",
                               data = port_data_agg)
 
@@ -273,8 +279,8 @@ attgt_cond_ny <- simple_staggered_did(yname = "container",            #outcome v
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              xformula = c("ships"),
-                              varformula = c("ships"),
+                              xformula = controls,
+                              varformula = var_controls,
                               control_group = "not_yet_treated",
                               data = port_data_agg)
 

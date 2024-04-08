@@ -82,7 +82,8 @@ terminal_number <- read_xlsx("port_terminal_berth.xlsx") %>%
                              no_berths=sum(no_berths)) %>%
                    ungroup() %>% 
                    merge(read_xlsx(("port_manual_berth.xlsx")), all.x=T, all.y=T) %>%
-                   select(-port)
+                   select(-port) %>%
+                   merge(read.csv("WPI_data.csv"), all.x=T, all.y=T)
 
 
 terminal_data <- merge(port_data_agg, terminal_data, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>%
@@ -111,6 +112,14 @@ terminal_data <- merge(port_data_agg, terminal_data, by.x = c("port_code", "year
 
 #set graph theme
 theme_set(theme_minimal() + theme(legend.position = 'none'))
+
+### Control variables for DID ####
+terminal_number$cont_berths[terminal_number$cont_berths==0] <- 1
+terminal_number$ships[terminal_number$ships==0] <- 1
+
+controls <- c("ships", "cargo_depth", "max_lift")
+var_controls <- c("ships")
+
 
 ```
 
@@ -364,15 +373,16 @@ port_data_agg_woCHN <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(con
                                          operation = max(operation)) %>% ungroup() %>%
                               group_by(port_code) %>% 
                               mutate(port_id = cur_group_id(),
-                                     mean_container = mean(container, na.rm=T)) %>% ungroup()
+                                     mean_container = mean(container, na.rm=T)) %>% ungroup() %>%
+                              merge(terminal_number, x.all=T)
 
 
 attgt_woCHN <- simple_staggered_did(yname = "container",            #outcome variable
                 tname = "period",                 #time variable
                 idname = "port_id",                    #id for units (should be port_code*sender)
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
-                #xformula = c("ships"),
-                #varformula = c("ships"),
+                xformula = controls,
+                varformula = var_controls,
                 data = port_data_agg_woCHN)
 
 # results table
