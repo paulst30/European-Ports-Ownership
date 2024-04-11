@@ -435,7 +435,7 @@ colnames(results_final)[c(4,5)] <- c("ATT1","Conf1")
 results_gt_woCHN <- gt(results_final, rowname_col = "Estimate") |>
               tab_header(
                 title = "Aggregated average treatment effects on container throughput from different origins",
-                subtitle = "Control group: Never treated, PTA: Unconditional") |>
+                subtitle = "Control group: Never treated") |>
               cols_label(
                 ATT="TEU without China",
                 ATT1="Share of chinese TEU",
@@ -448,7 +448,7 @@ results_gt_woCHN <- gt(results_final, rowname_col = "Estimate") |>
               sub_missing(columns = everything(),
                           rows = everything(),
                           missing_text = "") |>
-              tab_footnote(footnote = "Confidence intervals are based on bootstrapped errors.")
+              tab_footnote(footnote = "Confidence intervals are based on bootstrapped errors. ")
 
 #save in separate directory
 gtsave(results_gt_woCHN, filename = "robustness_china_results.tex", path = file.path(getwd(),"results_tables"))
