@@ -1,0 +1,1625 @@
+---
+title: "Outcomes Hypothesis"
+author: "Katja Kalkschmied"
+date: "2024-03-11"
+output: html_document
+---
+
+<!-- prepare baseline dataset-->
+
+```{r include=FALSE}
+library(dplyr)
+library(writexl)
+library(readxl)
+library(ggplot2)
+library(echoice2)
+library(doBy)
+library(zoo)
+library(fixest)
+library(did)
+library(gt)
+
+load("port_data_TEU.RData")
+
+port_data_TEU <- filter(port_data_TEU, aggregate==0,
+                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
+                        TEU_yrly >=20000,          #filter out small ports
+                        port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
+  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+  group_by(port_code, sender_code) %>%
+  mutate(pair_id=cur_group_id()) %>% ungroup() %>%
+  rename(container=total_TEU) %>%
+  rename(partner_code=sender_code) %>%
+  rename(partner=sender)
+
+summary(port_data_TEU$container, na.rm=TRUE)
+
+
+listpartner <- port_data_TEU %>%
+  group_by(partner_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(partner_code, partner)
+
+
+listreporter <- port_data_TEU %>%
+  group_by(reporter_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(reporter_code, reporter)
+
+write_xlsx(listpartner, "listpartner.xlsx")
+
+partner_region <- read_xlsx("partner_region.xlsx", sheet = "Sheet1")
+
+reporter_region <- merge(listreporter, partner_region, by.x = "reporter_code", by.y = "partner_code", all.x = T) %>% 
+  select(reporter_code, partner_region) %>% 
+  rename("reporter_region" = "partner_region")
+
+port_data_TEU <- merge(port_data_TEU,partner_region, by = "partner_code") %>%
+  relocate(partner_region, .after = partner_code)
+
+port_data_TEU <- merge(port_data_TEU,reporter_region, by = "reporter_code") %>%
+  relocate(reporter_region, .after = reporter_code) 
+
+port_data_TEU$NENE_region <- ifelse(port_data_TEU$reporter_region == 'NE' & port_data_TEU$partner_region == 'NE', 1, 0)
+sum(port_data_TEU$NENE_region)
+
+port_data_TEU$SESE_region <- ifelse(port_data_TEU$reporter_region == 'SE' & port_data_TEU$partner_region == 'SE', 1, 0)
+sum(port_data_TEU$SESE_region)
+
+port_data_TEU$NESE_region <- ifelse(port_data_TEU$reporter_region == 'NE' & port_data_TEU$partner_region == 'SE', 1, 0)
+sum(port_data_TEU$NESE_region)
+
+port_data_TEU$SENE_region <- ifelse(port_data_TEU$reporter_region == 'SE' & port_data_TEU$partner_region == 'NE', 1, 0)
+sum(port_data_TEU$SENE_region)
+
+port_data_TEU$NEEX_region <- ifelse(port_data_TEU$reporter_region == 'NE' & port_data_TEU$partner_region == 'EX', 1, 0)
+sum(port_data_TEU$NEEX_region)
+
+port_data_TEU$SEEX_region <- ifelse(port_data_TEU$reporter_region == 'SE' & port_data_TEU$partner_region == 'EX', 1, 0)
+sum(port_data_TEU$SEEX_region)
+
+region_pair <- ec_undummy(port_data_TEU, c('NENE_region', 'SESE_region', 'NESE_region', 'SENE_region','NEEX_region','SEEX_region'), "region_pair", ref_level = "What") %>%
+  select(port_code, partner_code, region_pair, year, quarter) 
+
+port_data_TEU <- merge(port_data_TEU,region_pair, by.x=c("port_code", "partner_code", "year", "quarter"), by.y=c("port_code", "partner_code", "year", "quarter"))
+
+port_data_agg <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container) & (partner_code=="CN_X_HK" | partner_code=="HK"),container,0)) %>%
+  group_by(port, port_code, period, reporter_code) %>% 
+  summarize(container = sum(container, na.rm=T),
+            real_gdp_reporter = mean(real_gdp_reporter),
+            origin_china = sum(origin_china),
+            group = max(group),
+            group_operation = max(group_operation),
+            ownership_china = max(ownership_china),
+            operation = max(operation)) %>% ungroup() %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container = mean(container, na.rm=T)) %>% ungroup()
+         
+port_group_list <- port_data_agg %>% filter(group!=0) %>% group_by(group) %>%
+  summarize(ports = toString(unique(port)))
+
+port_group_list_op <- port_data_agg %>% filter(group_operation!=0) %>% group_by(group_operation) %>%
+                                     summarize(ports = toString(unique(port))) %>% 
+                                     rename(group = group_operation)
+port_group_list <- rbind(port_group_list, port_group_list_op)
+port_group_list <- port_group_list[!duplicated(port_group_list$group),]
+port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$group, ")", sep = ""))
+
+
+subsample <- subset(port_data_TEU, partner_region == "SE") %>%
+  group_by(port_code, period) %>% 
+  summarize(container = sum(container, na.rm=T)) %>% 
+  rename("container_south" = "container")
+
+port_data_agg_final <- merge(port_data_agg,subsample, by = c("port_code", "period"), all.x=T) %>%
+  mutate(container_south = ifelse(is.na(container_south), 0, container_south)) %>%
+  mutate(fraction_south_container = container_south/container)
+
+mean(port_data_agg_final$fraction_south_container, na.rm=T)
+max(port_data_agg_final$fraction_south_container, na.rm=T)
+min(port_data_agg_final$fraction_south_container, na.rm=T)
+
+subsample2 <- subset(port_data_TEU, partner_region == "EX" | partner_region == "NE") %>%
+  group_by(port_code, period) %>% 
+  summarize(container = sum(container, na.rm=T)) %>% 
+  rename("container_other" = "container") 
+
+port_data_agg_final <- merge(port_data_agg_final,reporter_region, by = "reporter_code") %>%
+  relocate(reporter_region, .after = reporter_code) 
+
+port_data_agg_final <- merge(port_data_agg_final,subsample2, by = c("port_code", "period"), all.x=T) %>%
+  mutate(container_other = ifelse(is.na(container_other), 0, container_other)) %>%
+  mutate(container_total = container_other + container_south)
+
+port_data_agg_final <- mutate(port_data_agg_final, fraction_china_container=origin_china/(container)) 
+
+port_data_agg_final$SE <- ifelse(port_data_agg_final$reporter_region == 'SE', 1, 0)
+mean(port_data_agg_final$SE)
+
+subsample3 <- subset(port_data_TEU, partner_region == "NE") %>%
+  group_by(port_code, period) %>% 
+  summarize(container = sum(container, na.rm=T)) %>% 
+  rename("container_north" = "container")
+
+port_data_agg_final <- merge(port_data_agg_final,subsample3, by = c("port_code", "period"), all.x=T) %>%
+  mutate(container_north = ifelse(is.na(container_north), 0, container_north)) %>% 
+  mutate(fraction_north_container = container_north/container) 
+
+port_data_agg_final <- port_data_agg_final %>%
+  mutate(container_south_2=ifelse(container_south == 0, 1, container_south)) %>%
+  mutate(container_north_2=ifelse(container_north == 0, 1, container_north)) %>%
+  mutate(fraction_south_north = container_south_2/container_north_2)
+```
+
+<!-- prepare inflow dataset-->
+
+```{r include=FALSE}
+load("port_data_TEU_in.RData")
+
+port_data_TEU_in <- filter(port_data_TEU_in, aggregate==0,
+                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
+                        TEU_yrly >=10000,          #filter out small ports
+                        port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
+  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+  group_by(port_code, sender_code) %>%
+  mutate(pair_id=cur_group_id()) %>% ungroup() %>%
+  rename(container=total_TEU) %>%
+  rename(partner_code=sender_code) %>%
+  rename(partner=sender)
+
+#summary(port_data_TEU$container, na.rm=TRUE)
+
+listpartner <- port_data_TEU_in %>%
+  group_by(partner_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(partner_code, partner)
+
+
+listreporter <- port_data_TEU_in %>%
+  group_by(reporter_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(reporter_code, reporter)
+
+partner_region <- read_xlsx("partner_region.xlsx", sheet = "Sheet1")
+
+reporter_region <- merge(listreporter, partner_region, by.x = "reporter_code", by.y = "partner_code", all.x = T) %>% 
+  select(reporter_code, partner_region) %>% 
+  rename("reporter_region" = "partner_region")
+
+port_data_TEU_in <- merge(port_data_TEU_in,partner_region, by.x = "partner_code", by.y = "partner_code", all.x = T) %>%
+  relocate(partner_region, .after = partner_code) %>%
+  rename(partner_region=partner_region)
+  
+port_data_TEU_in <- merge(port_data_TEU_in,reporter_region, by = "reporter_code", all.x = T) %>%
+  relocate(reporter_region, .after = reporter_code) 
+
+port_data_TEU_in$NENE_region <- ifelse(port_data_TEU_in$reporter_region == 'NE' & port_data_TEU_in$partner_region == 'NE', 1, 0)
+sum(port_data_TEU_in$NENE_region)
+
+port_data_TEU_in$SESE_region <- ifelse(port_data_TEU_in$reporter_region == 'SE' & port_data_TEU_in$partner_region == 'SE', 1, 0)
+sum(port_data_TEU_in$SESE_region)
+
+port_data_TEU_in$NESE_region <- ifelse(port_data_TEU_in$reporter_region == 'NE' & port_data_TEU_in$partner_region == 'SE', 1, 0)
+sum(port_data_TEU_in$NESE_region)
+
+port_data_TEU_in$SENE_region <- ifelse(port_data_TEU_in$reporter_region == 'SE' & port_data_TEU_in$partner_region == 'NE', 1, 0)
+sum(port_data_TEU_in$SENE_region)
+
+port_data_TEU_in$NEEX_region <- ifelse(port_data_TEU_in$reporter_region == 'NE' & port_data_TEU_in$partner_region == 'EX', 1, 0)
+sum(port_data_TEU_in$NEEX_region)
+
+port_data_TEU_in$SEEX_region <- ifelse(port_data_TEU_in$reporter_region == 'SE' & port_data_TEU_in$partner_region == 'EX', 1, 0)
+sum(port_data_TEU_in$SEEX_region)
+
+region_pair <- ec_undummy(port_data_TEU_in, c('NENE_region', 'SESE_region', 'NESE_region', 'SENE_region','NEEX_region','SEEX_region'), "region_pair", ref_level = "What") %>%
+  select(port_code, partner_code, region_pair, year, quarter) 
+
+port_data_TEU_in <- merge(port_data_TEU_in,region_pair, by.x=c("port_code", "partner_code", "year", "quarter"), by.y=c("port_code", "partner_code", "year", "quarter"))
+
+port_data_agg_in <- port_data_TEU_in %>% mutate(origin_china = ifelse(!is.na(container) & (partner_code=="CN_X_HK" | partner_code=="HK"),container,0)) %>%
+  group_by(port, port_code, period, reporter_code) %>% 
+  summarize(container = sum(container, na.rm=T),
+            real_gdp_reporter = mean(real_gdp_reporter),
+            origin_china = sum(origin_china),
+            group = max(group),
+            group_operation = max(group_operation),
+            ownership_china = max(ownership_china),
+            operation = max(operation)) %>% ungroup() %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container = mean(container, na.rm=T)) %>% ungroup()
+         
+port_group_list_in <- port_data_agg_in %>% filter(group!=0) %>% group_by(group) %>%
+  summarize(ports = toString(unique(port)))
+
+port_group_list_op_in <- port_data_agg_in %>% filter(group_operation!=0) %>% group_by(group_operation) %>%
+                                     summarize(ports = toString(unique(port))) %>% 
+                                     rename(group = group_operation)
+port_group_list_in <- rbind(port_group_list_in, port_group_list_op_in)
+port_group_list_in <- port_group_list_in[!duplicated(port_group_list_in$group),]
+port_group_list_in$ports <- paste(port_group_list_in$ports,paste("(", port_group_list_in$group, ")", sep = ""))
+
+
+subsample_in <- subset(port_data_TEU_in, partner_region == "SE") %>%
+  group_by(port_code, period) %>% 
+  summarize(container = sum(container, na.rm=T)) %>% 
+  rename("container_south" = "container")
+
+port_data_agg_final_in <- merge(port_data_agg_in,subsample_in, by = c("port_code", "period"), all.x=T) %>%
+  mutate(container_south = ifelse(is.na(container_south), 0, container_south)) %>%
+  mutate(fraction_south_container = container_south/container)
+
+mean(port_data_agg_final_in$fraction_south_container, na.rm=T)
+max(port_data_agg_final_in$fraction_south_container, na.rm=T)
+min(port_data_agg_final_in$fraction_south_container, na.rm=T)
+
+subsample2_in <- subset(port_data_TEU_in, partner_region == "EX" | partner_region == "NE") %>%
+  group_by(port_code, period) %>% 
+  summarize(container = sum(container, na.rm=T)) %>% 
+  rename("container_other" = "container") 
+
+port_data_agg_final_in <- merge(port_data_agg_final_in,reporter_region, by = "reporter_code") %>%
+  relocate(reporter_region, .after = reporter_code) 
+
+port_data_agg_final_in <- merge(port_data_agg_final_in,subsample2_in, by = c("port_code", "period"), all.x=T) %>%
+  mutate(container_other = ifelse(is.na(container_other), 0, container_other)) %>%
+  mutate(container_total = container_other + container_south)
+
+port_data_agg_final_in <- mutate(port_data_agg_final_in, fraction_china_container=origin_china/(container)) 
+
+port_data_agg_final_in$SE <- ifelse(port_data_agg_final_in$reporter_region == 'SE', 1, 0)
+mean(port_data_agg_final_in$SE)
+
+subsample3_in <- subset(port_data_TEU_in, partner_region == "NE") %>%
+  group_by(port_code, period) %>% 
+  summarize(container = sum(container, na.rm=T)) %>% 
+  rename("container_north" = "container")
+
+port_data_agg_final_in <- merge(port_data_agg_final_in,subsample3_in, by = c("port_code", "period"), all.x=T) %>%
+  mutate(container_north = ifelse(is.na(container_north), 0, container_north)) %>% 
+  mutate(fraction_north_container = container_north/container) 
+
+port_data_agg_final_in <- port_data_agg_final_in %>%
+  mutate(container_south_2=ifelse(container_south == 0, 1, container_south)) %>%
+  mutate(container_north_2=ifelse(container_north == 0, 1, container_north)) %>%
+  mutate(fraction_south_north = container_south_2/container_north_2)
+```
+
+<!-- prepare outflow dataset-->
+
+```{r include=FALSE}
+load("port_data_TEU_out.RData")
+
+port_data_TEU_out <- filter(port_data_TEU_out, aggregate==0,
+                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
+                        TEU_yrly >=10000,          #filter out small ports
+                        port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
+  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+  group_by(port_code, sender_code) %>%
+  mutate(pair_id=cur_group_id()) %>% ungroup() %>%
+  rename(container=total_TEU) %>%
+  rename(partner_code=sender_code) %>%
+  rename(partner=sender)
+
+#summary(port_data_TEU$container, na.rm=TRUE)
+
+listpartner <- port_data_TEU_out %>%
+  group_by(partner_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(partner_code, partner)
+
+
+listreporter <- port_data_TEU_out %>%
+  group_by(reporter_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(reporter_code, reporter)
+
+partner_region <- read_xlsx("partner_region.xlsx", sheet = "Sheet1")
+
+reporter_region <- merge(listreporter, partner_region, by.x = "reporter_code", by.y = "partner_code", all.x = T) %>% 
+  select(reporter_code, partner_region) %>% 
+  rename("reporter_region" = "partner_region")
+
+port_data_TEU_out <- merge(port_data_TEU_out,partner_region, by.x = "partner_code", by.y = "partner_code", all.x = T) %>%
+  relocate(partner_region, .after = partner_code) %>%
+  rename(partner_region=partner_region)
+  
+port_data_TEU_out <- merge(port_data_TEU_out,reporter_region, by = "reporter_code", all.x = T) %>%
+  relocate(reporter_region, .after = reporter_code) 
+
+port_data_TEU_out$NENE_region <- ifelse(port_data_TEU_out$reporter_region == 'NE' & port_data_TEU_out$partner_region == 'NE', 1, 0)
+sum(port_data_TEU_out$NENE_region)
+
+port_data_TEU_out$SESE_region <- ifelse(port_data_TEU_out$reporter_region == 'SE' & port_data_TEU_out$partner_region == 'SE', 1, 0)
+sum(port_data_TEU_out$SESE_region)
+
+port_data_TEU_out$NESE_region <- ifelse(port_data_TEU_out$reporter_region == 'NE' & port_data_TEU_out$partner_region == 'SE', 1, 0)
+sum(port_data_TEU_out$NESE_region)
+
+port_data_TEU_out$SENE_region <- ifelse(port_data_TEU_out$reporter_region == 'SE' & port_data_TEU_out$partner_region == 'NE', 1, 0)
+sum(port_data_TEU_out$SENE_region)
+
+port_data_TEU_out$NEEX_region <- ifelse(port_data_TEU_out$reporter_region == 'NE' & port_data_TEU_out$partner_region == 'EX', 1, 0)
+sum(port_data_TEU_out$NEEX_region)
+
+port_data_TEU_out$SEEX_region <- ifelse(port_data_TEU_out$reporter_region == 'SE' & port_data_TEU_out$partner_region == 'EX', 1, 0)
+sum(port_data_TEU_out$SEEX_region)
+
+region_pair <- ec_undummy(port_data_TEU_out, c('NENE_region', 'SESE_region', 'NESE_region', 'SENE_region','NEEX_region','SEEX_region'), "region_pair", ref_level = "What") %>%
+  select(port_code, partner_code, region_pair, year, quarter) 
+
+port_data_TEU_out <- merge(port_data_TEU_out,region_pair, by.x=c("port_code", "partner_code", "year", "quarter"), by.y=c("port_code", "partner_code", "year", "quarter"))
+
+
+port_data_agg_out <- port_data_TEU_out %>% mutate(origin_china = ifelse(!is.na(container) & (partner_code=="CN_X_HK" | partner_code=="HK"),container,0)) %>%
+  group_by(port, port_code, period, reporter_code) %>% 
+  summarize(container = sum(container, na.rm=T),
+            real_gdp_reporter = mean(real_gdp_reporter),
+            origin_china = sum(origin_china),
+            group = max(group),
+            group_operation = max(group_operation),
+            ownership_china = max(ownership_china),
+            operation = max(operation)) %>% ungroup() %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container = mean(container, na.rm=T)) %>% ungroup()
+         
+port_group_list_out <- port_data_agg_out %>% filter(group!=0) %>% group_by(group) %>%
+  summarize(ports = toString(unique(port)))
+
+port_group_list_op_out <- port_data_agg_out %>% filter(group_operation!=0) %>% group_by(group_operation) %>%
+                                     summarize(ports = toString(unique(port))) %>% 
+                                     rename(group = group_operation)
+port_group_list_out <- rbind(port_group_list_out, port_group_list_op_out)
+port_group_list_out <- port_group_list_out[!duplicated(port_group_list_out$group),]
+port_group_list_out$ports <- paste(port_group_list_out$ports,paste("(", port_group_list_out$group, ")", sep = ""))
+
+
+subsample_out <- subset(port_data_TEU_out, partner_region == "SE") %>%
+  group_by(port_code, period) %>% 
+  summarize(container = sum(container, na.rm=T)) %>% 
+  rename("container_south" = "container")
+
+port_data_agg_final_out <- merge(port_data_agg_out, subsample_out, by = c("port_code", "period"), all.x=T) %>%
+  mutate(container_south = ifelse(is.na(container_south), 0, container_south)) %>%
+  mutate(fraction_south_container = container_south/container)
+
+mean(port_data_agg_final_out$fraction_south_container, na.rm=T)
+max(port_data_agg_final_out$fraction_south_container, na.rm=T)
+min(port_data_agg_final_out$fraction_south_container, na.rm=T)
+
+subsample2_out <- subset(port_data_TEU_out, partner_region == "EX" | partner_region == "NE") %>%
+  group_by(port_code, period) %>% 
+  summarize(container = sum(container, na.rm=T)) %>% 
+  rename("container_other" = "container") 
+
+port_data_agg_final_out <- merge(port_data_agg_final_out,reporter_region, by = "reporter_code") %>%
+  relocate(reporter_region, .after = reporter_code) 
+
+port_data_agg_final_out <- merge(port_data_agg_final_out,subsample2_out, by = c("port_code", "period"), all.x=T) %>%
+  mutate(container_other = ifelse(is.na(container_other), 0, container_other)) %>%
+  mutate(container_total = container_other + container_south)
+
+port_data_agg_final_out <- mutate(port_data_agg_final_out, fraction_china_container=origin_china/(container)) 
+
+port_data_agg_final_out$SE <- ifelse(port_data_agg_final_out$reporter_region == 'SE', 1, 0)
+mean(port_data_agg_final_out$SE)
+
+subsample3_out <- subset(port_data_TEU_out, partner_region == "NE") %>%
+  group_by(port_code, period) %>% 
+  summarize(container = sum(container, na.rm=T)) %>% 
+  rename("container_north" = "container")
+
+port_data_agg_final_out <- merge(port_data_agg_final_out,subsample3_out, by = c("port_code", "period"), all.x=T) %>%
+  mutate(container_north = ifelse(is.na(container_north), 0, container_north)) %>% 
+  mutate(fraction_north_container = container_north/container) 
+
+port_data_agg_final_out <- port_data_agg_final_out %>%
+  mutate(container_south_2=ifelse(container_south == 0, 1, container_south)) %>%
+  mutate(container_north_2=ifelse(container_north == 0, 1, container_north)) %>%
+  mutate(fraction_south_north = container_south_2/container_north_2) %>%
+  mutate(container_extern = container-container_south-container_north) %>%
+  mutate(GFC=ifelse(period >=47, 1,0)) %>%
+  mutate(NE=ifelse(reporter_region=="NE", 1,0)) %>%
+  mutate(SE=ifelse(reporter_region=="SE", 1,0))
+```
+
+# Outcomes of the Hypothesis testing to undestand the region_pairwise container inflows and outflows
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+throughput_development_regionpair_year_in <- port_data_TEU_in %>% 
+  group_by(region_pair, year) %>% 
+  summarise(throughput=sum(container, na.rm=TRUE)) %>% 
+  ungroup() %>%
+  group_by(year) %>%
+  mutate(fraction = (throughput/sum(throughput)*100))
+
+ggplot(data=throughput_development_regionpair_year_in, aes(x=year, y=throughput, group=region_pair))+
+  geom_line(aes(color=region_pair))+
+  scale_color_manual(values = c("darkblue", "blue", "green", "orange", "yellow", "red"))+
+  labs(title = "container inflows")
+
+throughput_development_regionpair_year_out <- port_data_TEU_out %>% 
+  group_by(region_pair, year) %>% 
+  summarise(throughput=sum(container, na.rm=TRUE)) %>% 
+  ungroup() %>%
+  group_by(year) %>%
+  mutate(fraction = (throughput/sum(throughput)*100))
+
+ggplot(data=throughput_development_regionpair_year_out, aes(x=year, y=throughput, group=region_pair))+
+  geom_line(aes(color=region_pair))+
+  scale_color_manual(values = c("darkblue", "blue", "green", "orange", "yellow", "red"))+
+  labs(title = "container outflows")
+```
+
+
+## Hypothesis 1: Piraeus as Multiplier to explain SESE trade increase
+### FE estimations SESE: total flows
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+port_data_TEU_SESE <- port_data_TEU %>% 
+  filter(region_pair=="SESE_region") %>%
+  mutate(Piraeus_treatment = ifelse(port=="Piraeus" & period>=52, 1, 0)) %>%
+  mutate(allports_treatment = ifelse(port=="Piraeus" & period>=52, 1, 0))
+
+port_data_TEU_SESE$allports_treatment[port_data_TEU_SESE$port=="Barcelona" & port_data_TEU_SESE$period>=63] <- 1
+
+port_data_TEU_SESE$allports_treatment[port_data_TEU_SESE$port=="Bilbao" & port_data_TEU_SESE$period>=84] <- 1
+
+port_data_TEU_SESE$allports_treatment[port_data_TEU_SESE$port=="Valencia" & port_data_TEU_SESE$period>=84] <- 1
+
+port_data_TEU_SESE$allports_treatment[port_data_TEU_SESE$port=="Ambarli" & port_data_TEU_SESE$period>=76] <- 1
+
+port_data_TEU_SESE$allports_treatment[port_data_TEU_SESE$port=="Genova" & port_data_TEU_SESE$period>=81] <- 1
+
+port_data_TEU_SESE$allports_treatment[port_data_TEU_SESE$port=="Thessaloniki" & port_data_TEU_SESE$period>=85] <- 1
+
+port_data_TEU_SESE$allports_treatment[port_data_TEU_SESE$port=="Marsaxlokk" & port_data_TEU_SESE$period>=66] <- 1
+
+
+sum(port_data_TEU_SESE$Piraeus_treatment) # 2.1% of observations treated 
+
+sum(port_data_TEU_SESE$allports_treatment) # 7.1% of observations treated
+
+# Piraeus only
+spec1 <- feols(container ~ Piraeus_treatment | port^partner + period,
+               data = port_data_TEU_SESE)
+
+spec2 <- feols(container ~ Piraeus_treatment | port^partner + period + partner,
+               data = port_data_TEU_SESE)
+
+spec3 <- feols(container ~ Piraeus_treatment | port + period + partner,
+               data = port_data_TEU_SESE)
+
+spec4 <- feols(container ~ Piraeus_treatment | port^partner,
+               data = port_data_TEU_SESE)
+
+spec5 <- feols(container ~ Piraeus_treatment | port^partner + partner^period,
+               data = port_data_TEU_SESE)
+
+
+
+fe_results_total<- etable(spec1, spec2, spec3, spec4, spec5,
+                    headers = c("Eq. 1", "Eq. 2", "Eq. 3", "Eq. 4", "Eq. 5"),
+                    style.df = style.df(fixef.title = "Fixed Effects",
+                                        fixef.suffix = "", yesNo = "yes"),
+                    vcov = "twoway")
+
+fe_results_total
+
+# all ports treated 
+spec11 <- feols(container ~ allports_treatment | port^partner + period,
+               data = port_data_TEU_SESE)
+
+spec12 <- feols(container ~ allports_treatment | port^partner + period + partner,
+               data = port_data_TEU_SESE)
+
+spec13 <- feols(container ~ allports_treatment | port + period + partner,
+               data = port_data_TEU_SESE)
+
+spec14 <- feols(container ~ allports_treatment | port^partner,
+               data = port_data_TEU_SESE)
+
+spec15 <- feols(container ~ allports_treatment | port^partner + partner^period,
+               data = port_data_TEU_SESE)
+
+fe2_results_total<- etable(spec11, spec12, spec13, spec14, spec15,
+                    headers = c("Eq. 1", "Eq. 2", "Eq. 3", "Eq. 4", "Eq. 5"),
+                    style.df = style.df(fixef.title = "Fixed Effects",
+                                        fixef.suffix = "", yesNo = "yes"),
+                    vcov = "twoway")
+
+fe2_results_total
+```
+
+### Diff-in-Diff estimations SESE total flows - treated ports bilateral
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+port_data_TEU_SESE <- port_data_TEU_SESE %>% 
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id()) %>% ungroup() %>% 
+  mutate(group2 = ifelse(port=="Piraeus", 52, 0))
+
+
+attgt_share <- att_gt(yname = "container",            #outcome variable
+                      tname = "period",                 #time variable
+                      idname = "port_id",                    #id for units (should be port_code*partner)
+                      gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+                      #xformla = ~X,                  #for potential covariates
+                      #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                      allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                      #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                      data = port_data_TEU_SESE)
+
+# attgt_share_cond <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*partner)
+#                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data_agg)
+
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
+#agg_simple_share_cond <- aggte(attgt_share_cond, type = "simple", na.rm=T)
+
+# option 2: event-study type aggregation by time under treatment
+agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
+#agg_es_share_cond <- aggte(attgt_share_cond, type = "dynamic", na.rm=T)
+
+# option 3: groupwise treatment effects
+agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
+#agg_gs_share_cond <- aggte(attgt_share_cond, type = "group", na.rm=T)
+
+
+#port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
+# putting together the results
+share_results1 <- data.frame(Estimate = c("simple average", port_group_list_out$ports[match(as.character(agg_gs_share$egt), port_group_list_out$group)]),
+                             ATT = c(agg_simple_share$overall.att,
+                                     agg_gs_share$att.egt),
+                             lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
+                             upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
+
+# share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
+#                        ATT = c(agg_simple_op_share$overall.att,
+#                                    agg_gs_op_share$att.egt),
+#                       lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
+#                       upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
+# share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
+#share_results <- share_results[c(12, 1:11),]
+
+# generating a gt table
+share_results_gt <- gt(share_results1, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                lower="[95%",
+                upper="conf.int.]"
+                # ATT.x="ATT",
+                # lower.x="[95%",
+                # upper.x="conf.int.]",
+                # ATT.y="ATT",
+                # lower.y="[95%",
+                # upper.y="conf.int.]"
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              # tab_spanner(label = "uncond. PTA",
+              #             columns = c("ATT.x", "lower.x", "upper.x")) |>
+              # tab_spanner(label = "Chinese operation",
+              #             columns = c("ATT.y", "lower.y", "upper.y")) |>
+              tab_row_group(label = "by group:",
+                            rows = contains("(")) |>
+              row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(
+                                            cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)
+                                            # cells_body(columns=c(ATT.x),
+                                            #      rows = lower.x > 0 | upper.x < 0),
+                                            # cells_body(columns=c(ATT.y),
+                                            #      rows = lower.y > 0 | upper.y < 0)
+                                           ),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+share_results_gt
+```
+Significant effect when grouped at port_code and tirns insignificant when grouping is on  port_code*partner_code.
+
+### Diff-in-Diff estimations SESE inflows
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+port_data_TEU_SESE_in <- port_data_TEU_in %>% 
+  filter(region_pair=="SESE_region") %>%
+  mutate(Greece_treatment = ifelse(partner=="Greece" & period>=52, 1, 0)) %>%
+  mutate(allcountries_treatment = ifelse(partner=="Greece" & period>=52, 1, 0))
+
+port_data_TEU_SESE_in <- port_data_TEU_SESE_in %>% 
+  #filter(port_code!="GRPIR") %>% 
+  group_by(partner_code) %>% 
+  mutate(port_id = cur_group_id()) %>% ungroup() %>%
+  mutate(group3 = ifelse(partner_code=="EL", 52, 0), group4 = ifelse(partner_code=="EL", 52, 0))
+
+port_data_TEU_SESE_in$group4[port_data_TEU_SESE_in$partner=="Spain"] <- 63
+
+port_data_TEU_SESE_in$group4[port_data_TEU_SESE_in$partner=="Turkey"] <- 76
+
+port_data_TEU_SESE_in$group4[port_data_TEU_SESE_in$partner=="Italy"] <- 81
+
+port_data_TEU_SESE_in$group4[port_data_TEU_SESE_in$partner=="Malta"] <- 66
+
+
+
+
+attgt_share <- att_gt(yname = "container",            #outcome variable
+                      tname = "period",                 #time variable
+                      idname = "port_id",                    #id for units (should be port_code*partner)
+                      gname = "group4",                    #grouping variable for first treatment. Is zero for never treated units
+                      #xformla = ~X,                  #for potential covariates
+                      #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                      allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                      #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                      data = port_data_TEU_SESE_in)
+
+# attgt_share_cond <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*partner)
+#                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data_agg)
+
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
+#agg_simple_share_cond <- aggte(attgt_share_cond, type = "simple", na.rm=T)
+
+# option 2: event-study type aggregation by time under treatment
+agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
+#agg_es_share_cond <- aggte(attgt_share_cond, type = "dynamic", na.rm=T)
+
+# option 3: groupwise treatment effects
+agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
+#agg_gs_share_cond <- aggte(attgt_share_cond, type = "group", na.rm=T)
+
+port_group_list_in$country <- c("Netherlands", "Belgium", "Poland", "Greece", "Spain", "Malta", "Turkey", "Italy", "Spain", "Greece", "Netherlands")
+
+#port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
+# putting together the results
+share_results1 <- data.frame(Estimate = c("simple average", port_group_list_in$country[match(as.character(agg_gs_share$egt), port_group_list_in$group)]),
+                             ATT = c(agg_simple_share$overall.att,
+                                     agg_gs_share$att.egt),
+                             lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
+                             upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
+
+# share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
+#                        ATT = c(agg_simple_op_share$overall.att,
+#                                    agg_gs_op_share$att.egt),
+#                       lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
+#                       upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
+# share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
+#share_results <- share_results[c(12, 1:11),]
+
+
+# generating a gt table
+share_results_gt <- gt(share_results1, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                lower="[95%",
+                upper="conf.int.]"
+                # ATT.x="ATT",
+                # lower.x="[95%",
+                # upper.x="conf.int.]",
+                # ATT.y="ATT",
+                # lower.y="[95%",
+                # upper.y="conf.int.]"
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              # tab_spanner(label = "uncond. PTA",
+              #             columns = c("ATT.x", "lower.x", "upper.x")) |>
+              # tab_spanner(label = "Chinese operation",
+              #             columns = c("ATT.y", "lower.y", "upper.y")) |>
+              #tab_row_group(label = "by group:",
+                            #rows = contains("(")) |>
+              #row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(
+                                            cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)
+                                            # cells_body(columns=c(ATT.x),
+                                            #      rows = lower.x > 0 | upper.x < 0),
+                                            # cells_body(columns=c(ATT.y),
+                                            #      rows = lower.y > 0 | upper.y < 0)
+                                           ),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+share_results_gt
+```
+
+Unlike with the outflow estimations, with inflows, the Greece effect remains with standard errors clustered at port_code*partner_code. When considering all treated ports. We still see the standing out role of Piraeus.
+
+## Hypothesis 2: Suez Canal enlargement to explain SEEX trade increase
+
+```{r include=FALSE}
+
+port_data_TEU_SEEX <- port_data_TEU %>% 
+  filter(region_pair=="SEEX_region")
+
+listpartner_SEEX <- port_data_TEU_SEEX %>%
+  group_by(partner_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(partner_code, partner)
+
+write_xlsx(listpartner_SEEX, "listpartner_SEEX.xlsx")
+
+partner_size <- port_data_TEU_SEEX %>%group_by(partner_code) %>% 
+  summarize(mean_container = mean(container, na.rm=T), sum_container = sum(container, na.rm=T)) %>% arrange(desc(sum_container)) %>% mutate(small_partner =  ifelse(sum_container<10000, 1, 0)) %>% select(partner_code, small_partner)
+
+port_data_TEU_SEEX <- merge(port_data_TEU_SEEX,partner_size, by = "partner_code") 
+
+suez <- read_xlsx("listpartner_SEEX_suez.xlsx", sheet = "Sheet1")
+
+port_data_TEU_SEEX <- merge(port_data_TEU_SEEX,suez, by = "partner_code")  # baseline dataset with all partner countries (n=167)
+
+port_data_TEU_SEEX$Suez_treated_09 <- ifelse(port_data_TEU_SEEX$Suez ==1 & port_data_TEU_SEEX$period >=51, 1, 0) # Suezkanalvertiefung wurde im Juli 2009 fertig gestellt
+
+port_data_TEU_SEEX$China <- ifelse(port_data_TEU_SEEX$partner_code =="CN_X_HK", 1, 0)
+
+port_data_TEU_SEEX$Suez_treated_15 <- ifelse(port_data_TEU_SEEX$Suez ==1 & port_data_TEU_SEEX$period >=75, 1, 0)# Eine weitere Suezkanalerweiterung wurde im August 2015 fertig gestellt
+
+```
+
+### Graph 
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+port_data_TEU_SEEX$Gibraltar <- ifelse(port_data_TEU_SEEX$Suez ==0 & port_data_TEU_SEEX$Mediterranean !=1, 1, 0) 
+
+port_data_TEU_SEEX_comp <- port_data_TEU_SEEX  %>% filter(Gibraltar==1 | Suez==1) %>% mutate(entry =  ifelse(Suez==1, "Suez", "Gibraltar"))
+
+port_data_TEU_SEEX_comp_final <- port_data_TEU_SEEX_comp %>% 
+  group_by(entry, year) %>% summarise(container=sum(container, na.rm=T))
+
+ggplot(data=port_data_TEU_SEEX_comp_final, aes(x=year, y=container, group=entry))+
+  geom_line(aes(color=entry))+
+  scale_color_manual(values = c("darkblue", "red"))+
+  labs(title = "Line chart - development of SEEX trade through the straight of Gibraltar versus through the Sueze Canal")
+```
+
+SEEX Trade through the Suez Canal grew faster than trade through Gibraltar since 2002. There were two periods of accelerated growth: 2009 and 2015. In 2009, the Suez Canal was deepened, in 2015 an additional bypass was opened to enhance the canal's capacity and reduce it's transit time.
+
+### FE estimations
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+# estimations including all partner countries
+spec1 <- feols(container ~ Suez_treated_09 | port^partner + port^period,
+               data = port_data_TEU_SEEX)
+
+spec2 <- feols(container ~ Suez_treated_09*China | port^partner + port^period,
+               data = port_data_TEU_SEEX)
+
+spec3 <- feols(container ~ Suez_treated_09*China_plus | port^partner + port^period,
+               data = port_data_TEU_SEEX)
+
+spec4 <- feols(container ~ Suez_treated_15 | port^partner + port^period,
+               data = port_data_TEU_SEEX)
+
+spec5 <- feols(container ~ Suez_treated_15*China | port^partner + port^period,
+               data = port_data_TEU_SEEX)
+
+spec6 <- feols(container ~ Suez_treated_15*China_plus | port^partner + port^period,
+               data = port_data_TEU_SEEX)
+
+spec7 <- feols(container ~ Suez_treated_09 | port^partner + partner^period,
+               data = port_data_TEU_SEEX)
+
+spec8 <- feols(container ~ Suez_treated_09*China | port^partner + partner^period,
+               data = port_data_TEU_SEEX)
+
+spec9 <- feols(container ~ Suez_treated_09*China_plus | port^partner + partner^period,
+               data = port_data_TEU_SEEX)
+
+
+
+feSEEX_results<- etable(spec1, spec2, spec3, spec4, spec5, spec6, spec7, spec8, spec9,
+                    headers = c("Eq. 1", "Eq. 2", "Eq. 3", "Eq. 4", "Eq. 5", "Eq. 6", "Eq. 7", "Eq. 8", "Eq. 9"),
+                    style.df = style.df(fixef.title = "Fixed Effects",
+                                        fixef.suffix = "", yesNo = "yes"),
+                    vcov = "twoway")
+
+feSEEX_results
+
+
+# estimations excluding small partner countries
+
+port_data_TEU_SEEXsmall <- port_data_TEU_SEEX %>% filter(small_partner==0) # without small partner countries that still make up 99% of SEEX trade (n = 109)
+
+
+spec1 <- feols(container ~ Suez_treated_09 | port^partner + port^period,
+               data = port_data_TEU_SEEXsmall)
+
+spec2 <- feols(container ~ Suez_treated_09*China | port^partner + port^period,
+               data = port_data_TEU_SEEXsmall)
+
+spec3 <- feols(container ~ Suez_treated_09*China_plus | port^partner + port^period,
+               data = port_data_TEU_SEEXsmall)
+
+spec4 <- feols(container ~ Suez_treated_15 | port^partner + port^period,
+               data = port_data_TEU_SEEXsmall)
+
+spec5 <- feols(container ~ Suez_treated_15*China | port^partner + port^period,
+               data = port_data_TEU_SEEXsmall)
+
+spec6 <- feols(container ~ Suez_treated_15*China_plus | port^partner + port^period,
+               data = port_data_TEU_SEEXsmall)
+
+
+feSEEX2_results<- etable(spec1, spec2, spec3, spec4, spec5, spec6,
+                    headers = c("Eq. 1", "Eq. 2", "Eq. 3", "Eq. 4", "Eq. 5", "Eq. 6"),
+                    style.df = style.df(fixef.title = "Fixed Effects",
+                                        fixef.suffix = "", yesNo = "yes"),
+                    vcov = "twoway")
+
+feSEEX2_results
+```
+
+The FE estimates suggest that it largely trade with China that increased with the enlargements of the Suez Canal. Trade with other partner countries shipping through the Suez Canal did not increase. Therefore, the Suez effect is more of and related to a China effect.
+
+In specifications with partner^period FE, the FE and the explanatory variables are collinear. For the large sample we therefore do not find any effects for equations 7-9 and the "Suez_treated_09 x China" variable is dropped. For the small sample the estimator does not even allow an estimation for the reason of collinearity.
+
+### Diff-in-Diff estimations 
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+
+port_data_TEU_SEEX <- port_data_TEU_SEEX %>% 
+  #filter(port_code!="GRPIR") %>% 
+  group_by(partner_code) %>% 
+  mutate(port_id = cur_group_id()) %>% ungroup() %>%
+  mutate(group5 = ifelse(Suez==1, 51, 0), group6 = ifelse(Suez==1 & partner_code =="CN_X_HK", 51, 0))
+
+
+# Suez effect 2009
+
+attgt_share <- att_gt(yname = "container",            #outcome variable
+                      tname = "period",                 #time variable
+                      idname = "port_id",                    #id for units (should be port_code*partner)
+                      gname = "group5",                    #grouping variable for first treatment. Is zero for never treated units
+                      #xformla = ~X,                  #for potential covariates
+                      #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                      allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                      #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                      data = port_data_TEU_SEEX)
+
+# attgt_share_cond <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*partner)
+#                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data_agg)
+
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
+#agg_simple_share_cond <- aggte(attgt_share_cond, type = "simple", na.rm=T)
+
+# option 2: event-study type aggregation by time under treatment
+agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
+#agg_es_share_cond <- aggte(attgt_share_cond, type = "dynamic", na.rm=T)
+
+# option 3: groupwise treatment effects
+agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
+#agg_gs_share_cond <- aggte(attgt_share_cond, type = "group", na.rm=T)
+
+
+# make group list
+group <- c(51,75)
+canal <- c('Suez enlragement 2009', 'Suez enlargement 2015')
+country <- c('Suez 2009 x China', 'Suez 2015 x China')
+
+port_group_list_SEEX <- data.frame(group,canal,country)
+
+
+#port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
+# putting together the results
+share_results1 <- data.frame(Estimate = c("simple average", port_group_list_SEEX$canal[match(as.character(agg_gs_share$egt), port_group_list_SEEX$group)]),
+                             ATT = c(agg_simple_share$overall.att,
+                                     agg_gs_share$att.egt),
+                             lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
+                             upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
+
+# share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
+#                        ATT = c(agg_simple_op_share$overall.att,
+#                                    agg_gs_op_share$att.egt),
+#                       lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
+#                       upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
+# share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
+#share_results <- share_results[c(12, 1:11),]
+
+
+# generating a gt table
+share_results_gt <- gt(share_results1, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                lower="[95%",
+                upper="conf.int.]"
+                # ATT.x="ATT",
+                # lower.x="[95%",
+                # upper.x="conf.int.]",
+                # ATT.y="ATT",
+                # lower.y="[95%",
+                # upper.y="conf.int.]"
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              # tab_spanner(label = "uncond. PTA",
+              #             columns = c("ATT.x", "lower.x", "upper.x")) |>
+              # tab_spanner(label = "Chinese operation",
+              #             columns = c("ATT.y", "lower.y", "upper.y")) |>
+              #tab_row_group(label = "by group:",
+                            #rows = contains("(")) |>
+              #row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(
+                                            cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)
+                                            # cells_body(columns=c(ATT.x),
+                                            #      rows = lower.x > 0 | upper.x < 0),
+                                            # cells_body(columns=c(ATT.y),
+                                            #      rows = lower.y > 0 | upper.y < 0)
+                                           ),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+share_results_gt
+
+# China effect 2009
+
+attgt_share <- att_gt(yname = "container",            #outcome variable
+                      tname = "period",                 #time variable
+                      idname = "port_id",                    #id for units (should be port_code*partner)
+                      gname = "group6",                    #grouping variable for first treatment. Is zero for never treated units
+                      #xformla = ~X,                  #for potential covariates
+                      #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                      allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                      #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                      data = port_data_TEU_SEEX)
+
+# attgt_share_cond <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*partner)
+#                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data_agg)
+
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
+#agg_simple_share_cond <- aggte(attgt_share_cond, type = "simple", na.rm=T)
+
+# option 2: event-study type aggregation by time under treatment
+agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
+#agg_es_share_cond <- aggte(attgt_share_cond, type = "dynamic", na.rm=T)
+
+# option 3: groupwise treatment effects
+agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
+#agg_gs_share_cond <- aggte(attgt_share_cond, type = "group", na.rm=T)
+
+
+#port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
+# putting together the results
+share_results2 <- data.frame(Estimate = c("simple average", port_group_list_SEEX$country[match(as.character(agg_gs_share$egt), port_group_list_SEEX$group)]),
+                             ATT = c(agg_simple_share$overall.att,
+                                     agg_gs_share$att.egt),
+                             lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
+                             upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
+
+# share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
+#                        ATT = c(agg_simple_op_share$overall.att,
+#                                    agg_gs_op_share$att.egt),
+#                       lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
+#                       upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
+# share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
+#share_results <- share_results[c(12, 1:11),]
+
+
+# generating a gt table
+share_results_gt2 <- gt(share_results2, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                lower="[95%",
+                upper="conf.int.]"
+                # ATT.x="ATT",
+                # lower.x="[95%",
+                # upper.x="conf.int.]",
+                # ATT.y="ATT",
+                # lower.y="[95%",
+                # upper.y="conf.int.]"
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              # tab_spanner(label = "uncond. PTA",
+              #             columns = c("ATT.x", "lower.x", "upper.x")) |>
+              # tab_spanner(label = "Chinese operation",
+              #             columns = c("ATT.y", "lower.y", "upper.y")) |>
+              #tab_row_group(label = "by group:",
+                            #rows = contains("(")) |>
+              #row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(
+                                            cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)
+                                            # cells_body(columns=c(ATT.x),
+                                            #      rows = lower.x > 0 | upper.x < 0),
+                                            # cells_body(columns=c(ATT.y),
+                                            #      rows = lower.y > 0 | upper.y < 0)
+                                           ),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+share_results_gt2
+
+
+
+port_data_TEU_SEEX <- port_data_TEU_SEEX %>% 
+  mutate(group7 = ifelse(Suez==1, 75, 0), group8 = ifelse(Suez==1 & partner_code =="CN_X_HK", 75, 0))
+
+
+# Suez effect 2015
+
+attgt_share <- att_gt(yname = "container",            #outcome variable
+                      tname = "period",                 #time variable
+                      idname = "port_id",                    #id for units (should be port_code*partner)
+                      gname = "group7",                    #grouping variable for first treatment. Is zero for never treated units
+                      #xformla = ~X,                  #for potential covariates
+                      #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                      allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                      #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                      data = port_data_TEU_SEEX)
+
+# attgt_share_cond <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*partner)
+#                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data_agg)
+
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
+#agg_simple_share_cond <- aggte(attgt_share_cond, type = "simple", na.rm=T)
+
+# option 2: event-study type aggregation by time under treatment
+agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
+#agg_es_share_cond <- aggte(attgt_share_cond, type = "dynamic", na.rm=T)
+
+# option 3: groupwise treatment effects
+agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
+#agg_gs_share_cond <- aggte(attgt_share_cond, type = "group", na.rm=T)
+
+
+#port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
+# putting together the results
+share_results3 <- data.frame(Estimate = c("simple average", port_group_list_SEEX$canal[match(as.character(agg_gs_share$egt), port_group_list_SEEX$group)]),
+                             ATT = c(agg_simple_share$overall.att,
+                                     agg_gs_share$att.egt),
+                             lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
+                             upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
+
+# share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
+#                        ATT = c(agg_simple_op_share$overall.att,
+#                                    agg_gs_op_share$att.egt),
+#                       lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
+#                       upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
+# share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
+#share_results <- share_results[c(12, 1:11),]
+
+
+# generating a gt table
+share_results_gt3 <- gt(share_results3, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                lower="[95%",
+                upper="conf.int.]"
+                # ATT.x="ATT",
+                # lower.x="[95%",
+                # upper.x="conf.int.]",
+                # ATT.y="ATT",
+                # lower.y="[95%",
+                # upper.y="conf.int.]"
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              # tab_spanner(label = "uncond. PTA",
+              #             columns = c("ATT.x", "lower.x", "upper.x")) |>
+              # tab_spanner(label = "Chinese operation",
+              #             columns = c("ATT.y", "lower.y", "upper.y")) |>
+              #tab_row_group(label = "by group:",
+                            #rows = contains("(")) |>
+              #row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(
+                                            cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)
+                                            # cells_body(columns=c(ATT.x),
+                                            #      rows = lower.x > 0 | upper.x < 0),
+                                            # cells_body(columns=c(ATT.y),
+                                            #      rows = lower.y > 0 | upper.y < 0)
+                                           ),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+share_results_gt3
+
+# China effect 2015
+
+attgt_share <- att_gt(yname = "container",            #outcome variable
+                      tname = "period",                 #time variable
+                      idname = "port_id",                    #id for units (should be port_code*partner)
+                      gname = "group8",                    #grouping variable for first treatment. Is zero for never treated units
+                      #xformla = ~X,                  #for potential covariates
+                      #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                      allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                      #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                      data = port_data_TEU_SEEX)
+
+# attgt_share_cond <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*partner)
+#                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data_agg)
+
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
+#agg_simple_share_cond <- aggte(attgt_share_cond, type = "simple", na.rm=T)
+
+# option 2: event-study type aggregation by time under treatment
+agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
+#agg_es_share_cond <- aggte(attgt_share_cond, type = "dynamic", na.rm=T)
+
+# option 3: groupwise treatment effects
+agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
+#agg_gs_share_cond <- aggte(attgt_share_cond, type = "group", na.rm=T)
+
+
+#port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
+# putting together the results
+share_results4 <- data.frame(Estimate = c("simple average", port_group_list_SEEX$country[match(as.character(agg_gs_share$egt), port_group_list_SEEX$group)]),
+                             ATT = c(agg_simple_share$overall.att,
+                                     agg_gs_share$att.egt),
+                             lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
+                             upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
+
+# share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
+#                        ATT = c(agg_simple_op_share$overall.att,
+#                                    agg_gs_op_share$att.egt),
+#                       lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
+#                       upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
+# share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
+#share_results <- share_results[c(12, 1:11),]
+
+
+# generating a gt table
+share_results_gt4 <- gt(share_results4, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                lower="[95%",
+                upper="conf.int.]"
+                # ATT.x="ATT",
+                # lower.x="[95%",
+                # upper.x="conf.int.]",
+                # ATT.y="ATT",
+                # lower.y="[95%",
+                # upper.y="conf.int.]"
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              # tab_spanner(label = "uncond. PTA",
+              #             columns = c("ATT.x", "lower.x", "upper.x")) |>
+              # tab_spanner(label = "Chinese operation",
+              #             columns = c("ATT.y", "lower.y", "upper.y")) |>
+              #tab_row_group(label = "by group:",
+                            #rows = contains("(")) |>
+              #row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(
+                                            cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)
+                                            # cells_body(columns=c(ATT.x),
+                                            #      rows = lower.x > 0 | upper.x < 0),
+                                            # cells_body(columns=c(ATT.y),
+                                            #      rows = lower.y > 0 | upper.y < 0)
+                                           ),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+share_results_gt4
+```
+
+## Hypothesis 3: Global Financial Crisis to explain NEEX outflow dip
+
+### Inflow and all outflow comparison
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+externaltrade_out <- port_data_TEU_out %>% 
+  filter(region_pair=="SEEX_region" | region_pair=="NEEX_region") %>%
+  group_by(year) %>% summarise(container_out=sum(container, na.rm=T))
+
+externaltrade_in <- port_data_TEU_in %>% 
+  filter(region_pair=="SEEX_region" | region_pair=="NEEX_region") %>%
+  group_by(year) %>% summarise(container_in=sum(container, na.rm=T))
+
+externaltrade_comparison <- merge(externaltrade_out,externaltrade_in, by = "year")
+
+ggplot(externaltrade_comparison, aes(x=year)) + 
+  geom_line(aes(y = container_in), color = "steelblue") + 
+  geom_line(aes(y = container_out), color="steelblue", linetype="twodash")+
+labs(title = "All European ports' container inflows and outflows (dash)")
+
+externaltradeNEEX_out <- port_data_TEU_out %>% 
+  filter(region_pair=="NEEX_region") %>%
+  group_by(year) %>% summarise(container_out=sum(container, na.rm=T))
+
+externaltradeNEEX_in <- port_data_TEU_in %>% 
+  filter(region_pair=="NEEX_region") %>%
+  group_by(year) %>% summarise(container_in=sum(container, na.rm=T))
+
+externaltradeNEEX_comparison <- merge(externaltradeNEEX_out,externaltradeNEEX_in, by = "year")
+
+ggplot(externaltradeNEEX_comparison, aes(x=year)) + 
+  geom_line(aes(y = container_in), color = "orange") + 
+  geom_line(aes(y = container_out), color="orange", linetype="twodash")+
+labs(title = "Northern European ports' container inflows and outflows (dash)")
+
+externaltradeSEEX_out <- port_data_TEU_out %>% 
+  filter(region_pair=="SEEX_region") %>%
+  group_by(year) %>% summarise(container_out=sum(container, na.rm=T))
+
+externaltradeSEEX_in <- port_data_TEU_in %>% 
+  filter(region_pair=="SEEX_region") %>%
+  group_by(year) %>% summarise(container_in=sum(container, na.rm=T))
+
+externaltradeSEEX_comparison <- merge(externaltradeSEEX_out,externaltradeSEEX_in, by = "year")
+
+ggplot(externaltradeSEEX_comparison, aes(x=year)) + 
+  geom_line(aes(y = container_in), color = "green") + 
+  geom_line(aes(y = container_out), color="green", linetype="twodash")  +
+labs(title = "Southern European ports' container inflows and outflows (dash)")
+```
+### Diff in Diff bilateral data to check whether Global financial crisis hit NE ports and outflows to US especially hard.
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+port_data_TEU_NEEX_out <- port_data_TEU_out %>% filter(region_pair=="NEEX_region") %>% 
+  group_by(partner_code) %>% 
+  mutate(port_id = cur_group_id()) %>% ungroup() %>%
+  mutate(group2 = ifelse(partner_code=="US", 47, 0))
+
+
+# US Global Financial Crisis effect
+
+attgt_share <- att_gt(yname = "container",            #outcome variable
+                      tname = "period",                 #time variable
+                      idname = "port_id",                    #id for units (should be port_code*partner)
+                      gname = "group2",                    #grouping variable for first treatment. Is zero for never treated units
+                      #xformla = ~X,                  #for potential covariates
+                      #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                      allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                      #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                      data = port_data_TEU_NEEX_out)
+
+# attgt_share_cond <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*partner)
+#                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data_agg)
+
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
+#agg_simple_share_cond <- aggte(attgt_share_cond, type = "simple", na.rm=T)
+
+# option 2: event-study type aggregation by time under treatment
+agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
+#agg_es_share_cond <- aggte(attgt_share_cond, type = "dynamic", na.rm=T)
+
+# option 3: groupwise treatment effects
+agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
+#agg_gs_share_cond <- aggte(attgt_share_cond, type = "group", na.rm=T)
+
+
+# make group list
+group <- c(47)
+treatment <- c('US after GFC (47)')
+
+port_group_list_NEEX <- data.frame(group,treatment)
+
+
+#port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
+# putting together the results
+share_results1 <- data.frame(Estimate = c("simple average", port_group_list_NEEX$treatment[match(as.character(agg_gs_share$egt), port_group_list_NEEX$group)]),
+                             ATT = c(agg_simple_share$overall.att,
+                                     agg_gs_share$att.egt),
+                             lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
+                             upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
+
+# share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
+#                        ATT = c(agg_simple_op_share$overall.att,
+#                                    agg_gs_op_share$att.egt),
+#                       lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
+#                       upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
+# share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
+#share_results <- share_results[c(12, 1:11),]
+
+
+# generating a gt table
+share_results_gt <- gt(share_results1, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                lower="[95%",
+                upper="conf.int.]"
+                # ATT.x="ATT",
+                # lower.x="[95%",
+                # upper.x="conf.int.]",
+                # ATT.y="ATT",
+                # lower.y="[95%",
+                # upper.y="conf.int.]"
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              # tab_spanner(label = "uncond. PTA",
+              #             columns = c("ATT.x", "lower.x", "upper.x")) |>
+              # tab_spanner(label = "Chinese operation",
+              #             columns = c("ATT.y", "lower.y", "upper.y")) |>
+              #tab_row_group(label = "by group:",
+                            #rows = contains("(")) |>
+              #row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(
+                                            cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)
+                                            # cells_body(columns=c(ATT.x),
+                                            #      rows = lower.x > 0 | upper.x < 0),
+                                            # cells_body(columns=c(ATT.y),
+                                            #      rows = lower.y > 0 | upper.y < 0)
+                                           ),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+share_results_gt
+
+
+# NE Global Financial Crisis effect
+
+port_data_TEU_EX_out <- port_data_TEU_out %>% filter(region_pair=="NEEX_region" | region_pair=="SEEX_region") %>% 
+  group_by(port_code, partner_code) %>% 
+  mutate(port_id = cur_group_id()) %>% ungroup() %>%
+  mutate(group3 = ifelse(reporter_region=="NE", 47, 0))
+
+attgt_share <- att_gt(yname = "container",            #outcome variable
+                      tname = "period",                 #time variable
+                      idname = "port_id",                    #id for units (should be port_code*partner)
+                      gname = "group3",                    #grouping variable for first treatment. Is zero for never treated units
+                      #xformla = ~X,                  #for potential covariates
+                      #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+                      allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+                      #est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+                      data = port_data_TEU_EX_out)
+
+# attgt_share_cond <- att_gt(yname = "share_china",            #outcome variable
+#                 tname = "period",                 #time variable
+#                 idname = "port_id",                    #id for units (should be port_code*partner)
+#                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+#                 xformla = ~mean_container+real_gdp_reporter,                  #for potential covariates
+#                 #control_group="notyettreated",  #use not yet treated units as control group in addition to never treated units
+#                 allow_unbalanced_panel = TRUE,  #allows he use of unbalanced panel data. Increases computation time.
+#                 est_method = "reg",             #indicates which estimation method should be used ("ipw", inverse probability weighting or "reg" for regression)
+#                 data = port_data_agg)
+
+
+# option 1: simple weighted average treatment effect with weights proportional to the group size
+agg_simple_share <- aggte(attgt_share, type = "simple", na.rm=T)
+#agg_simple_share_cond <- aggte(attgt_share_cond, type = "simple", na.rm=T)
+
+# option 2: event-study type aggregation by time under treatment
+agg_es_share <- aggte(attgt_share, type = "dynamic", na.rm=T)
+#agg_es_share_cond <- aggte(attgt_share_cond, type = "dynamic", na.rm=T)
+
+# option 3: groupwise treatment effects
+agg_gs_share <- aggte(attgt_share, type = "group", na.rm=T)
+#agg_gs_share_cond <- aggte(attgt_share_cond, type = "group", na.rm=T)
+
+
+# make group list
+group2 <- c(47)
+treatment2 <- c('NE ports after GFC (47)')
+
+port_group_list_NEEX2 <- data.frame(group2,treatment2)
+
+
+#port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]
+# putting together the results
+share_results2 <- data.frame(Estimate = c("simple average", port_group_list_NEEX2$treatment2[match(as.character(agg_gs_share$egt), port_group_list_NEEX2$group2)]),
+                             ATT = c(agg_simple_share$overall.att,
+                                     agg_gs_share$att.egt),
+                             lower = c(agg_simple_share$overall.att-(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt-(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)),
+                             upper = c(agg_simple_share$overall.att+(agg_simple_share$overall.se*1.95), agg_gs_share$att.egt+(agg_gs_share$se.egt*agg_gs_share$crit.val.egt)))
+
+# share_results2 <- data.frame(Estimate = c("simple average", port_group_list$ports[match(as.character(agg_gs_op_share$egt), port_group_list$group)]),
+#                        ATT = c(agg_simple_op_share$overall.att,
+#                                    agg_gs_op_share$att.egt),
+#                       lower = c(agg_simple_op_share$overall.att-(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt-(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)),
+#                       upper = c(agg_simple_op_share$overall.att+(agg_simple_op_share$overall.se*1.95), agg_gs_op_share$att.egt+(agg_gs_op_share$se.egt*agg_gs_op_share$crit.val.egt)))
+# share_results <- merge(share_results1, share_results2, by.x = "Estimate", by.y = "Estimate", all =  T)
+#share_results <- share_results[c(12, 1:11),]
+
+
+# generating a gt table
+share_results_gt2 <- gt(share_results2, rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time average treatment effects",
+                subtitle = "Control group: Never treated") |>
+              cols_label(
+                lower="[95%",
+                upper="conf.int.]"
+                # ATT.x="ATT",
+                # lower.x="[95%",
+                # upper.x="conf.int.]",
+                # ATT.y="ATT",
+                # lower.y="[95%",
+                # upper.y="conf.int.]"
+              ) |>
+              tab_spanner(label = "uncond. PTA",
+                          columns = c("ATT", "lower", "upper")) |>
+              # tab_spanner(label = "uncond. PTA",
+              #             columns = c("ATT.x", "lower.x", "upper.x")) |>
+              # tab_spanner(label = "Chinese operation",
+              #             columns = c("ATT.y", "lower.y", "upper.y")) |>
+              #tab_row_group(label = "by group:",
+                            #rows = contains("(")) |>
+              #row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Confidence interval does not include zero.",
+                           location = list(
+                                            cells_body(columns=c(ATT),
+                                                 rows = lower > 0 | upper < 0)
+                                            # cells_body(columns=c(ATT.x),
+                                            #      rows = lower.x > 0 | upper.x < 0),
+                                            # cells_body(columns=c(ATT.y),
+                                            #      rows = lower.y > 0 | upper.y < 0)
+                                           ),
+                           placement = "right") |>
+              tab_footnote(footnote = "First treatment period in brackets.") |>
+              opt_footnote_marks(marks = "standard") |>
+              fmt_number(decimals = 2)
+
+share_results_gt2
+```
+
+The Diff-in-Diff estimation suggests a negative effect of the Global financial crisis of NE ports' outflows as compared to SE ports' outflows on the European port sample. Within the sample of NE ports, the Global financial crisis has decreased especially outflows to the US.
+
+The negative effect on the US outflows vanishes when clustering the standard error not only to reporter_code but to reporter_code*port_code.
+
+*Why were only NE ports outflows affected not their inflows?*
+
+# spider graph information
+
+port_data_TEU_in_firstperiod <- port_data_TEU_in %>% filter(year>=2000 & year<=2005) %>% 
+  group_by(port, partner_region) %>% 
+  mutate(mean_container = mean(container)) %>% 
+  select(port, partner_region, mean_container, year, quarter)
+  
+port_data_TEU_in_lastperiod <- port_data_TEU_in %>% filter(year>=2015 & year<=2020) %>% 
+  group_by(port, partner_region) %>% 
+  mutate(mean_container = mean(container)) %>% 
+  select(port, partner_region, mean_container, year, quarter)
+  
+port_data_TEU_out_firstperiod <- port_data_TEU_out %>% filter(year>=2000 & year<=2005) %>% 
+  group_by(port, partner_region) %>% 
+  mutate(mean_container = mean(container)) %>% 
+  select(port, partner_region, mean_container, year, quarter)
+  
+port_data_TEU_out_lastperiod <- port_data_TEU_out %>% filter(year>=2015 & year<=2020) %>% 
+  group_by(port, partner_region) %>% 
+  mutate(mean_container = mean(container)) %>% 
+  select(port, partner_region, mean_container, year, quarter)
+  
+port_data_TEU_out_firstperiod_ag <- port_data_TEU_out %>% filter(year>=2000 & year<=2005) %>% 
+  group_by(port) %>% 
+  mutate(mean_container = mean(container)) %>% 
+  select(port, partner_region, mean_container, year, quarter)
+  
+port_data_TEU_out_lastperiod_ag <- port_data_TEU_out %>% filter(year>=2015 & year<=2020) %>% 
+  group_by(port) %>% 
+  mutate(mean_container = mean(container)) %>% 
+  select(port, partner_region, mean_container, year, quarter)
