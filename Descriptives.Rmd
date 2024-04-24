@@ -17,6 +17,7 @@ library(dplyr)
 library(tidyr)
 library(patchwork)
 library(ggplot2)
+library(gt)
 library(readxl)
 library(knitr)
 library(cowplot)
@@ -85,14 +86,24 @@ Most of the throughput concentrates in a few hundred ports. Limiting the sample 
 
 ```{r echo=FALSE}
 
-port_data_TEU %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & total_TEU>0)) %>%
+distribution_ports <- port_data_TEU %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & total_TEU>0)) %>%
          group_by(port) %>% summarise(throughput=sum(total_TEU, na.rm=T), china=max(china, na.rm = T)) %>% ungroup() %>%
          mutate(throughput = throughput/sum(throughput)) %>% arrange(desc(throughput)) %>% mutate(n=row_number()) %>%
          ggplot( aes(x=n, y=cumsum(throughput))) + geom_point(aes(colour = china)) + 
          ylab("cummulative share of throughput") +
          xlab("number of ports") +
-         labs(title = "Cumulative container throughput by ports (2010-2023)", caption = "Blue dots are ports that process chinese goods.") 
-# 223 ports make up for 95 percent of shipments
+         labs(title = "Cumulative container throughput by ports (2010-2023)") +
+         theme_minimal() +
+              theme(panel.background = element_blank(),
+                    strip.text = element_text(hjust = 0, size=12),
+                    text = element_text(size=10, family="LM Roman 10"),
+                    legend.position = "none")
+
+note <- ggdraw() + geom_text(aes(label="Note: Blue dots are ports that process Chinese containers."), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 3, family="LM Roman 10")
+
+plot_grid(distribution_ports, note, ncol = 1, rel_heights = c(0.95,0.05))
+
+#ggsave(width=10, height=15, filename = "port_ts_graph.pdf", path = file.path(getwd(), "figures"))
 
 
 
@@ -380,6 +391,75 @@ plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
 
 ggsave(width=10, height=15, filename = "port_ts_graph.pdf", path = file.path(getwd(), "figures"))
 ```
+
+```{r include=F}
+
+# calculate summary statistics by group
+
+#controls
+sumstat_controls <- port_data_agg %>% group_by(port_id) %>% mutate(treated=max(ownership_china)) %>% ungroup() %>%
+                                      filter(treated==0, container!=0) %>% arrange(port_id, period) %>%
+                                      group_by(port_id) %>%
+                                      summarize(across(container, list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
+                                                across(container, ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
+                                      ungroup() %>% select(-port_id) %>%
+                                      summarize(across(ends_with("mean"), mean, .names = "{col}"),
+                                                across(ends_with("grate"),~ mean(.x,na.rm=T), .names = "{col}")) %>% 
+                                      pivot_longer(cols = starts_with(c("container_")), 
+                                                   names_to = c("vars", ".value"),
+                                                   names_pattern = "(.*)_(.*)")
+#treated 
+sumstat_treated <- port_data_agg %>% group_by(port_id) %>% mutate(treated=max(ownership_china))  %>%
+                                      filter(treated==1, container!=0) %>% arrange(port_id, period) %>%
+                                      mutate(across(container, ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
+                                      group_by(port_id, ownership_china) %>%
+                                      summarize(across(container, list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
+                                                across(container_mean, ~ max(.x))) %>%
+                                      group_by(ownership_china) %>% 
+                                      summarize(across(ends_with("mean"), mean, .names = "{col}"),
+                                                across(ends_with("grate"),~ mean(.x,na.rm=T), .names = "{col}")) %>%
+                                      pivot_wider(names_from = "ownership_china", values_from = ends_with("grate"), names_glue = "{.value}{ownership_china}") %>% 
+                                      pivot_longer(cols = starts_with(c("container_")), 
+                                                   names_to = c("vars", ".value"),
+                                                   names_pattern = "(.*)_(.*)")
+
+#combine
+sumstats <- merge(sumstat_controls, sumstat_treated, by=c("vars")) 
+  
+    
+
+```
+```{r include=TRUE}
+# generate a gt table
+
+sumstats_gt <- gt(sumstats, rowname_col = "vars") |>
+              tab_header(
+                title = "Summary statistics") |>
+              cols_label(
+                mean.x="mean",
+                agrate="av. delta",
+                mean.y="mean",
+                agrate0="av.delta (t<t*)",
+                agrate1="av.delta (t>t*)"
+              ) |>
+              tab_spanner(label = "Control group",
+                          columns = c("mean.x", "agrate")) |>
+              tab_spanner(label = "Treated",
+                          columns = c("mean.y", "agrate0", "agrate1")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "") |>
+              tab_options(stub.border.width = 0,
+                          table_body.hlines.width = 0
+              )
+
+sumstats_gt
+
+
+```
+
+
 
 ## Data availability for treated ports
 
