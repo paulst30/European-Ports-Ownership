@@ -12,7 +12,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 ```{r include=FALSE, warning=FALSE, message=FALSE}
 library(dplyr)
 library(tidyr)
@@ -42,8 +41,6 @@ port_data_TEU <- filter(port_data_TEU, aggregate==0,
              mutate(pair_id=cur_group_id()) %>% ungroup() %>%
              rename(container=total_TEU)
 
-port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
-
 port_data_agg <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container) & (sender_code=="CN_X_HK" | sender_code=="HK"),container,0)) %>%
                                group_by(port, port_code, period, reporter_code) %>% 
                                summarize(container = sum(container, na.rm=T),
@@ -58,8 +55,6 @@ port_data_agg <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container
                               group_by(port_code) %>% 
                               mutate(port_id = cur_group_id(),
                                      mean_container = mean(container, na.rm=T)) %>% ungroup()
-
-port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
 
 port_data_agg_ny <- port_data_agg %>% filter(group!=0)
 

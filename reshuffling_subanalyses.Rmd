@@ -19,6 +19,8 @@ library(fixest)
 library(did)
 library(gt)
 library(CInf)
+library(stringr)
+
 
 load("port_data_TEU_out.RData")
 
@@ -145,7 +147,11 @@ port_data_TEU_out_SESE <- port_data_TEU_out %>%
   filter(region_pair=="SESE_region") %>%
   group_by(port_code) %>% 
   mutate(port_id = cur_group_id(),
+<<<<<<< HEAD
+         mean_container=mean(container))
+=======
          mean_container=mean(container)) 
+>>>>>>> 99176b3e5cc3c61684884a1f70561e368b069f67
 
 
 #### Estimation ot ATT with never treated as control group ####
