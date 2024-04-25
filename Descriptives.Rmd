@@ -91,20 +91,20 @@ distribution_ports <- port_data_TEU %>% filter(year>=2010) %>% mutate(china = ((
          group_by(port) %>% summarise(throughput=sum(total_TEU, na.rm=T), china=max(china, na.rm = T)) %>% ungroup() %>%
          mutate(throughput = throughput/sum(throughput)) %>% arrange(desc(throughput)) %>% mutate(n=row_number()) %>%
          ggplot( aes(x=n, y=cumsum(throughput))) + geom_point(aes(colour = china)) + 
-         ylab("cummulative share of throughput") +
+         ylab("share of throughput") +
          xlab("number of ports") +
-         labs(title = "Cumulative container throughput by ports (2010-2023)") +
+         #labs(title = "Cumulative container throughput by ports (2010-2023)") +
          theme_minimal() +
               theme(panel.background = element_blank(),
                     strip.text = element_text(hjust = 0, size=12),
-                    text = element_text(size=10, family="LM Roman 10"),
+                    text = element_text(size=14, family="LM Roman 10"),
                     legend.position = "none")
 
-note <- ggdraw() + geom_text(aes(label="Note: Blue dots are ports that process Chinese containers."), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 3, family="LM Roman 10")
+note <- ggdraw() + geom_text(aes(label="Note: Blue dots are ports that process Chinese containers. \nData source: Eurostat."), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 5, family="LM Roman 10")
 
-plot_grid(distribution_ports, note, ncol = 1, rel_heights = c(0.95,0.05))
+plot_grid(distribution_ports, note, ncol = 1, rel_heights = c(0.85,0.15))
 
-#ggsave(width=10, height=15, filename = "port_ts_graph.pdf", path = file.path(getwd(), "figures"))
+ggsave(width=12, height=7, filename = "cumulative_throughput_share.pdf", path = file.path(getwd(), "figures"))
 
 
 
@@ -150,9 +150,15 @@ port_data_TEU <- filter(port_data_TEU, TEU_yrly >=20000, port_code!="DEHAM") #ex
 port_data_agg <- port_data_TEU %>% group_by(port, port_code, period) %>% 
                                summarize(container = sum(total_TEU, na.rm=T),
                                          group = max(group),
+                                         year = max(year),
                                          ownership_china = max(ownership_china)) %>% ungroup() %>%
                               group_by(port_code) %>% 
                               mutate(port_id = cur_group_id()) %>% ungroup()
+
+#exclude Rotterdam
+port_data_TEU$total_TEU[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
+port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
+
 ```
 
 # Sample
@@ -338,12 +344,13 @@ Originally, we found 26 ports which were at some point at least partly owned by 
 
 The following graph display all 18 treated ports and their annual container throughput as a share of their mean container throughput. The vertical lines indicate treatment time. Solid line represent the container throughput of the respective port. The dashed line represents the average throughput of the control group. Note that not all ports report the throughput for every period. This might influence the average.
 
-```{r echo=FALSE, message=FALSE, fig.dim = c(8, 14)}
+```{r echo=FALSE, message=FALSE, warning=F, fig.dim = c(8, 14)}
 treated_ports <- port_data_TEU %>% filter(group!=0) %>% 
                  group_by(port_code, time) %>% 
                  summarize(total_TEU = sum(total_TEU, na.rm=T)) %>% 
                  group_by(port_code) %>% summarise(max = max(total_TEU, na.rm=T)) %>% 
                  arrange(desc(max)) %>% pull(port_code)
+
 plot_list <- list()
 
 for (i in 1:length(treated_ports)){
@@ -354,12 +361,13 @@ for (i in 1:length(treated_ports)){
   plot_list[[i]] <- port_data_TEU %>% filter(port_code==treated_ports[i] | group==0) %>% group_by(port_code, time) %>%
                                          summarize(sum = sum(total_TEU, na.rm=T),
                                                    ownership_china = max(ownership_china),
-                                                   group = max(group)) %>% 
+                                                   group = max(group),
+                                                   year = max(year)) %>% 
                                                   #group_by(port_code) %>% 
                                                   #mutate(sum = sum / mean(sum, na.rm=T)) %>% 
                                                    group_by(group, time) %>% 
                                          summarize(count = n_distinct(port_code),
-                                                   container = sum(sum, na.rm=T)/count,
+                                                   container = ifelse(port_code=="NLRTM" & between(year,2011,2020), NA, sum(sum, na.rm=T)/count),
                                                    ownership_china = max(ownership_china)) %>%
               ggplot(aes(x=time, y=container/1000)) + geom_line(aes(linetype=as.factor(group))) +
               geom_vline(xintercept = treatment_time) +
