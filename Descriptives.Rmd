@@ -425,18 +425,20 @@ sumstat_treated <- port_data_agg %>% group_by(port_id) %>% mutate(treated=max(ow
                                                    names_pattern = "(.*)_(.*)")
 
 #combine
-sumstats <- merge(sumstat_controls, sumstat_treated, by=c("vars")) 
+sumstats <- merge(sumstat_controls, sumstat_treated, by=c("vars")) %>%
+            mutate(across(c("mean.x","agrate","mean.y","agrate0","agrate1"), ~ format(round(.,digits=0), big.mark = ",")))
   
     
 
 ```
+
 ```{r include=TRUE}
 # generate latex table
 
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(sumstats))
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{6}{l}{\\shortstack[l]{\\small Note: $\\Delta$ refers to average quarterly changes. Ports recieved equal \\\\ weights in the calculation of means and average changes.\\\\}}")
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{6}{l}{\\shortstack[l]{\\small Note: $\\Delta$ refers to average quarterly changes. Ports recieved equal \\\\ weights in the calculation of means and average changes.}}\\\\")
 
 # Modify the LaTeX code
 latex_code <- print.xtable(xtable(sumstats, caption = "Summary statistics"),
@@ -448,7 +450,7 @@ latex_code <- print.xtable(xtable(sumstats, caption = "Summary statistics"),
                            size = "\\begin{adjustbox}{max width=\\textwidth}")
 
 latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox}", latex_code)
-latex_code <- gsub("vars & mean.x & agrate & mean.y & agrate0 & agrate1"," & \\\\multicolumn{2}{c}{Control group} & \\\\multicolumn{3}{c}{Treatment group} \\\\\\\\\n \\\\cmidrule(lr){2-3} \\\\cmidrule(lr){4-6}  Var. & mean & $\\\\Delta$ & mean & $\\\\Delta$ [$t \\\\leq t^*$] & $\\\\Delta$ [$t>t^*$]", latex_code)
+latex_code <- gsub("vars & mean.x & agrate & mean.y & agrate0 & agrate1"," & \\\\multicolumn{2}{c}{Control group [n=XX]} & \\\\multicolumn{3}{c}{Treatment group [n=XX]} \\\\\\\\\n \\\\cmidrule(lr){2-3} \\\\cmidrule(lr){4-6}  Var. & mean & $\\\\Delta$ & mean & $\\\\Delta$ [$t \\\\leq t^*$] & $\\\\Delta$ [$t>t^*$]", latex_code)
 
 # Save modified LaTeX code to a .tex file
 cat(latex_code, file = file.path(getwd(), "results_tables", "sumstats.tex"))
