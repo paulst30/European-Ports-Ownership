@@ -159,6 +159,7 @@ port_data_agg <- port_data_TEU %>% group_by(port, port_code, period) %>%
                                summarize(container = sum(total_TEU, na.rm=T),
                                          group = max(group),
                                          year = max(year),
+                                         quarter = max(quarter),
                                          ownership_china = max(ownership_china),
                                          lat = mean(lat),
                                          long = mean(long)) %>% ungroup() %>%
@@ -503,42 +504,68 @@ sumstats_gt
 ```
 
 ```{r include=FALSE}
+# add Port liner connectivity index
+
+PLCI <- read.csv("PLCI_cleaned")
+
 # generate map 
-european_ports <- port_data_agg %>% filter(year==2020 | year==2000, !is.na(lat), !is.na(long)) %>% group_by(port, year) %>%
-                                    summarize(container = sum(container),
+european_ports <- port_data_agg %>% merge(PLCI, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.y=T) %>%
+                                    filter(year==2020 | year==2006, !is.na(lat), !is.na(long)) %>% group_by(port, year) %>%
+                                    summarize(#container = sum(container),
+                                              plci_value = mean(plci_value),
                                               lat = mean(lat),
                                               long = mean(long),
                                               ownership_china = max(ownership_china)) %>% group_by(port) %>%
                                     mutate(ownership_china=max(ownership_china)) %>%
-                                    pivot_wider(names_from = year, values_from = container, names_prefix = "y") %>%
-                                    mutate(delta=y2020-y2000,
-                                           growth=(y2020/y2000-1)*100)
+                                    pivot_wider(names_from = year, values_from = plci_value, names_prefix = "y") %>%
+                                    mutate(delta=y2020-y2006,
+                                           growth=(y2020/y2006-1)*100,
+                                           pos = as.factor(ifelse(delta>0,"PLCI increase", "PLCI decrease"))) %>% 
+                                    filter(!is.na(pos))
 
 
 world <- ne_countries(scale = "medium", returnclass = "sf")    
 
 # Create a ggplot object
 ggmap_change <- ggplot(data=world) + geom_sf() +
-            geom_point(data = european_ports[european_ports$ownership_china==0,], aes(x = long, y = lat, size = delta, color = ownership_china), shape = 24, color="blue", fill="blue") +
-            geom_point(data = european_ports[european_ports$ownership_china==1,], aes(x = long, y = lat, size = delta), shape = 24, color = "red", fill="red") + #shape 24 would be trianlges
-            coord_sf(xlim = c(-13,28), ylim = c(34,60), expand = FALSE)  + 
-            theme(#legend.position = "none",
+            geom_point(data = european_ports, aes(x = long, y = lat, size = growth, shape=pos ), fill = ifelse(european_ports$pos=="PLCI increase","green4", "red3")) +
+            geom_segment(aes(x = -18, y = 46, 
+                             xend = 0, yend = 46), 
+                             linetype = "dashed", color = "black") +  # Horizontal segment
+            geom_segment(aes(x = 0, y = 46, 
+                             xend = 28, yend = 51), 
+                             linetype = "dashed", color = "black") +
+            annotate("text", x=-14.5, y=58, label="North", family="LM Roman 10")+
+            annotate("text", x=-14.5, y=57, label="~Delta==XX",parse=T, family="LM Roman 10")+
+            annotate("text", x=-14.5, y=44, label="South", family="LM Roman 10")+
+            annotate("text", x=-14.5, y=43, label="~Delta==XX",parse=T, family="LM Roman 10")+
+            #geom_text(aes(x=-17, y=47, label="North", hjust=-0.5), color="black")+
+            #geom_text(aes(x=-17,y=45, label="South", hjust=-0.5), color="black")+
+            coord_sf(xlim = c(-18,28), ylim = c(31,60), expand = FALSE)  + 
+            theme(legend.position = "bottom",
+                  text = element_text(size=10, family="LM Roman 10"),
                   axis.title = element_blank(),
                   axis.text = element_blank(),
                   axis.ticks.x = element_blank(),
                   axis.ticks.length = unit(.1, "pt"),
                   axis.ticks.y = element_blank(),
-                  panel.border = element_rect(color = "black", fill = NA, size = 1.5),
+                  panel.border = element_rect(color = "black", fill = NA, size = 1),
                   panel.grid.major = element_blank(),
                   panel.grid.minor = element_blank(),
                   panel.background = element_rect(fill = "grey98"),
-                  plot.margin = margin(0, 0, 0, 0)
+                  plot.margin = margin(0, 0, 0, 0),
+                  legend.background = element_rect(fill = "white"),
+                  legend.box.background = element_rect(colour = "black")
                   )+
-  scale_fill_gradient(na.value="white",low = "grey80", high = "grey30")
+  scale_shape_manual(values=c(25,24)) +
+  scale_fill_gradient(na.value="white",low = "grey80", high = "grey30")+
+  guides(size = "none",
+          shape = guide_legend(title = "",
+                               override.aes = list(shape = c(25, 24),fill = c("red3","green4"))))
 
 
 
-
+legend <- get_legend(ggmap_change)
 
 
 ```
@@ -546,7 +573,13 @@ ggmap_change <- ggplot(data=world) + geom_sf() +
 ```{r warning=F}
 # plot
 
-ggmap_change
+map <- ggdraw(ggmap_change+ theme(legend.position = "none")) + draw_plot(legend, x=0,y=-0.44)
+
+note2 <- ggdraw() + geom_text(aes(label="Note: Size of the triangles indicate change in the Port Liner Connectivity Index (PLCI) in percent. \nData source: UNCTAD."), x = 0.21, y = 0, hjust = 0, vjust=-.55, size = 4, family="LM Roman 10")
+
+plot_grid(map,note2, rel_heights = c(0.9,0.1), ncol = 1)
+ggsave(width=12, height=7, filename = "map.pdf", path = file.path(getwd(), "figures"))
+
 
 ```
 
