@@ -155,7 +155,7 @@ port_data_TEU %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" 
 ```{r, include=FALSE}
 port_data_TEU <- filter(port_data_TEU, TEU_yrly >=20000, port_code!="DEHAM") #exclude port that have an average yearly container throughput above 20000
 
-port_data_agg <- port_data_TEU %>% group_by(port, port_code, period) %>% 
+port_data_agg <- port_data_TEU %>% group_by(port, port_code, period, reporter_code) %>% 
                                summarize(container = sum(total_TEU, na.rm=T),
                                          group = max(group),
                                          year = max(year),
@@ -507,10 +507,12 @@ sumstats_gt
 # add Port liner connectivity index
 
 PLCI <- read.csv("PLCI_cleaned")
+partner_region <- read_excel(file.path(getwd(),"partner_region.xlsx"))
 
 # generate map 
 european_ports <- port_data_agg %>% merge(PLCI, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.y=T) %>%
-                                    filter(year==2020 | year==2006, !is.na(lat), !is.na(long)) %>% group_by(port, year) %>%
+                                    merge(partner_region, by.x = "reporter_code", by.y="partner_code", all.x = T) %>%
+                                    filter(year==2020 | year==2006, !is.na(lat), !is.na(long)) %>% group_by(port, partner_region ,year) %>%
                                     summarize(#container = sum(container),
                                               plci_value = mean(plci_value),
                                               lat = mean(lat),
@@ -521,7 +523,10 @@ european_ports <- port_data_agg %>% merge(PLCI, by.x = c("port_code", "year", "q
                                     mutate(delta=y2020-y2006,
                                            growth=(y2020/y2006-1)*100,
                                            pos = as.factor(ifelse(delta>0,"PLCI increase", "PLCI decrease"))) %>% 
-                                    filter(!is.na(pos))
+                                    filter(!is.na(pos)) %>% ungroup()
+
+ave_NE <- european_ports %>% filter(partner_region=="NE") %>% summarize(mean_delta=round(mean(growth,na.rm=T),digits = 1)) %>% pull(mean_delta)
+ave_SE <- european_ports %>% filter(partner_region=="SE") %>% summarize(mean_delta=round(mean(growth,na.rm=T),digits = 1)) %>% pull(mean_delta)
 
 
 world <- ne_countries(scale = "medium", returnclass = "sf")    
@@ -535,10 +540,10 @@ ggmap_change <- ggplot(data=world) + geom_sf() +
             geom_segment(aes(x = 0, y = 46, 
                              xend = 28, yend = 51), 
                              linetype = "dashed", color = "black") +
-            annotate("text", x=-14.5, y=58, label="North", family="LM Roman 10")+
-            annotate("text", x=-14.5, y=57, label="~Delta==XX",parse=T, family="LM Roman 10")+
-            annotate("text", x=-14.5, y=44, label="South", family="LM Roman 10")+
-            annotate("text", x=-14.5, y=43, label="~Delta==XX",parse=T, family="LM Roman 10")+
+            annotate("text", x=-17, y=59, label="North", family="LM Roman 10", hjust=0)+
+            annotate("text", x=-17, y=58, label=paste0("~Delta==",ave_NE,"*'%'"),parse=T, family="LM Roman 10", hjust=0)+
+            annotate("text", x=-17, y=45, label="South", family="LM Roman 10",hjust=0)+
+            annotate("text", x=-17, y=44, label=paste0("~Delta==",ave_SE,"*'%'"),parse=T, family="LM Roman 10", hjust=0)+
             #geom_text(aes(x=-17, y=47, label="North", hjust=-0.5), color="black")+
             #geom_text(aes(x=-17,y=45, label="South", hjust=-0.5), color="black")+
             coord_sf(xlim = c(-18,28), ylim = c(31,60), expand = FALSE)  + 
