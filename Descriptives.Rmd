@@ -492,7 +492,7 @@ latex_code <- print.xtable(xtable(sumstats, caption = "Summary statistics"),
                            hline.after = c(-1,-1,0),
                            size = "\\begin{adjustbox}{max width=\\textwidth}")
 
-latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox}", latex_code)
+latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab_sumstats}", latex_code)
 latex_code <- gsub("vars & mean.x & agrate & mean.y & agrate0 & agrate1"," & \\\\multicolumn{2}{c}{Control group [N=109]} & \\\\multicolumn{3}{c}{Treatment group [N=18]} \\\\\\\\\n \\\\cmidrule(lr){2-3} \\\\cmidrule(lr){4-6}  Var. & mean & $\\\\Delta$ & mean & $\\\\Delta$ [$t \\\\leq t^*$] & $\\\\Delta$ [$t>t^*$]", latex_code)
 
 # Save modified LaTeX code to a .tex file
