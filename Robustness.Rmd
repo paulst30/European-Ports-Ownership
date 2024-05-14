@@ -25,6 +25,7 @@ library(gt)
 library(readxl)
 library(stringr)
 library(cowplot)
+library(xtable)
 library(extrafont)
 
 loadfonts(device = "win")
@@ -340,8 +341,35 @@ results_gt_rob <- gt(results, rowname_col = "Estimate") |>
                           missing_text = "") |>
               tab_footnote(footnote = "Confidence intervals are based on bootstrapped errors.")
 
-#save in separate directory
-gtsave(results_gt_rob, filename = "robustness_cosco_results.tex", path = file.path(getwd(),"results_tables"))
+
+#generate Latex table
+#add group row
+results<- rbind(results[1,],c("by group", rep("", ncol(results)-1)) ,results[2:7,]) 
+
+
+# Insert multirow cell into the appropriate position in the LaTeX code
+addtorow <- list()
+addtorow$pos <- list(nrow(results),1)
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{3}{l}{\\shortstack[l]{Stars indicate that the uniform confidence interval \\\\does not include zero.\\\\}}", 
+                      "[1ex]")
+
+# Modify the LaTeX code
+latex_code <- print.xtable(xtable(results, caption = "Cosco terminal treatment effects"),
+                           label = "tab:cosco_results",
+                           caption.placement = "top",
+                           include.rownames = FALSE,
+                           add.to.row = addtorow,
+                           hline.after = c(-1,-1,0, 2),
+                           size = "\\begin{adjustbox}{max width=\\textwidth}")
+
+latex_code <- gsub("Estimate & ATT & Conf"," & ATT & 95\\\\% CI ", latex_code)
+
+latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:cosco_results}", latex_code)
+latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
+latex_code <- gsub("lll", "lcc", latex_code)
+
+# Save modified LaTeX code to a .tex file
+cat(latex_code, file = file.path(getwd(), "results_tables", "cosco_results.tex"))
 
 ```
 
@@ -450,8 +478,34 @@ results_gt_woCHN <- gt(results_final, rowname_col = "Estimate") |>
                           missing_text = "") |>
               tab_footnote(footnote = "Confidence intervals are based on bootstrapped errors. ")
 
-#save in separate directory
-gtsave(results_gt_woCHN, filename = "robustness_china_results.tex", path = file.path(getwd(),"results_tables"))
+
+#generate Latex table
+#add group row
+results_final <- rbind(results_final[1,],c("by group", rep("", ncol(results_final)-1)) ,results_final[2:19,]) 
+
+# Insert multirow cell into the appropriate position in the LaTeX code
+addtorow <- list()
+addtorow$pos <- list(nrow(results_final),1)
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Stars indicate that the uniform confidence interval does not include zero.\\\\}}", 
+                      "[1ex]")
+
+# Modify the LaTeX code
+latex_code <- print.xtable(xtable(results_final, caption = "Aggregation of group time treatment effects without China"),
+                           label = "tab:wochina_results",
+                           caption.placement = "top",
+                           include.rownames = FALSE,
+                           add.to.row = addtorow,
+                           hline.after = c(-1,-1,0, 2),
+                           size = "\\begin{adjustbox}{max width=\\textwidth}")
+
+latex_code <- gsub("Estimate & ATT & Conf & ATT1 & Conf1","Dependent var.: & \\\\multicolumn{2}{c}{TEU without China} & \\\\multicolumn{2}{c}{Share of Chinese TEU} \\\\\\\\\n \\\\cmidrule(lr){2-3} \\\\cmidrule(lr){4-5} PTA & Cond. & 95\\\\% CI & Uncond. & 95\\\\% CI" , latex_code)
+
+latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:wochina_results}", latex_code)
+latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
+latex_code <- gsub("lllll", "lcccc", latex_code)
+
+# Save modified LaTeX code to a .tex file
+cat(latex_code, file = file.path(getwd(), "results_tables", "wochina_results.tex"))
 
 ```
 
