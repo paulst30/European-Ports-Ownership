@@ -163,7 +163,8 @@ cat(esttex(spec1, spec2, spec3, spec4,
                                         fixef.suffix = "", yesNo = "yes"),
                     vcov = "twoway",
                     adjustbox = TRUE,
-                    title = "Fixed effects Results"
+                    title = "Fixed effects Results",
+                    label = "tab:fe_results"
                     #tex = TRUE
            ), file = file.path(getwd(),"results_tables","fe_results.tex"))
 
@@ -369,16 +370,16 @@ addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]
 
 # Modify the LaTeX code
 latex_code <- print.xtable(xtable(results_final, caption = "Aggregation of group time treatment effects"),
-                           label = "tab:did_baseline",
+                           label = "tab:did_results",
                            caption.placement = "top",
                            include.rownames = FALSE,
                            add.to.row = addtorow,
                            hline.after = c(-1,-1,0, 2),
                            size = "\\begin{adjustbox}{max width=\\textwidth}")
 
-latex_code <- gsub("Estimate & ATT & Conf & ATT\\\\_cond & Conf\\\\_cond & ATT\\\\_cond\\\\_ny & Conf\\\\_cond\\\\_ny","Control group: & \\\\multicolumn{4}{c}{Never treated} & \\\\multicolumn{2}{c}{Not yet treated} \\\\\\\\\n \\\\cmidrule(lr){2-5} \\\\cmidrule(lr){6-7}  PTA & Uncond. & 95\\\\% CI & Cond. & 95\\\\% CI & Uncond. & 95\\\\% CI ", latex_code)
+latex_code <- gsub("Estimate & ATT & Conf & ATT\\\\_cond & Conf\\\\_cond & ATT\\\\_cond\\\\_ny & Conf\\\\_cond\\\\_ny","Control group: & \\\\multicolumn{4}{c}{Never treated} & \\\\multicolumn{2}{c}{Not yet treated} \\\\\\\\\n \\\\cmidrule(lr){2-5} \\\\cmidrule(lr){6-7}  PTA & Uncond. & 95\\\\% CI & Cond. & 95\\\\% CI & Cond. & 95\\\\% CI ", latex_code)
 
-latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox}", latex_code)
+latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:did_results}", latex_code)
 latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
 latex_code <- gsub("lllllll", "lcccccc", latex_code)
 
