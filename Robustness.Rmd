@@ -292,22 +292,39 @@ The table below contrasts the throughput per ship slot of Cosco's terminals with
 #How many periods are allowed for adjustment process?
 treatmentlag <- 1
 
-robustness_cosco <- terminal_data[terminal_data$ships!=0,] %>% group_by(port_code) %>%
-                    mutate(group = ifelse(any(!is.na(terminal_TEU)), period[which.max(!is.na(terminal_TEU))] + treatmentlag, 0),
-                           port_id = cur_group_id()) %>%
-                    fill(group, .direction="downup") %>% ungroup() %>%
-                    mutate(cosco_vs_average = ifelse(treated==1, cosco_TEU_per_ship, untreat_TEU_per_ship))
+robustness_cosco <- terminal_data %>% filter(!is.na(terminal_TEU)) %>% merge(read.csv("WPI_data.csv"), by.x = c("port_code"), by.y=c("port_code"), all.x=T) %>% select(port_code, port, year, quarter, period, terminal_TEU, cosco_owned_ships, max_lift, cargo_depth) %>% rename(ships=cosco_owned_ships,
+                        container=terminal_TEU) %>%
+                 group_by(port_code) %>%
+                 mutate(group=min(period)+1) %>% ungroup()
+
+#manually add controls for Zeebrugge Antwerp
+robustness_cosco[robustness_cosco$port_code=="BE003", "max_lift"]<-12
+robustness_cosco[robustness_cosco$port_code=="BE003", "cargo_depth"]<-14
+
+#control ports
+control_ports <- port_data_agg %>% filter(group==0) %>% merge(terminal_number, by.x="port_code", by.y = "port_code", all.x=T)  
+
+# putting it all together
+robustness_cosco <- rbind(robustness_cosco, control_ports[, colnames(robustness_cosco)])%>% group_by(port_code) %>%
+                    mutate(mean_container=mean(container,na.rm=T),
+                           port_id=cur_group_id())
+
+
 
 port_group_list_rob <- robustness_cosco %>% filter(group!=0) %>% group_by(group) %>%
                                      summarize(ports = toString(unique(port)),
                                                id = mean(port_id))
 
+# estimation
+controls <- c("ships", "max_lift", "cargo_depth")
+var_controls <- c("mean_container")
 
-
-attgt_rob <- simple_staggered_did(yname = "cosco_vs_average",            #outcome variable
+attgt_rob <- simple_staggered_did(yname = "container",            #outcome variable
                 tname = "period",                 #time variable
                 idname = "port_id",                    #id for units (should be port_code*sender)
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
+                xformula = controls,
+                varformula = var_controls,
                 data = robustness_cosco)
 
 #making a table
