@@ -461,9 +461,7 @@ graph_results <- attgt_cond$grouptime_treatment_effects %>%
 # arrange ordering according to port size
 graph_results$port <- port_list$port[match(graph_results$id, port_list$id)]
 
-graph_results$mean <- port_data_agg$mean_container[match(graph_results$id, port_data_agg$port_id)]
-
-factor_level <- graph_results  %>% group_by(port) %>% slice(1)%>% arrange(desc(mean)) %>% pull(port)
+factor_level <- c("Rotterdam", "Antwerpen", "Valencia", "Piraeus", "Barcelona", "Le Havre","Ambarli", "Genova", "Marseille", "Zeebrugge", "Bilbao", "Gdynia", "Thessaloniki", "Dunkerque", "Nantes Saint Nazaire", "Moerdijk", "Amsterdam", "Marsaxlokk")
 
 graph_results$port <- factor(graph_results$port, levels=factor_level)
 
