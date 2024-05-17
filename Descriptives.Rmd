@@ -413,7 +413,7 @@ for (i in 1:length(treated_ports)){
 x.title <- ggdraw() + geom_text(aes(label="TEU (millions)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
 y.title <- ggdraw() + geom_text(aes(label="Year"), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
 
-note <- ggdraw() + geom_text(aes(label="Note: Vertical line indicates treatment timing."), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 3, family="LM Roman 10")
+note <- ggdraw() + geom_text(aes(label="Note: Vertical line indicates treatment timing.\nSource: Eurostat, own calculation."), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 4, family="LM Roman 10")
 
 legend <- get_legend(plot_list[[1]] + 
                        scale_linetype_discrete(labels=c( "treated", "average of untreated")) +
@@ -421,7 +421,7 @@ legend <- get_legend(plot_list[[1]] +
 
 plots <- plot_grid(plotlist = plot_list, ncol=3, align = "hv") 
 
-plots1 <- plot_grid(plots, y.title, legend,note, ncol=1, rel_heights = c(0.925,0.025, 0.025, 0.025) ) 
+plots1 <- plot_grid(plots, y.title, legend,note, ncol=1, rel_heights = c(0.9,0.025, 0.025, 0.05) ) 
 #plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
 
 plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
@@ -481,7 +481,7 @@ sumstats <- sumstats[c(2,1,3,4),]
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(sumstats))
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{6}{l}{\\shortstack[l]{\\small Note: $\\Delta$ refers to average quarterly changes. Ports recieved equal \\\\ weights in the calculation of means and average changes.}}\\\\")
+addtorow$command <- c("\\hline \\hline \\multicolumn{6}{l}{\\shortstack[l]{\\small Note: $\\Delta$ refers to average quarterly changes. Ports recieved equal \\\\ weights in the calculation of means and average changes.\\\\ Source: Eurostat, WPI, own calculation.}}\\\\")
 
 # Modify the LaTeX code
 latex_code <- print.xtable(xtable(sumstats, caption = "Summary statistics"),

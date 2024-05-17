@@ -365,7 +365,7 @@ results_final <- rbind(results[1,],c("by group", rep("", ncol(results)-1)) ,resu
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(results_final),1)
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Stars indicate that the uniform confidence interval does not include zero.\\\\}}", 
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval does not include zero.\\\\}}", 
                       "[1ex]")
 
 # Modify the LaTeX code
@@ -458,7 +458,15 @@ graph_results <- attgt_cond$grouptime_treatment_effects %>%
                          ymin=att-uniform_crit_val,
                          ymax=att+uniform_crit_val)
 
+# arrange ordering according to port size
 graph_results$port <- port_list$port[match(graph_results$id, port_list$id)]
+
+graph_results$mean <- port_data_agg$mean_container[match(graph_results$id, port_data_agg$port_id)]
+
+factor_level <- graph_results  %>% group_by(port) %>% slice(1)%>% arrange(desc(mean)) %>% pull(port)
+
+graph_results$port <- factor(graph_results$port, levels=factor_level)
+
 
 ggplot(graph_results, aes(x = t, y = att/1000)) + 
   geom_point(aes(shape = treatment ),fill= "white", size = 1.2) +
