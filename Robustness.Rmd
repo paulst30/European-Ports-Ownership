@@ -510,7 +510,7 @@ results_final <- rbind(results_final[1,],c("by group", rep("", ncol(results_fina
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(results_final),1)
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Stars indicate that the uniform confidence interval does not include zero.\\\\}}", 
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval does not include zero.\\\\}}", 
                       "[1ex]")
 
 # Modify the LaTeX code
