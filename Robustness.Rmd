@@ -70,6 +70,10 @@ port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$
 port_list <- port_data_agg %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
 
 
+#exclude Rotterdam
+port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
+port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
+
 # add Cosco and Terminal data to the data set
 terminal_data <- read_xlsx("terminal_throughput.xlsx")
 
@@ -145,7 +149,7 @@ for (i in seq_along(unique(terminal_data$port_code[terminal_data$treated==1]))) 
 
 
 
-graph_list[[i]] <- terminal_data %>% mutate(residual = ifelse(!is.na(terminal_TEU), container-terminal_TEU, container)) %>% 
+graph_list[[i]] <- terminal_data %>% mutate(residual = ifelse(!is.na(terminal_TEU) & container!=0, container-terminal_TEU, container)) %>% 
                           pivot_longer(c("terminal_TEU", "residual"), names_to = "type", values_to = "throughput") %>% 
                           filter(port_code==port_c) %>%
                           ggplot(aes(x=period, y=throughput/1000, fill=type)) + 
@@ -367,7 +371,7 @@ results<- rbind(results[1,],c("by group", rep("", ncol(results)-1)) ,results[2:7
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(results),1)
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{3}{l}{\\shortstack[l]{Stars indicate that the uniform confidence interval \\\\does not include zero.\\\\}}", 
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{3}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval \\\\does not include zero.\\\\}}", 
                       "[1ex]")
 
 # Modify the LaTeX code
@@ -420,6 +424,9 @@ port_data_agg_woCHN <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(con
                               mutate(port_id = cur_group_id(),
                                      mean_container = mean(container, na.rm=T)) %>% ungroup() %>%
                               merge(terminal_number, x.all=T)
+
+#exclude Rotterdam
+port_data_agg_woCHN$container[port_data_agg_woCHN$port_code=="NLRTM" & between(port_data_agg_woCHN$year,2011,2020)]<-NA
 
 
 attgt_woCHN <- simple_staggered_did(yname = "container",            #outcome variable
