@@ -170,23 +170,32 @@ port_data_TEU$total_TEU[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU
 port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
 
 # add terminal data to the data set
-terminal_data <- read_xlsx("port_manual_berth.xlsx")
+#terminal_data <- read_xlsx("port_manual_berth.xlsx")
 
-#load("berth_data.RData")
-#terminal_data <- berth_data
+load("berth_data.RData")
+terminal_data <- berth_data
   
 # add channel depth and cranes from World port index
 wpi_data <- read.csv("WPI_data.csv")
 
 # control variables
 control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
-               select(port_code,ships, cosco_owned_ships, cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth, lat, long)
+               select(port_code,
+                      #ships, cosco_owned_ships,
+                      year, quarter, quay_length, cranes,
+                      cranes_fixed, cranes_mobile, 
+                      cranes_floating, max_lift, 
+                      cargo_depth, lat, long)
 
 
 # merge with aggregated data
-port_data_agg <- merge(port_data_agg, control_var, by.x = c("port_code"), by.y = c("port_code"), all.x = T) 
+port_data_agg <- merge(port_data_agg, control_var, 
+                       by.x = c("port_code", "year", "quarter"), 
+                       by.y = c("port_code", "year", "quarter"), 
+                       all.x = T) 
 
-port_data_agg$ships[port_data_agg$ships==0] <- 1
+port_data_agg$cranes[port_data_agg$cranes==0] <- 1
+port_data_agg$quay_length[port_data_agg$quay_length==0] <- 1
 
 ```
 
@@ -436,41 +445,42 @@ ggsave(width=10, height=15, filename = "port_ts_graph.pdf", path = file.path(get
 
 #controls
 sumstat_controls <- port_data_agg %>% group_by(port_id) %>% mutate(treated=max(ownership_china)) %>% ungroup() %>%
-                                      filter(treated==0, container!=0, !is.na(ships) & !is.na(max_lift) & !is.na(cargo_depth)) %>% arrange(port_id, period) %>%
+                                      filter(treated==0, container!=0, !is.na(quay_length) & !is.na(cranes) & !is.na(max_lift) & !is.na(cargo_depth)) %>% 
+                                      arrange(port_id, period) %>%
                                       group_by(port_id) %>%
-                                      summarize(across(c("container", "ships", "max_lift", "cargo_depth"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
-                                                across(c("container", "ships", "max_lift", "cargo_depth"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>% 
-                                      filter(!is.nan(ships_mean), !is.nan(cargo_depth_mean))%>% 
+                                      summarize(across(c("container", "quay_length", "cranes", "max_lift", "cargo_depth"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
+                                                across(c("container", "quay_length", "cranes", "max_lift", "cargo_depth"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>% 
+                                      #filter(!is.nan(ships_mean), !is.nan(cargo_depth_mean))%>% 
                                       ungroup() %>% select(-port_id) %>%
                                       summarize(across(ends_with("mean"), mean, .names = "{col}"),
                                                 across(ends_with("grate"),~ mean(.x,na.rm=T), .names = "{col}")) %>% 
-                                      pivot_longer(cols = starts_with(c("container_", "ships_", "max_lift", "cargo_depth_")), 
+                                      pivot_longer(cols = starts_with(c("container_", "quay_length_", "cranes_", "max_lift", "cargo_depth_")), 
                                                    names_to = c("vars", ".value"),
                                                    names_pattern = "(.*)_(.*)")
 #treated 
 sumstat_treated <- port_data_agg %>% group_by(port_id) %>% mutate(treated=max(ownership_china))  %>%
                                       filter(treated==1, container!=0) %>% arrange(port_id, period) %>%
-                                      mutate(across(c("container", "ships", "max_lift", "cargo_depth"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
+                                      mutate(across(c("container", "quay_length", "cranes", "max_lift", "cargo_depth"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
                                       group_by(port_id, ownership_china) %>%
-                                      summarize(across(c("container", "ships", "max_lift", "cargo_depth"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
-                                                across(c("container_mean", "ships_mean", "max_lift_mean", "cargo_depth_mean"), ~ max(.x))) %>%
+                                      summarize(across(c("container", "quay_length", "cranes", "max_lift", "cargo_depth"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
+                                                across(c("container_mean", "quay_length_mean", "cranes_mean", "max_lift_mean", "cargo_depth_mean"), ~ max(.x))) %>%
                                       group_by(ownership_china) %>% 
                                       summarize(across(ends_with("mean"), mean, .names = "{col}"),
                                                 across(ends_with("grate"),~ mean(.x,na.rm=T), .names = "{col}")) %>%
                                       pivot_wider(names_from = "ownership_china", values_from = ends_with("grate"), names_glue = "{.value}{ownership_china}") %>% 
-                                      pivot_longer(cols = starts_with(c("container_", "ships_", "max_lift_", "cargo_depth_")), 
+                                      pivot_longer(cols = starts_with(c("container_", "quay_length_", "cranes_", "max_lift_", "cargo_depth_")), 
                                                    names_to = c("vars", ".value"),
                                                    names_pattern = "(.*)_(.*)")
 
 # number of ports for which controls are non missing
-length(unique(port_data_agg$port_id[!is.na(port_data_agg$ships) & !is.na(port_data_agg$max_lift) & !is.na(port_data_agg$cargo_depth)]))
+length(unique(port_data_agg$port_id[!is.na(port_data_agg$quay_length) & !is.na(port_data_agg$cranes) & !is.na(port_data_agg$max_lift) & !is.na(port_data_agg$cargo_depth)]))
 
 #combine
 sumstats <- merge(sumstat_controls, sumstat_treated, by=c("vars")) %>%
-            mutate(across(c("mean.x","agrate","mean.y","agrate0","agrate1"), ~ format(round(.,digits=0), big.mark = ","))) %>%
+            mutate(across(c("mean.x","agrate","mean.y","agrate0","agrate1"), ~ format(round(.,digits=2), big.mark = ","))) %>%
             mutate(across(starts_with("agrate"),~ifelse(.x=="0","-",.x)))
 
-sumstats <- sumstats[c(2,1,3,4),]
+sumstats <- sumstats[c(2,5,3,1,4),]
   
     
 

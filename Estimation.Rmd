@@ -77,33 +77,34 @@ port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$
 # Add Control variables --------------------------------------------------------
 
 # add terminal data to the data set
-terminal_data <- read_xlsx("port_manual_berth.xlsx")
+#terminal_data <- read_xlsx("port_manual_berth.xlsx")
 
-#load("berth_data.RData")
-#terminal_data <- berth_data
+load("berth_data.RData")
+terminal_data <- berth_data
   
 # add channel depth and cranes from World port index
 wpi_data <- read.csv("WPI_data.csv")
 
 # control variables
 control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
-               select(port_code,ships, cosco_owned_ships, cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth)
+               select(port_code, 
+                      year, quarter, quay_length, cranes, 
+                      cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth)
 
 
 # merge with aggregated data
-port_data_agg <- merge(port_data_agg, control_var, by.x = c("port_code"), by.y = c("port_code"), all.x = T) 
+port_data_agg <- merge(port_data_agg, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
 
-port_data_agg$ships[port_data_agg$ships==0] <- 1
+#port_data_agg$ships[port_data_agg$ships==0] <- 1
 
-
-#port_data_agg$quay_length[port_data_agg$quay_length==0] <- 100
-#port_data_agg$cranes[port_data_agg$cranes==0] <- 1
+port_data_agg$quay_length[port_data_agg$quay_length==0] <- 100
+port_data_agg$cranes[port_data_agg$cranes==0] <- 1
 
 ### Control variables for DID ####
 
 
-controls <- c("ships", "max_lift", "cargo_depth")
-var_controls <- c("mean_container")
+controls <- c("cranes", "max_lift", "cargo_depth")
+var_controls <- c("quay_length")
 
 #controls <- c("cranes", "max_lift", "cargo_depth")
 #var_controls <- c("quay_length")
