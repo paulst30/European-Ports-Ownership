@@ -120,7 +120,7 @@ var_controls <- c("quay_length")
 #### Estimation ot ATT with never treated as control group ####
 attgt <- simple_staggered_did(yname = "partner_number",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               #xformula = c("ships"),
                               #varformula = c("ships"),
@@ -130,7 +130,7 @@ attgt <- simple_staggered_did(yname = "partner_number",            #outcome vari
 
 attgt_cond <- simple_staggered_did(yname = "partner_number",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
@@ -171,7 +171,7 @@ results <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 #### Estimate ATT with not-yet-treated control group ####
 attgt_ny <- simple_staggered_did(yname = "partner_number",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               #xformula = c("ships"),
                               #varformula = c("ships"),
@@ -181,7 +181,7 @@ attgt_ny <- simple_staggered_did(yname = "partner_number",            #outcome v
 
 attgt_cond_ny <- simple_staggered_did(yname = "partner_number",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
@@ -412,25 +412,33 @@ port_data_TEU <- port_data_TEU %>%
 
 port_list <- port_data_TEU %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
 
+# # smaller sample for testing
+# control_ids <- sample(unique(port_data_TEU$port_id[port_data_TEU$group==0]), 10)
+# treat_ids <- sample(unique(port_data_TEU$port_id[port_data_TEU$group!=0]), 5)
+# test_ids <- c(control_ids, treat_ids)
+# test_sample <- port_data_TEU %>% filter(port_id %in% test_ids) #test sample
+
 #### Estimation ot ATT with never treated as control group ####
 attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",                    
+                              idname = "pair_id",                 #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               #xformula = c("ships"),
                               #varformula = c("ships"),
                               #control_group = "not_yet_treated",
-                              data = port_data_TEU)
+                              data = port_data_TEU) #data = test_sample)
 
 
 attgt_cond <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",                    
+                              idname = "pair_id",                 #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
                               #control_group = "not_yet_treated",
-                              data = port_data_TEU)
+                              data = port_data_TEU) #data = test_sample)
 
 
 
@@ -466,7 +474,7 @@ results <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 #### Estimate ATT with not-yet-treated control group ####
 attgt_ny <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               #xformula = c("ships"),
                               #varformula = c("ships"),
@@ -476,7 +484,7 @@ attgt_ny <- simple_staggered_did(yname = "container",            #outcome variab
 
 attgt_cond_ny <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,

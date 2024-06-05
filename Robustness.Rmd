@@ -271,7 +271,7 @@ port_group_list_rob <- robustness_cosco %>% filter(group!=0) %>% group_by(group)
 
 attgt_rob <- simple_staggered_did(yname = "container",            #outcome variable
                 tname = "period",                 #time variable
-                idname = "port_id",                    #id for units (should be port_code*sender)
+                unitname = "port_id",                    #id for units (should be port_code*sender)
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
                 xformula = controls,
                 varformula = var_controls,
@@ -376,7 +376,7 @@ port_data_agg_woCHN$cranes[port_data_agg_woCHN$cranes==0] <- 1
 
 attgt_woCHN <- simple_staggered_did(yname = "container",            #outcome variable
                 tname = "period",                 #time variable
-                idname = "port_id",                    #id for units (should be port_code*sender)
+                unitname = "port_id",                    #id for units (should be port_code*sender)
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
                 xformula = controls,
                 varformula = var_controls,
@@ -403,7 +403,7 @@ port_data_agg <- mutate(port_data_agg, share_china=origin_china/(container))
 
 attgt_share <- simple_staggered_did(yname = "share_china",            #outcome variable
                 tname = "period",                 #time variable
-                idname = "port_id",                    #id for units (should be port_code*sender)
+                unitname = "port_id",                    #id for units (should be port_code*sender)
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
                 data = port_data_agg)
 
