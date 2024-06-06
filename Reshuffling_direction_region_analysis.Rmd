@@ -1,0 +1,849 @@
+---
+title: "Reshuffling_direction_region_specific"
+author: "Katja Kalkschmied"
+date: "2024-05-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!-- Prepare outflow dataset-->
+
+```{r include=FALSE}
+library(dplyr)
+library(writexl)
+library(readxl)
+library(ggplot2)
+library(echoice2)
+library(doBy)
+library(zoo)
+library(fixest)
+library(did)
+library(gt)
+library(CInf)
+library(stringr)
+
+
+load("port_data_TEU_out.RData")
+
+port_data_TEU_out <- filter(port_data_TEU_out, aggregate==0,
+                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
+                        TEU_yrly >=10000,          #filter out small ports
+                        port_code!="DEHAM") %>%    
+  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+  group_by(port_code, sender_code) %>%
+  mutate(pair_id=cur_group_id()) %>% ungroup() %>%
+  rename(container=total_TEU) %>%
+  rename(partner_code=sender_code) %>%
+  rename(partner=sender)
+
+# Filter out observations for reporter="Netherlands" in the years 2011-2020
+port_data_TEU_out <- subset(port_data_TEU_out, !(reporter == "Netherlands" & year >= 2011 & year <= 2020))
+
+listpartner <- port_data_TEU_out %>%
+  group_by(partner_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(partner_code, partner)
+
+
+listreporter <- port_data_TEU_out %>%
+  group_by(reporter_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(reporter_code, reporter)
+
+partner_region <- read_xlsx("partner_region.xlsx", sheet = "Sheet1")
+
+reporter_region <- merge(listreporter, partner_region, by.x = "reporter_code", by.y = "partner_code", all.x = T) %>% 
+  select(reporter_code, partner_region) %>% 
+  rename("reporter_region" = "partner_region")
+
+port_data_TEU_out <- merge(port_data_TEU_out,partner_region, by.x = "partner_code", by.y = "partner_code", all.x = T) %>%
+  relocate(partner_region, .after = partner_code) %>%
+  rename(partner_region=partner_region)
+  
+port_data_TEU_out <- merge(port_data_TEU_out,reporter_region, by = "reporter_code", all.x = T) %>%
+  relocate(reporter_region, .after = reporter_code) 
+
+port_data_TEU_out$NENE_region <- ifelse(port_data_TEU_out$reporter_region == 'NE' & port_data_TEU_out$partner_region == 'NE', 1, 0)
+sum(port_data_TEU_out$NENE_region)
+
+port_data_TEU_out$SESE_region <- ifelse(port_data_TEU_out$reporter_region == 'SE' & port_data_TEU_out$partner_region == 'SE', 1, 0)
+sum(port_data_TEU_out$SESE_region)
+
+port_data_TEU_out$NESE_region <- ifelse(port_data_TEU_out$reporter_region == 'NE' & port_data_TEU_out$partner_region == 'SE', 1, 0)
+sum(port_data_TEU_out$NESE_region)
+
+port_data_TEU_out$SENE_region <- ifelse(port_data_TEU_out$reporter_region == 'SE' & port_data_TEU_out$partner_region == 'NE', 1, 0)
+sum(port_data_TEU_out$SENE_region)
+
+port_data_TEU_out$NEEX_region <- ifelse(port_data_TEU_out$reporter_region == 'NE' & port_data_TEU_out$partner_region == 'EX', 1, 0)
+sum(port_data_TEU_out$NEEX_region)
+
+port_data_TEU_out$SEEX_region <- ifelse(port_data_TEU_out$reporter_region == 'SE' & port_data_TEU_out$partner_region == 'EX', 1, 0)
+sum(port_data_TEU_out$SEEX_region)
+
+region_pair <- ec_undummy(port_data_TEU_out, c('NENE_region', 'SESE_region', 'NESE_region', 'SENE_region','NEEX_region','SEEX_region'), "region_pair", ref_level = "What") %>%
+  select(port_code, partner_code, region_pair, year, quarter) 
+
+port_data_TEU_out <- merge(port_data_TEU_out,region_pair, by.x=c("port_code", "partner_code", "year", "quarter"), by.y=c("port_code", "partner_code", "year", "quarter"))
+
+```
+
+
+<!-- Prepare inflow dataset-->
+
+```{r include=FALSE}
+
+load("port_data_TEU_in.RData")
+
+port_data_TEU_in <- filter(port_data_TEU_in, aggregate==0,
+                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
+                        TEU_yrly >=10000,          #filter out small ports
+                        port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
+  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+  group_by(port_code, sender_code) %>%
+  mutate(pair_id=cur_group_id()) %>% ungroup() %>%
+  rename(container=total_TEU) %>%
+  rename(partner_code=sender_code) %>%
+  rename(partner=sender)
+
+
+listpartner <- port_data_TEU_in %>%
+  group_by(partner_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(partner_code, partner)
+
+
+listreporter <- port_data_TEU_in %>%
+  group_by(reporter_code) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(reporter_code, reporter)
+
+partner_region <- read_xlsx("partner_region.xlsx", sheet = "Sheet1")
+
+reporter_region <- merge(listreporter, partner_region, by.x = "reporter_code", by.y = "partner_code", all.x = T) %>% 
+  select(reporter_code, partner_region) %>% 
+  rename("reporter_region" = "partner_region")
+
+port_data_TEU_in <- merge(port_data_TEU_in,partner_region, by.x = "partner_code", by.y = "partner_code", all.x = T) %>%
+  relocate(partner_region, .after = partner_code) %>%
+  rename(partner_region=partner_region)
+  
+port_data_TEU_in <- merge(port_data_TEU_in,reporter_region, by = "reporter_code", all.x = T) %>%
+  relocate(reporter_region, .after = reporter_code) 
+
+port_data_TEU_in$NENE_region <- ifelse(port_data_TEU_in$reporter_region == 'NE' & port_data_TEU_in$partner_region == 'NE', 1, 0)
+sum(port_data_TEU_in$NENE_region)
+
+port_data_TEU_in$SESE_region <- ifelse(port_data_TEU_in$reporter_region == 'SE' & port_data_TEU_in$partner_region == 'SE', 1, 0)
+sum(port_data_TEU_in$SESE_region)
+
+port_data_TEU_in$NESE_region <- ifelse(port_data_TEU_in$reporter_region == 'NE' & port_data_TEU_in$partner_region == 'SE', 1, 0)
+sum(port_data_TEU_in$NESE_region)
+
+port_data_TEU_in$SENE_region <- ifelse(port_data_TEU_in$reporter_region == 'SE' & port_data_TEU_in$partner_region == 'NE', 1, 0)
+sum(port_data_TEU_in$SENE_region)
+
+port_data_TEU_in$NEEX_region <- ifelse(port_data_TEU_in$reporter_region == 'NE' & port_data_TEU_in$partner_region == 'EX', 1, 0)
+sum(port_data_TEU_in$NEEX_region)
+
+port_data_TEU_in$SEEX_region <- ifelse(port_data_TEU_in$reporter_region == 'SE' & port_data_TEU_in$partner_region == 'EX', 1, 0)
+sum(port_data_TEU_in$SEEX_region)
+
+region_pair <- ec_undummy(port_data_TEU_in, c('NENE_region', 'SESE_region', 'NESE_region', 'SENE_region','NEEX_region','SEEX_region'), "region_pair", ref_level = "What") %>%
+  select(port_code, partner_code, region_pair, year, quarter) 
+
+port_data_TEU_in <- merge(port_data_TEU_in,region_pair, by.x=c("port_code", "partner_code", "year", "quarter"), by.y=c("port_code", "partner_code", "year", "quarter"))
+```
+
+<!-- Inflows from Extern aggregate, N = 9324, number of ports in control group = 89-->
+
+```{r include=FALSE}
+
+port_data_in <- port_data_TEU_in %>% 
+  filter(region_pair=="NEEX_region" | region_pair=="SEEX_region") %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container=mean(container))
+
+port_data_agg_in <- port_data_in %>% mutate(origin_china = ifelse(!is.na(container) & (partner_code=="CN_X_HK" | partner_code=="HK"),container,0)) %>%
+  group_by(port, port_code, period, reporter_code) %>% 
+  summarize(container = sum(container, na.rm=T),
+            real_gdp_reporter = mean(real_gdp_reporter),
+            origin_china = sum(origin_china),
+            group = max(group),
+            group_operation = max(group_operation),
+            ownership_china = max(ownership_china),
+            operation = max(operation),
+            year = max(year),
+            quarter = max(quarter)) %>% ungroup() %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container = mean(container, na.rm=T)) %>% ungroup()
+
+# add terminal data to the data set
+load("berth_data.RData")
+terminal_data <- berth_data
+
+# add channel depth and cranes from World port index
+wpi_data <- read.csv("WPI_data.csv")
+
+# control variables
+control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
+               select(port_code, 
+                      year, quarter, quay_length, cranes, 
+                      cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth) 
+
+# merge with aggregated data
+port_data_agg_in <- merge(port_data_agg_in, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
+
+port_data_agg_in$quay_length[port_data_agg_in$quay_length==0] <- 100
+port_data_agg_in$cranes[port_data_agg_in$cranes==0] <- 1
+
+# information on number of control group ports
+
+number_control <- port_data_agg_in %>%
+  filter(group == 0 &            # Keep observations where group is 0
+         !is.na(cranes) &         # Ship variable is not missing
+         !is.na(max_lift) &     # max_lift variable is not missing
+         !is.na(cargo_depth)&         # Ship variable is not missing
+         !is.na(quay_length)) %>% # cargo_depth variable is not missing
+  group_by(port_id) %>%
+  slice(1) %>%
+  ungroup()
+
+### Control variables for DID ####
+
+controls <- c("cranes", "max_lift", "cargo_depth")
+var_controls <- c("quay_length")
+
+### Produce treated ports list for results presentation
+port_list <- port_data_agg_in %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
+
+
+#### Estimation ot ATT with never treated as control group ####
+attgt <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              #xformula = c("ships"),
+                              #varformula = c("ships"),
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_in)
+
+
+attgt_cond <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              xformula = controls,
+                              varformula = var_controls,
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_in)
+
+
+
+# putting together the results
+
+results_1 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT = c(attgt$average_treatment_effect$att,
+                                   attgt$groupwise_treatment_effects$att),
+                       lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
+                                attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
+                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       ATT_cond = c(attgt_cond$average_treatment_effect$att,
+                                   attgt_cond$groupwise_treatment_effects$att),
+                       lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
+                                attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
+                       upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
+                      Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
+results_1 <- results_1[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+results_1
+
+```
+
+<!-- Outflows to the other region aggregate, N = 6571, number of ports in control group = 81-->
+
+```{r include=FALSE}
+
+port_data_out <- port_data_TEU_out %>% 
+  filter(region_pair=="NESE_region" | region_pair=="SENE_region") %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container=mean(container))
+
+port_data_agg_out <- port_data_out %>% mutate(origin_china = ifelse(!is.na(container) & (partner_code=="CN_X_HK" | partner_code=="HK"),container,0)) %>%
+  group_by(port, port_code, period, reporter_code) %>% 
+  summarize(container = sum(container, na.rm=T),
+            real_gdp_reporter = mean(real_gdp_reporter),
+            origin_china = sum(origin_china),
+            group = max(group),
+            group_operation = max(group_operation),
+            ownership_china = max(ownership_china),
+            operation = max(operation),
+            year = max(year),
+            quarter = max(quarter)) %>% ungroup() %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container = mean(container, na.rm=T)) %>% ungroup()
+
+# add terminal data to the data set
+load("berth_data.RData")
+terminal_data <- berth_data
+
+# add channel depth and cranes from World port index
+wpi_data <- read.csv("WPI_data.csv")
+
+# control variables
+control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
+               select(port_code, 
+                      year, quarter, quay_length, cranes, 
+                      cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth) 
+
+# merge with aggregated data
+port_data_agg_out <- merge(port_data_agg_out, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
+
+port_data_agg_out$quay_length[port_data_agg_out$quay_length==0] <- 100
+port_data_agg_out$cranes[port_data_agg_out$cranes==0] <- 1
+
+# information on number of control group ports
+
+number_control <- port_data_agg_out %>%
+  filter(group == 0 &            # Keep observations where group is 0
+         !is.na(cranes) &         # Ship variable is not missing
+         !is.na(max_lift) &     # max_lift variable is not missing
+         !is.na(cargo_depth)&         # Ship variable is not missing
+         !is.na(quay_length)) %>% # cargo_depth variable is not missing
+  group_by(port_id) %>%
+  slice(1) %>%
+  ungroup()
+
+### Control variables for DID ####
+
+controls <- c("cranes", "max_lift", "cargo_depth")
+var_controls <- c("quay_length")
+
+### Produce treated ports list for results presentation
+port_list <- port_data_agg_out %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
+
+
+#### Estimation ot ATT with never treated as control group ####
+attgt <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              #xformula = c("ships"),
+                              #varformula = c("ships"),
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_out)
+
+
+attgt_cond <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              xformula = controls,
+                              varformula = var_controls,
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_out)
+
+
+
+# putting together the results
+
+results_2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT = c(attgt$average_treatment_effect$att,
+                                   attgt$groupwise_treatment_effects$att),
+                       lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
+                                attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
+                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       ATT_cond = c(attgt_cond$average_treatment_effect$att,
+                                   attgt_cond$groupwise_treatment_effects$att),
+                       lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
+                                attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
+                       upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
+                      Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
+results_2 <- results_2[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+results_2
+
+```
+
+<!-- Outflows to within the region aggregate, N = 11597, ports in control group = 90-->
+
+```{r include=FALSE}
+
+port_data_out <- port_data_TEU_out %>% 
+  filter(region_pair=="NENE_region" | region_pair=="SESE_region") %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container=mean(container))
+
+port_data_agg_out <- port_data_out %>% mutate(origin_china = ifelse(!is.na(container) & (partner_code=="CN_X_HK" | partner_code=="HK"),container,0)) %>%
+  group_by(port, port_code, period, reporter_code) %>% 
+  summarize(container = sum(container, na.rm=T),
+            real_gdp_reporter = mean(real_gdp_reporter),
+            origin_china = sum(origin_china),
+            group = max(group),
+            group_operation = max(group_operation),
+            ownership_china = max(ownership_china),
+            operation = max(operation),
+            year = max(year),
+            quarter = max(quarter)) %>% ungroup() %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container = mean(container, na.rm=T)) %>% ungroup()
+
+# add terminal data to the data set
+load("berth_data.RData")
+terminal_data <- berth_data
+
+# add channel depth and cranes from World port index
+wpi_data <- read.csv("WPI_data.csv")
+
+# control variables
+control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
+               select(port_code, 
+                      year, quarter, quay_length, cranes, 
+                      cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth) 
+
+# merge with aggregated data
+port_data_agg_out <- merge(port_data_agg_out, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
+
+port_data_agg_out$quay_length[port_data_agg_out$quay_length==0] <- 100
+port_data_agg_out$cranes[port_data_agg_out$cranes==0] <- 1
+
+# information on number of control group ports
+
+number_control <- port_data_agg_out %>%
+  filter(group == 0 &            # Keep observations where group is 0
+         !is.na(cranes) &         # Ship variable is not missing
+         !is.na(max_lift) &     # max_lift variable is not missing
+         !is.na(cargo_depth)&         # Ship variable is not missing
+         !is.na(quay_length)) %>% # cargo_depth variable is not missing
+  group_by(port_id) %>%
+  slice(1) %>%
+  ungroup()
+
+### Control variables for DID ####
+
+controls <- c("cranes", "max_lift", "cargo_depth")
+var_controls <- c("quay_length")
+
+### Produce treated ports list for results presentation
+port_list <- port_data_agg_out %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
+
+
+#### Estimation ot ATT with never treated as control group ####
+attgt <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              #xformula = c("ships"),
+                              #varformula = c("ships"),
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_out)
+
+
+attgt_cond <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              xformula = controls,
+                              varformula = var_controls,
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_out)
+
+
+
+# putting together the results
+
+results_3 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT = c(attgt$average_treatment_effect$att,
+                                   attgt$groupwise_treatment_effects$att),
+                       lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
+                                attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
+                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       ATT_cond = c(attgt_cond$average_treatment_effect$att,
+                                   attgt_cond$groupwise_treatment_effects$att),
+                       lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
+                                attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
+                       upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
+                      Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
+results_3 <- results_3[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+
+results_3
+```
+
+<!-- Inflows from within the regions aggregate, N = 11736, control group ports = 91-->
+
+```{r include=FALSE}
+
+port_data_in <- port_data_TEU_in %>% 
+  filter(region_pair=="SESE_region" | region_pair=="NENE_region") %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container=mean(container))
+
+port_data_agg_in <- port_data_in %>% mutate(origin_china = ifelse(!is.na(container) & (partner_code=="CN_X_HK" | partner_code=="HK"),container,0)) %>%
+  group_by(port, port_code, period, reporter_code) %>% 
+  summarize(container = sum(container, na.rm=T),
+            real_gdp_reporter = mean(real_gdp_reporter),
+            origin_china = sum(origin_china),
+            group = max(group),
+            group_operation = max(group_operation),
+            ownership_china = max(ownership_china),
+            operation = max(operation),
+            year = max(year),
+            quarter = max(quarter)) %>% ungroup() %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container = mean(container, na.rm=T)) %>% ungroup()
+
+# add terminal data to the data set
+load("berth_data.RData")
+terminal_data <- berth_data
+
+# add channel depth and cranes from World port index
+wpi_data <- read.csv("WPI_data.csv")
+
+# control variables
+control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
+               select(port_code, 
+                      year, quarter, quay_length, cranes, 
+                      cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth) 
+
+# merge with aggregated data
+port_data_agg_in <- merge(port_data_agg_in, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
+
+port_data_agg_in$quay_length[port_data_agg_in$quay_length==0] <- 100
+port_data_agg_in$cranes[port_data_agg_in$cranes==0] <- 1
+
+# information on number of control group ports
+
+number_control <- port_data_agg_in %>%
+  filter(group == 0 &            # Keep observations where group is 0
+         !is.na(cranes) &         # Ship variable is not missing
+         !is.na(max_lift) &     # max_lift variable is not missing
+         !is.na(cargo_depth)&         # Ship variable is not missing
+         !is.na(quay_length)) %>% # cargo_depth variable is not missing
+  group_by(port_id) %>%
+  slice(1) %>%
+  ungroup()
+
+### Control variables for DID ####
+
+controls <- c("cranes", "max_lift", "cargo_depth")
+var_controls <- c("quay_length")
+
+### Produce treated ports list for results presentation
+port_list <- port_data_agg_in %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
+
+
+#### Estimation ot ATT with never treated as control group ####
+attgt <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              #xformula = c("ships"),
+                              #varformula = c("ships"),
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_in)
+
+
+attgt_cond <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              xformula = controls,
+                              varformula = var_controls,
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_in)
+
+
+
+# putting together the results
+
+results_4 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT = c(attgt$average_treatment_effect$att,
+                                   attgt$groupwise_treatment_effects$att),
+                       lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
+                                attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
+                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       ATT_cond = c(attgt_cond$average_treatment_effect$att,
+                                   attgt_cond$groupwise_treatment_effects$att),
+                       lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
+                                attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
+                       upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
+                      Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
+results_4 <- results_4[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+```
+
+<!-- Inflows from other regions aggregate, N = 6615, control group ports = 85-->
+
+```{r include=FALSE}
+
+port_data_in <- port_data_TEU_in %>% 
+  filter(region_pair=="NESE_region" | region_pair=="SENE_region") %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container=mean(container))
+
+port_data_agg_in <- port_data_in %>% mutate(origin_china = ifelse(!is.na(container) & (partner_code=="CN_X_HK" | partner_code=="HK"),container,0)) %>%
+  group_by(port, port_code, period, reporter_code) %>% 
+  summarize(container = sum(container, na.rm=T),
+            real_gdp_reporter = mean(real_gdp_reporter),
+            origin_china = sum(origin_china),
+            group = max(group),
+            group_operation = max(group_operation),
+            ownership_china = max(ownership_china),
+            operation = max(operation),
+            year = max(year),
+            quarter = max(quarter)) %>% ungroup() %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container = mean(container, na.rm=T)) %>% ungroup()
+
+# add terminal data to the data set
+load("berth_data.RData")
+terminal_data <- berth_data
+
+# add channel depth and cranes from World port index
+wpi_data <- read.csv("WPI_data.csv")
+
+# control variables
+control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
+               select(port_code, 
+                      year, quarter, quay_length, cranes, 
+                      cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth) 
+
+# merge with aggregated data
+port_data_agg_in <- merge(port_data_agg_in, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
+
+port_data_agg_in$quay_length[port_data_agg_in$quay_length==0] <- 100
+port_data_agg_in$cranes[port_data_agg_in$cranes==0] <- 1
+
+# information on number of control group ports
+
+number_control <- port_data_agg_in %>%
+  filter(group == 0 &            # Keep observations where group is 0
+         !is.na(cranes) &         # Ship variable is not missing
+         !is.na(max_lift) &     # max_lift variable is not missing
+         !is.na(cargo_depth)&         # Ship variable is not missing
+         !is.na(quay_length)) %>% # cargo_depth variable is not missing
+  group_by(port_id) %>%
+  slice(1) %>%
+  ungroup()
+
+### Control variables for DID ####
+
+controls <- c("cranes", "max_lift", "cargo_depth")
+var_controls <- c("quay_length")
+
+### Produce treated ports list for results presentation
+port_list <- port_data_agg_in %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
+
+
+#### Estimation ot ATT with never treated as control group ####
+attgt <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              #xformula = c("ships"),
+                              #varformula = c("ships"),
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_in)
+
+
+attgt_cond <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              xformula = controls,
+                              varformula = var_controls,
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_in)
+
+
+
+# putting together the results
+
+results_5 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT = c(attgt$average_treatment_effect$att,
+                                   attgt$groupwise_treatment_effects$att),
+                       lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
+                                attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
+                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       ATT_cond = c(attgt_cond$average_treatment_effect$att,
+                                   attgt_cond$groupwise_treatment_effects$att),
+                       lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
+                                attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
+                       upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
+                      Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
+results_5 <- results_5[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+```
+
+<!-- Outflows to Extern aggregate, N = 9324, number of ports in control group = 89-->
+
+```{r include=FALSE}
+
+port_data_out <- port_data_TEU_out %>% 
+  filter(region_pair=="NEEX_region" | region_pair=="SEEX_region") %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container=mean(container))
+
+port_data_agg_out <- port_data_out %>% mutate(origin_china = ifelse(!is.na(container) & (partner_code=="CN_X_HK" | partner_code=="HK"),container,0)) %>%
+  group_by(port, port_code, period, reporter_code) %>% 
+  summarize(container = sum(container, na.rm=T),
+            real_gdp_reporter = mean(real_gdp_reporter),
+            origin_china = sum(origin_china),
+            group = max(group),
+            group_operation = max(group_operation),
+            ownership_china = max(ownership_china),
+            operation = max(operation),
+            year = max(year),
+            quarter = max(quarter)) %>% ungroup() %>%
+  group_by(port_code) %>% 
+  mutate(port_id = cur_group_id(),
+         mean_container = mean(container, na.rm=T)) %>% ungroup()
+
+# add terminal data to the data set
+load("berth_data.RData")
+terminal_data <- berth_data
+
+# add channel depth and cranes from World port index
+wpi_data <- read.csv("WPI_data.csv")
+
+# control variables
+control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
+               select(port_code, 
+                      year, quarter, quay_length, cranes, 
+                      cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth) 
+
+# merge with aggregated data
+port_data_agg_out <- merge(port_data_agg_out, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
+
+port_data_agg_out$quay_length[port_data_agg_out$quay_length==0] <- 100
+port_data_agg_out$cranes[port_data_agg_out$cranes==0] <- 1
+
+# information on number of control group ports
+
+number_control <- port_data_agg_out %>%
+  filter(group == 0 &            # Keep observations where group is 0
+         !is.na(cranes) &         # Ship variable is not missing
+         !is.na(max_lift) &     # max_lift variable is not missing
+         !is.na(cargo_depth)&         # Ship variable is not missing
+         !is.na(quay_length)) %>% # cargo_depth variable is not missing
+  group_by(port_id) %>%
+  slice(1) %>%
+  ungroup()
+
+### Control variables for DID ####
+
+controls <- c("cranes", "max_lift", "cargo_depth")
+var_controls <- c("quay_length")
+
+### Produce treated ports list for results presentation
+port_list <- port_data_agg_out %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
+
+
+#### Estimation ot ATT with never treated as control group ####
+attgt <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              #xformula = c("ships"),
+                              #varformula = c("ships"),
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_out)
+
+
+attgt_cond <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              xformula = controls,
+                              varformula = var_controls,
+                              #control_group = "not_yet_treated",
+                              data = port_data_agg_out)
+
+
+
+# putting together the results
+
+results_6 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT = c(attgt$average_treatment_effect$att,
+                                   attgt$groupwise_treatment_effects$att),
+                       lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
+                                attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
+                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       ATT_cond = c(attgt_cond$average_treatment_effect$att,
+                                   attgt_cond$groupwise_treatment_effects$att),
+                       lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
+                                attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
+                       upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
+                      Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
+results_6 <- results_6[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+results_6
+```
+
+
