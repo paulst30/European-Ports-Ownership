@@ -380,6 +380,7 @@ attgt_woCHN <- simple_staggered_did(yname = "container",            #outcome var
                 gname = "group",                    #grouping variable for first treatment. Is zero for never treated units
                 xformula = controls,
                 varformula = var_controls,
+                control_group = "not_yet_treated",
                 data = port_data_agg_woCHN)
 
 # results table
@@ -389,10 +390,13 @@ results <- data.frame(Estimate = c("simple average", port_list$port[match(as.cha
                        lower = c(attgt_woCHN$average_treatment_effect$att - attgt_woCHN$average_treatment_effect$crit_val,
                                 attgt_woCHN$groupwise_treatment_effects$att - attgt_woCHN$groupwise_treatment_effects$crit_val),
                        upper = c(attgt_woCHN$average_treatment_effect$att + attgt_woCHN$average_treatment_effect$crit_val,
-                                  attgt_woCHN$groupwise_treatment_effects$att + attgt_woCHN$groupwise_treatment_effects$crit_val)) %>%
+                                  attgt_woCHN$groupwise_treatment_effects$att + attgt_woCHN$groupwise_treatment_effects$crit_val),
+                      p_value = c(NA, attgt_woCHN$groupwise_treatment_effects$pre_treatment_p_value)) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      pretest = (p_value < 0.05) & !is.na(p_value),
                       across(c("ATT","lower","upper"), ~ format(round(.,digits=0), big.mark = ",")),
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       Conf = paste0("[",str_trim(lower),"; ",str_trim(upper),"]"))
 
 results <- results[c("Estimate", "ATT", "Conf")]
@@ -414,10 +418,13 @@ results_share <- data.frame(Estimate = c("simple average", port_list$port[match(
                        lower = c(attgt_share$average_treatment_effect$att - attgt_share$average_treatment_effect$crit_val,
                                 attgt_share$groupwise_treatment_effects$att - attgt_share$groupwise_treatment_effects$crit_val),
                        upper = c(attgt_share$average_treatment_effect$att + attgt_share$average_treatment_effect$crit_val,
-                                  attgt_share$groupwise_treatment_effects$att + attgt_share$groupwise_treatment_effects$crit_val)) %>%
+                                  attgt_share$groupwise_treatment_effects$att + attgt_share$groupwise_treatment_effects$crit_val),
+                       p_value = c(NA, attgt_share$groupwise_treatment_effects$pre_treatment_p_value)) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                      pretest = (p_value < 0.05) & !is.na(p_value),
                       across(c("ATT","lower","upper"), ~ format(round(.,digits=4), big.mark = ",")),
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       Conf = paste0("[",str_trim(lower),"; ",str_trim(upper),"]"))
 
 results_share <- results_share[c("Estimate", "ATT", "Conf")]
@@ -455,7 +462,7 @@ results_final <- rbind(results_final[1,],c("by group", rep("", ncol(results_fina
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(results_final),1)
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval does not include zero.\\\\}}", 
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval does not include zero. \\\\ Superscript x indicates that we can reject the null of equal average pseudo \\\\ treatment effects between treated and untreated.}}", 
                       "[1ex]")
 
 # Modify the LaTeX code
@@ -472,6 +479,7 @@ latex_code <- gsub("Estimate & ATT & Conf & ATT1 & Conf1","Dependent var.: & \\\
 latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:wochina_results}", latex_code)
 latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
 latex_code <- gsub("lllll", "lcccc", latex_code)
+latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{x\\\\\\}", "\\\\textsuperscript{x}", latex_code)
 
 # Save modified LaTeX code to a .tex file
 cat(latex_code, file = file.path(getwd(), "results_tables", "wochina_results.tex"))

@@ -282,7 +282,8 @@ results1 <- data.frame(Estimate = c("simple average", port_list$port[match(as.ch
                        lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
                                 attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
                        upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
-                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val))
+                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       p_value = c(NA, attgt$groupwise_treatment_effects$pre_treatment_p_value))
 
 results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond = c(attgt_cond$average_treatment_effect$att,
@@ -290,13 +291,20 @@ results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.ch
                        lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
                                 attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
                        upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
-                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val))
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val),
+                        p_value_cond = c(NA, attgt_cond$groupwise_treatment_effects$pre_treatment_p_value))
+
 results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      pretest = (p_value < 0.05) & !is.na(p_value),
+                      pretest_cond = (p_value_cond < 0.05) & !is.na(p_value_cond),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      ATT_cond = ifelse(pretest_cond==T, paste0(ATT_cond, "^{x}"),ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
 results <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
@@ -333,7 +341,8 @@ results_ny1 <- data.frame(Estimate = c("simple average", port_list$port[match(as
                        lower_ny = c(attgt_ny$average_treatment_effect$att - attgt_ny$average_treatment_effect$crit_val,
                                 attgt_ny$groupwise_treatment_effects$att - attgt_ny$groupwise_treatment_effects$crit_val),
                        upper_ny = c(attgt_ny$average_treatment_effect$att + attgt_ny$average_treatment_effect$crit_val,
-                                  attgt_ny$groupwise_treatment_effects$att + attgt_ny$groupwise_treatment_effects$crit_val))
+                                  attgt_ny$groupwise_treatment_effects$att + attgt_ny$groupwise_treatment_effects$crit_val),
+                       p_value_ny = c(NA, attgt_ny$groupwise_treatment_effects$pre_treatment_p_value))
 
 results_ny2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond_ny$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond_ny = c(attgt_cond_ny$average_treatment_effect$att,
@@ -341,14 +350,19 @@ results_ny2 <- data.frame(Estimate = c("simple average", port_list$port[match(as
                        lower_cond_ny = c(attgt_cond_ny$average_treatment_effect$att - attgt_cond_ny$average_treatment_effect$crit_val,
                                 attgt_cond_ny$groupwise_treatment_effects$att - attgt_cond_ny$groupwise_treatment_effects$crit_val),
                        upper_cond_ny = c(attgt_cond_ny$average_treatment_effect$att + attgt_cond_ny$average_treatment_effect$crit_val,
-                                  attgt_cond_ny$groupwise_treatment_effects$att + attgt_cond_ny$groupwise_treatment_effects$crit_val)) 
+                                  attgt_cond_ny$groupwise_treatment_effects$att + attgt_cond_ny$groupwise_treatment_effects$crit_val),
+                       p_value_cond_ny = c(NA, attgt_cond_ny$groupwise_treatment_effects$pre_treatment_p_value)) 
 
 results_ny <- merge(results_ny1, results_ny2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT_ny>0 & lower_ny>0) | (ATT_ny<0 & upper_ny<0),
                       sig_cond = (ATT_cond_ny>0 & lower_cond_ny>0) | (ATT_cond_ny<0 & upper_cond_ny<0),
+                      pretest = (p_value_ny < 0.05) & !is.na(p_value_ny),
+                      pretest_cond = (p_value_cond_ny < 0.05) & !is.na(p_value_cond_ny),
                       across(c("ATT_ny","ATT_cond_ny","lower_ny","upper_ny","lower_cond_ny","upper_cond_ny"), ~ format(round(.,digits=0), big.mark = ",")),
                       ATT_ny = ifelse(sig==T, paste0(ATT_ny, "*"), ATT_ny),
+                      ATT_ny = ifelse(pretest==T, paste0(ATT_ny, "^{x}"),ATT_ny),
                       ATT_cond_ny = ifelse(sig_cond==T, paste0(ATT_cond_ny, "*"), ATT_cond_ny),
+                      ATT_cond_ny = ifelse(pretest_cond==T, paste0(ATT_cond_ny, "^{x}"),ATT_cond_ny),
                       Conf_ny = paste0("[",str_trim(lower_ny),", ",str_trim(upper_ny),"]"),
                       Conf_cond_ny = paste0("[",str_trim(lower_cond_ny),"; ",str_trim(upper_cond_ny),"]"))
 results_ny <- results_ny[c("Estimate", "ATT_cond_ny", "Conf_cond_ny")]
@@ -366,7 +380,7 @@ results_final <- rbind(results[1,],c("by group", rep("", ncol(results)-1)) ,resu
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(results_final),1)
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval does not include zero.\\\\}}", 
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{7}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval does not include zero.\\\\ Superscript x indicates that we can reject the null of equal average pseudo treatment effects between treated and untreated.}}", 
                       "[1ex]")
 
 # Modify the LaTeX code
@@ -383,6 +397,7 @@ latex_code <- gsub("Estimate & ATT & Conf & ATT\\\\_cond & Conf\\\\_cond & ATT\\
 latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:did_results}", latex_code)
 latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
 latex_code <- gsub("lllllll", "lcccccc", latex_code)
+latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{x\\\\\\}", "\\\\textsuperscript{x}", latex_code)
 
 # Save modified LaTeX code to a .tex file
 cat(latex_code, file = file.path(getwd(), "results_tables", "did_results.tex"))
