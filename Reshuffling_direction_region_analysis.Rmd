@@ -244,34 +244,45 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
+                              control_group = "not_yet_treated",
                               data = port_data_agg_in)
 
 
 
 # putting together the results
 
-results_1 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+results1 <-  data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
                        ATT = c(attgt$average_treatment_effect$att,
                                    attgt$groupwise_treatment_effects$att),
                        lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
                                 attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
                        upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
                                   attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       p_value = c(NA, attgt$groupwise_treatment_effects$pre_treatment_p_value))
+
+results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond = c(attgt_cond$average_treatment_effect$att,
                                    attgt_cond$groupwise_treatment_effects$att),
                        lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
                                 attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
                        upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
-                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val),
+                        p_value_cond = c(NA, attgt_cond$groupwise_treatment_effects$pre_treatment_p_value))
+
+results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      pretest = (p_value < 0.05) & !is.na(p_value),
+                      pretest_cond = (p_value_cond < 0.05) & !is.na(p_value_cond),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      ATT_cond = ifelse(pretest_cond==T, paste0(ATT_cond, "^{x}"),ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
-results_1 <- results_1[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+results_1 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 
 results_1
 
@@ -359,34 +370,46 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
+                              control_group = "not_yet_treated",
                               data = port_data_agg_out)
 
 
 
 # putting together the results
 
-results_2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+results1  <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
                        ATT = c(attgt$average_treatment_effect$att,
                                    attgt$groupwise_treatment_effects$att),
                        lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
                                 attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
                        upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
                                   attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       p_value = c(NA, attgt$groupwise_treatment_effects$pre_treatment_p_value))
+
+results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond = c(attgt_cond$average_treatment_effect$att,
                                    attgt_cond$groupwise_treatment_effects$att),
                        lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
                                 attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
                        upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
-                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val),
+                        p_value_cond = c(NA, attgt_cond$groupwise_treatment_effects$pre_treatment_p_value))
+
+results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      pretest = (p_value < 0.05) & !is.na(p_value),
+                      pretest_cond = (p_value_cond < 0.05) & !is.na(p_value_cond),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      ATT_cond = ifelse(pretest_cond==T, paste0(ATT_cond, "^{x}"),ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
-results_2 <- results_2[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+results_2 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 
 results_2
 
@@ -474,34 +497,46 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
+                              control_group = "not_yet_treated",
                               data = port_data_agg_out)
 
 
 
 # putting together the results
 
-results_3 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+results1  <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
                        ATT = c(attgt$average_treatment_effect$att,
                                    attgt$groupwise_treatment_effects$att),
                        lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
                                 attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
                        upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
                                   attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       p_value = c(NA, attgt$groupwise_treatment_effects$pre_treatment_p_value))
+
+results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond = c(attgt_cond$average_treatment_effect$att,
                                    attgt_cond$groupwise_treatment_effects$att),
                        lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
                                 attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
                        upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
-                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val),
+                        p_value_cond = c(NA, attgt_cond$groupwise_treatment_effects$pre_treatment_p_value))
+
+results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      pretest = (p_value < 0.05) & !is.na(p_value),
+                      pretest_cond = (p_value_cond < 0.05) & !is.na(p_value_cond),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      ATT_cond = ifelse(pretest_cond==T, paste0(ATT_cond, "^{x}"),ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
-results_3 <- results_3[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+results_3 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 
 
 results_3
@@ -589,34 +624,46 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
+                              control_group = "not_yet_treated",
                               data = port_data_agg_in)
 
 
 
 # putting together the results
 
-results_4 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+results1  <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
                        ATT = c(attgt$average_treatment_effect$att,
                                    attgt$groupwise_treatment_effects$att),
                        lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
                                 attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
                        upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
                                   attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       p_value = c(NA, attgt$groupwise_treatment_effects$pre_treatment_p_value))
+
+results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond = c(attgt_cond$average_treatment_effect$att,
                                    attgt_cond$groupwise_treatment_effects$att),
                        lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
                                 attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
                        upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
-                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val),
+                        p_value_cond = c(NA, attgt_cond$groupwise_treatment_effects$pre_treatment_p_value))
+
+results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      pretest = (p_value < 0.05) & !is.na(p_value),
+                      pretest_cond = (p_value_cond < 0.05) & !is.na(p_value_cond),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      ATT_cond = ifelse(pretest_cond==T, paste0(ATT_cond, "^{x}"),ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
-results_4 <- results_4[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+results_4 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 
 ```
 
@@ -702,34 +749,46 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
+                              control_group = "not_yet_treated",
                               data = port_data_agg_in)
 
 
 
 # putting together the results
 
-results_5 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+results1  <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
                        ATT = c(attgt$average_treatment_effect$att,
                                    attgt$groupwise_treatment_effects$att),
                        lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
                                 attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
                        upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
                                   attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       p_value = c(NA, attgt$groupwise_treatment_effects$pre_treatment_p_value))
+
+results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond = c(attgt_cond$average_treatment_effect$att,
                                    attgt_cond$groupwise_treatment_effects$att),
                        lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
                                 attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
                        upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
-                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val),
+                        p_value_cond = c(NA, attgt_cond$groupwise_treatment_effects$pre_treatment_p_value))
+
+results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      pretest = (p_value < 0.05) & !is.na(p_value),
+                      pretest_cond = (p_value_cond < 0.05) & !is.na(p_value_cond),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      ATT_cond = ifelse(pretest_cond==T, paste0(ATT_cond, "^{x}"),ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
-results_5 <- results_5[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+results_5 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 ```
 
 <!-- Outflows to Extern aggregate, N = 9324, number of ports in control group = 89-->
@@ -814,36 +873,100 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
+                              control_group = "not_yet_treated",
                               data = port_data_agg_out)
 
 
 
 # putting together the results
 
-results_6 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
+results_6  <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
                        ATT = c(attgt$average_treatment_effect$att,
                                    attgt$groupwise_treatment_effects$att),
                        lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
                                 attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
                        upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
                                   attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       p_value = c(NA, attgt$groupwise_treatment_effects$pre_treatment_p_value))
+
+results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond = c(attgt_cond$average_treatment_effect$att,
                                    attgt_cond$groupwise_treatment_effects$att),
                        lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
                                 attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
                        upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
-                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val)) %>%
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val),
+                        p_value_cond = c(NA, attgt_cond$groupwise_treatment_effects$pre_treatment_p_value))
+
+results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      pretest = (p_value < 0.05) & !is.na(p_value),
+                      pretest_cond = (p_value_cond < 0.05) & !is.na(p_value_cond),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
+
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      ATT_cond = ifelse(pretest_cond==T, paste0(ATT_cond, "^{x}"),ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
-results_6 <- results_6[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+
+results_6 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 
 results_6
 ```
 
+```{r include=FALSE}
+
+# combine all results 
+
+results_final <- results_6[, c("Estimate", "ATT_cond")] %>% 
+                               merge(results_1[, c("Estimate", "ATT_cond")], by.x = "Estimate", by.y = "Estimate", all = T) %>%
+                               merge(results_2[, c("Estimate", "ATT_cond")], by.x = "Estimate", by.y = "Estimate", all = T) %>%
+                               merge(results_5[, c("Estimate", "ATT_cond")], by.x = "Estimate", by.y = "Estimate", all = T) %>%
+                               merge(results_3[, c("Estimate", "ATT_cond")], by.x = "Estimate", by.y = "Estimate", all = T) %>%
+                               merge(results_4[, c("Estimate", "ATT_cond")], by.x = "Estimate", by.y = "Estimate", all = T)
+
+# change column names and item order
+colnames(results_final) <- c("Estimate", "To_World", "From_World", "To_Inter", "From_Inter", "To_Intra", "From_Intra")
+results_final <- results_final[c(16, 3, 19, 4, 5, 18, 6, 9, 11, 13, 14, 17, 8, 10, 2, 12, 15, 7, 1),]  
+
+## create Latex output ##
+results_final <- rbind(results_final[1,],c("by group", rep("", ncol(results_final)-1)) ,results_final[2:nrow(results_final),])
+
+
+# Insert multirow cell into the appropriate position in the LaTeX code
+addtorow <- list()
+addtorow$pos <- list(nrow(results_final),1)
+addtorow$command <- c("[2ex] \\hline \\hline", 
+                      "[1ex]")
+
+# Modify the LaTeX code
+latex_code <- print.xtable(xtable(results_final, caption = "Direction-specific analysis of group time treatment effects"),
+                           label = "tab:did_reshuffling",
+                           caption.placement = "top",
+                           include.rownames = FALSE,
+                           add.to.row = addtorow,
+                           hline.after = c(-1,-1,0, 2),
+                           size = "\\begin{adjustbox}{max width=\\textwidth}")
+
+latex_code <- gsub("Estimate & To\\\\_World & From\\\\_World & To\\\\_Inter & From\\\\_Inter & To\\\\_Intra & From\\\\_Intra","Control group: & \\\\multicolumn{6}{c}{Not yet treated} \\\\\\\\\n \\\\cmidrule(lr){2-7} PTA(Cond.) & To \\\\emph{World} & From \\\\emph{World} & To \\\\emph{Inter} & From \\\\emph{Inter} & To \\\\emph{Intra} & From \\\\emph{Intra} ", latex_code)
+
+latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:did_reshuffling}
+\\\\begin{minipage}{15cm} \\\\\\\\
+\\\\footnotesize Note: Stars indicate that the uniform confidence interval does not include zero. Superscript x indicates that we can reject the null of equal average pseudo treatment effects between treated and untreated. \\\\textit{World} refers to container shipments to or from ports in other world regions. \\\\textit{Inter} refers to interregional shipments that is to or from ports in the other European region. \\\\textit{Intra} refers to intraregional shipments that is to or from ports in the same European region. Partial missing ATT estimates for the ports of Amsterdam, Moerdijk, Gdynia, and Dunkerque are due to missing reports on container shipments for the respective direction and region pair in the period of treatment and/or the period before. \\\\\\\\
+\\\\end{minipage}", latex_code)
+
+
+latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
+latex_code <- gsub("lllllll", "lcccccc", latex_code)
+latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{x\\\\\\}", "\\\\textsuperscript{x}", latex_code)
+
+# Save modified LaTeX code to a .tex file
+cat(latex_code, file = file.path(getwd(), "results_tables", "did_reshuffling.tex"))
+
+
+  
+```
 
