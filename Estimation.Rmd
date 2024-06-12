@@ -433,11 +433,49 @@ results_gt <- gt(results, rowname_col = "Estimate") |>
               )
 
 
+```
 
+```{r include=FALSE}
 
+# generate latex table for presentation
+
+results_presentation <- results_final[, c("Estimate", "ATT", "ATT_cond", "ATT_cond_ny")]
+
+# Insert multirow cell into the appropriate position in the LaTeX code
+addtorow <- list()
+addtorow$pos <- list(nrow(results_presentation),1)
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{7}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval does not include zero.\\\\ Superscript x indicates that we can reject the null of equal average pseudo treatment effects between treated and untreated.}}", 
+                      "[1ex]")
+
+# Modify the LaTeX code
+latex_code <- print.xtable(xtable(results_presentation,
+                                  #caption = "Aggregation of group time treatment effects"
+                                  ),
+                           label = "tab:did_results",
+                           caption.placement = "top",
+                           include.rownames = FALSE,
+                           add.to.row = addtorow,
+                           hline.after = c(-1,-1,0, 2),
+                           size = "\\begin{adjustbox}{max width=\\textwidth}")
+
+latex_code <- gsub("Estimate & ATT & ATT\\\\_cond & ATT\\\\_cond\\\\_ny","Control group: & \\\\multicolumn{2}{c}{Never treated} & \\\\multicolumn{1}{c}{Not yet treated} \\\\\\\\\n \\\\cmidrule(lr){2-3} \\\\cmidrule(lr){4-4}  PTA & Uncond. &  Cond. & Cond. ", latex_code)
+
+latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:did_results}", latex_code)
+latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
+latex_code <- gsub("llll", "lccc", latex_code)
+latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{x\\\\\\}", "\\\\textsuperscript{x}", latex_code)
+
+# latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:did_results_presentation}
+# \\\\begin{minipage}{15cm} \\\\\\\\
+# \\\\tiny Note: Stars indicate that the uniform confidence interval does not include zero. Superscript x indicates that we can reject the null of equal average pseudo treatment effects between treated and untreated. \\\\\\\\
+# \\\\end{minipage}", latex_code)
+
+# Save modified LaTeX code to a .tex file
+cat(latex_code, file = file.path(getwd(), "results_tables_presentation", "did_results_presentation.tex"))
 
 
 ```
+
 
 ```{r include=TRUE, echo=FALSE}
 results_gt
