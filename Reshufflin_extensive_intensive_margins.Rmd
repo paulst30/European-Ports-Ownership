@@ -427,7 +427,7 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               #xformula = c("ships"),
                               #varformula = c("ships"),
                               #control_group = "not_yet_treated",
-                              data = port_data_TEU) #data = test_sample)
+                               data = port_data_TEU)
 
 
 attgt_cond <- simple_staggered_did(yname = "container",            #outcome variable
@@ -438,7 +438,7 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               xformula = controls,
                               varformula = var_controls,
                               #control_group = "not_yet_treated",
-                              data = port_data_TEU) #data = test_sample)
+                              data = port_data_TEU) 
 
 
 
@@ -474,7 +474,8 @@ results <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 #### Estimate ATT with not-yet-treated control group ####
 attgt_ny <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              idname = "pair_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",                 
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               #xformula = c("ships"),
                               #varformula = c("ships"),
@@ -484,7 +485,8 @@ attgt_ny <- simple_staggered_did(yname = "container",            #outcome variab
 
 attgt_cond_ny <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
-                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              idname = "pair_id",                    #id for units (should be port_code*sender)
+                              unitname = "port_id",
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
