@@ -19,7 +19,7 @@ In the first attempt, a simple fixed effects model and aggregated data on contai
 
 $Thrpt_{prt}=\alpha_{p}+\theta_{rt} +ChineseOwnership_{pt}+e_{pt}$ 
 
-Where $p$ stands for the port, $r$ for the reporting country, and $t$ for the period. In equation (1), the quarterly ($t$) container throughput ($Thrpt$) is explained by a set of port fixed-effects ($\alpha_{p}$), and reporter country-time fixed effects (\theta_{rt}). This specification controls for all time-invariant port-specific, and all time-invariant reporter country-specific unobserved covariates.
+Where $p$ stands for the port, $r$ for the reporting country, and $t$ for the period. In equation (1), the quarterly ($t$) container throughput ($Thrpt$) is explained by a set of port fixed-effects ($\alpha_{p}$), and reporter country-time fixed effects ($\theta_{rt}$). This specification controls for all time-invariant port-specific, and all time-invariant reporter country-specific unobserved covariates.
 Second, we leverage the bilateral structure of the data, and use the variation between partner country and port over time to identify the effect of Chinese ownership on port throughput. The advantage of this approach is that we can use higher levels of fixed effects, which enable a much more precise control over which variation is used to identify the treatment effect. We proceed by estimating multiple equations with different levels of fixed effects with increasing restrictiveness:
 
 $Thrpt_{prct}=\alpha_{p}+\beta_{c}+\gamma_{t}+ChineseOwnership_{pt}+ChineseOwnership_{pt}*ChinesePartner_{pc}+e_{prct}$ 
@@ -30,7 +30,7 @@ $Thrpt_{prct}=\alpha_{pc}+\beta_{ct}+ChineseOwnership_{pt}+ChineseOwnership_{pt}
 
 Equation (3) increases the restrictiveness of the fixed effects by replacing the port-level fixed effects with port-partner fixed effects and the partner fixed effects with partner-time fixed effects. This set of fixed effects controls for all time-invariant port-partner specfic covariates like regular shipping routes, geographic proximity and preferences. Additionally, time-varying partner country covariates, like economic up- or downswings are accounted for as well.
 
-$Thrpt_{prct}=\alpha_{pc}+\beta_{ct}++ChineseOwnership_{pt}+ChineseOwnership_{pt}*ChineseOrigin_{pc}+e_{prct}$ 
+$Thrpt_{prct}=\alpha_{pc}+\beta_{ct}+ChineseOwnership_{pt}+ChineseOwnership_{pt}*ChineseOrigin_{pc}+e_{prct}$ 
 
 Lastly, equation (4) adds another dimension to the fixed effects. In addition to controlling for port-partner time-invariant covariates, it also controls for reporter-time fixed effects. These encapsule all reporter-time varying covariates, like production and demand shocks in the port's country.
 
@@ -501,15 +501,15 @@ Lastly, equation (4) adds another dimension to the fixed effects. In addition to
       <th colspan="5" class="gt_empty_group_heading" scope="colgroup" id=""></th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">Ownership Chinese SOE</th>
-<td headers="NA stub_1_1 spec1" class="gt_row gt_center">145,275.7* (71,169.4)</td>
-<td headers="NA stub_1_1 spec2" class="gt_row gt_center">585.4 (1,441.9)</td>
-<td headers="NA stub_1_1 spec3" class="gt_row gt_center">2,087.4*** (357.2)</td>
-<td headers="NA stub_1_1 spec4" class="gt_row gt_center">1,108.8** (395.7)</td></tr>
+<td headers="NA stub_1_1 spec1" class="gt_row gt_center">149,594.8* (71,111.5)</td>
+<td headers="NA stub_1_1 spec2" class="gt_row gt_center">978.3 (1,340.0)</td>
+<td headers="NA stub_1_1 spec3" class="gt_row gt_center">2,201.0*** (365.9)</td>
+<td headers="NA stub_1_1 spec4" class="gt_row gt_center">1,158.7** (397.2)</td></tr>
     <tr><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Ownership Chinese SOE x Origin China</th>
 <td headers="NA stub_1_2 spec1" class="gt_row gt_center">  </td>
-<td headers="NA stub_1_2 spec2" class="gt_row gt_center">58,325.9. (33,689.4)</td>
-<td headers="NA stub_1_2 spec3" class="gt_row gt_center">19,469.3. (10,820.8)</td>
-<td headers="NA stub_1_2 spec4" class="gt_row gt_center">19,149.1. (10,641.1)</td></tr>
+<td headers="NA stub_1_2 spec2" class="gt_row gt_center">47,775.6. (28,048.5)</td>
+<td headers="NA stub_1_2 spec3" class="gt_row gt_center">18,889.9. (10,468.0)</td>
+<td headers="NA stub_1_2 spec4" class="gt_row gt_center">18,574.7. (10,257.3)</td></tr>
     <tr class="gt_group_heading_row">
       <th colspan="5" class="gt_group_heading" scope="colgroup" id="Fixed effects:">Fixed effects:</th>
     </tr>
@@ -552,20 +552,20 @@ Lastly, equation (4) adds another dimension to the fixed effects. In addition to
 <td headers="Diagnostics: stub_1_9 spec3" class="gt_row gt_center">by: Port. &amp; Part.</td>
 <td headers="Diagnostics: stub_1_9 spec4" class="gt_row gt_center">by: Port. &amp; Part.</td></tr>
     <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Observations</th>
-<td headers="Diagnostics: stub_1_10 spec1" class="gt_row gt_center">11,906</td>
-<td headers="Diagnostics: stub_1_10 spec2" class="gt_row gt_center">388,820</td>
-<td headers="Diagnostics: stub_1_10 spec3" class="gt_row gt_center">388,820</td>
-<td headers="Diagnostics: stub_1_10 spec4" class="gt_row gt_center">388,820</td></tr>
+<td headers="Diagnostics: stub_1_10 spec1" class="gt_row gt_center">11,511</td>
+<td headers="Diagnostics: stub_1_10 spec2" class="gt_row gt_center">381,992</td>
+<td headers="Diagnostics: stub_1_10 spec3" class="gt_row gt_center">381,992</td>
+<td headers="Diagnostics: stub_1_10 spec4" class="gt_row gt_center">381,992</td></tr>
     <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">R2</th>
-<td headers="Diagnostics: stub_1_11 spec1" class="gt_row gt_center">0.91965</td>
-<td headers="Diagnostics: stub_1_11 spec2" class="gt_row gt_center">0.23615</td>
-<td headers="Diagnostics: stub_1_11 spec3" class="gt_row gt_center">0.80578</td>
-<td headers="Diagnostics: stub_1_11 spec4" class="gt_row gt_center">0.81318</td></tr>
+<td headers="Diagnostics: stub_1_11 spec1" class="gt_row gt_center">0.91630</td>
+<td headers="Diagnostics: stub_1_11 spec2" class="gt_row gt_center">0.23189</td>
+<td headers="Diagnostics: stub_1_11 spec3" class="gt_row gt_center">0.80052</td>
+<td headers="Diagnostics: stub_1_11 spec4" class="gt_row gt_center">0.80809</td></tr>
     <tr><th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub">Within R2</th>
-<td headers="Diagnostics: stub_1_12 spec1" class="gt_row gt_center">0.03251</td>
-<td headers="Diagnostics: stub_1_12 spec2" class="gt_row gt_center">0.03665</td>
-<td headers="Diagnostics: stub_1_12 spec3" class="gt_row gt_center">0.01082</td>
-<td headers="Diagnostics: stub_1_12 spec4" class="gt_row gt_center">0.00719</td></tr>
+<td headers="Diagnostics: stub_1_12 spec1" class="gt_row gt_center">0.03579</td>
+<td headers="Diagnostics: stub_1_12 spec2" class="gt_row gt_center">0.02595</td>
+<td headers="Diagnostics: stub_1_12 spec3" class="gt_row gt_center">0.01154</td>
+<td headers="Diagnostics: stub_1_12 spec4" class="gt_row gt_center">0.00733</td></tr>
   </tbody>
   
   
@@ -619,23 +619,23 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
 
 
 ```{=html}
-<div id="xvdrdzvlqd" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#xvdrdzvlqd table {
+<div id="cblvsmapoq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#cblvsmapoq table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#xvdrdzvlqd thead, #xvdrdzvlqd tbody, #xvdrdzvlqd tfoot, #xvdrdzvlqd tr, #xvdrdzvlqd td, #xvdrdzvlqd th {
+#cblvsmapoq thead, #cblvsmapoq tbody, #cblvsmapoq tfoot, #cblvsmapoq tr, #cblvsmapoq td, #cblvsmapoq th {
   border-style: none;
 }
 
-#xvdrdzvlqd p {
+#cblvsmapoq p {
   margin: 0;
   padding: 0;
 }
 
-#xvdrdzvlqd .gt_table {
+#cblvsmapoq .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -661,12 +661,12 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-left-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_caption {
+#cblvsmapoq .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#xvdrdzvlqd .gt_title {
+#cblvsmapoq .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -678,7 +678,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-bottom-width: 0;
 }
 
-#xvdrdzvlqd .gt_subtitle {
+#cblvsmapoq .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -690,7 +690,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-top-width: 0;
 }
 
-#xvdrdzvlqd .gt_heading {
+#cblvsmapoq .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -702,13 +702,13 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-right-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_bottom_border {
+#cblvsmapoq .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_col_headings {
+#cblvsmapoq .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -723,7 +723,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-right-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_col_heading {
+#cblvsmapoq .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -743,7 +743,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   overflow-x: hidden;
 }
 
-#xvdrdzvlqd .gt_column_spanner_outer {
+#cblvsmapoq .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -755,15 +755,15 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 4px;
 }
 
-#xvdrdzvlqd .gt_column_spanner_outer:first-child {
+#cblvsmapoq .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#xvdrdzvlqd .gt_column_spanner_outer:last-child {
+#cblvsmapoq .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#xvdrdzvlqd .gt_column_spanner {
+#cblvsmapoq .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -775,11 +775,11 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   width: 100%;
 }
 
-#xvdrdzvlqd .gt_spanner_row {
+#cblvsmapoq .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#xvdrdzvlqd .gt_group_heading {
+#cblvsmapoq .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -805,7 +805,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   text-align: left;
 }
 
-#xvdrdzvlqd .gt_empty_group_heading {
+#cblvsmapoq .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -820,15 +820,15 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   vertical-align: middle;
 }
 
-#xvdrdzvlqd .gt_from_md > :first-child {
+#cblvsmapoq .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#xvdrdzvlqd .gt_from_md > :last-child {
+#cblvsmapoq .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#xvdrdzvlqd .gt_row {
+#cblvsmapoq .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -847,7 +847,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   overflow-x: hidden;
 }
 
-#xvdrdzvlqd .gt_stub {
+#cblvsmapoq .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -860,7 +860,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#xvdrdzvlqd .gt_stub_row_group {
+#cblvsmapoq .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -874,15 +874,15 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   vertical-align: top;
 }
 
-#xvdrdzvlqd .gt_row_group_first td {
+#cblvsmapoq .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#xvdrdzvlqd .gt_row_group_first th {
+#cblvsmapoq .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#xvdrdzvlqd .gt_summary_row {
+#cblvsmapoq .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -892,16 +892,16 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#xvdrdzvlqd .gt_first_summary_row {
+#cblvsmapoq .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_first_summary_row.thick {
+#cblvsmapoq .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#xvdrdzvlqd .gt_last_summary_row {
+#cblvsmapoq .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -911,7 +911,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-bottom-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_grand_summary_row {
+#cblvsmapoq .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -921,7 +921,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#xvdrdzvlqd .gt_first_grand_summary_row {
+#cblvsmapoq .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -931,7 +931,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-top-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_last_grand_summary_row_top {
+#cblvsmapoq .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -941,11 +941,11 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-bottom-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_striped {
+#cblvsmapoq .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#xvdrdzvlqd .gt_table_body {
+#cblvsmapoq .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -954,7 +954,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-bottom-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_footnotes {
+#cblvsmapoq .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -968,7 +968,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-right-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_footnote {
+#cblvsmapoq .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -977,7 +977,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#xvdrdzvlqd .gt_sourcenotes {
+#cblvsmapoq .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -991,7 +991,7 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   border-right-color: #D3D3D3;
 }
 
-#xvdrdzvlqd .gt_sourcenote {
+#cblvsmapoq .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -999,63 +999,63 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
   padding-right: 5px;
 }
 
-#xvdrdzvlqd .gt_left {
+#cblvsmapoq .gt_left {
   text-align: left;
 }
 
-#xvdrdzvlqd .gt_center {
+#cblvsmapoq .gt_center {
   text-align: center;
 }
 
-#xvdrdzvlqd .gt_right {
+#cblvsmapoq .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#xvdrdzvlqd .gt_font_normal {
+#cblvsmapoq .gt_font_normal {
   font-weight: normal;
 }
 
-#xvdrdzvlqd .gt_font_bold {
+#cblvsmapoq .gt_font_bold {
   font-weight: bold;
 }
 
-#xvdrdzvlqd .gt_font_italic {
+#cblvsmapoq .gt_font_italic {
   font-style: italic;
 }
 
-#xvdrdzvlqd .gt_super {
+#cblvsmapoq .gt_super {
   font-size: 65%;
 }
 
-#xvdrdzvlqd .gt_footnote_marks {
+#cblvsmapoq .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#xvdrdzvlqd .gt_asterisk {
+#cblvsmapoq .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#xvdrdzvlqd .gt_indent_1 {
+#cblvsmapoq .gt_indent_1 {
   text-indent: 5px;
 }
 
-#xvdrdzvlqd .gt_indent_2 {
+#cblvsmapoq .gt_indent_2 {
   text-indent: 10px;
 }
 
-#xvdrdzvlqd .gt_indent_3 {
+#cblvsmapoq .gt_indent_3 {
   text-indent: 15px;
 }
 
-#xvdrdzvlqd .gt_indent_4 {
+#cblvsmapoq .gt_indent_4 {
   text-indent: 20px;
 }
 
-#xvdrdzvlqd .gt_indent_5 {
+#cblvsmapoq .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -1090,141 +1090,141 @@ Where $Y_{t}(g)$ denotes the treated outcome in period $t$, $Y_{t}$ denotes the 
       <th colspan="7" class="gt_empty_group_heading" scope="colgroup" id=""></th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">simple average</th>
-<td headers="NA stub_1_1 ATT" class="gt_row gt_right"> 222,009*</td>
-<td headers="NA stub_1_1 Conf" class="gt_row gt_left">[178,973, 265,044]</td>
-<td headers="NA stub_1_1 ATT_cond" class="gt_row gt_right">  52,193*</td>
-<td headers="NA stub_1_1 Conf_cond" class="gt_row gt_left">[17,531; 86,855]</td>
-<td headers="NA stub_1_1 ATT_cond_ny" class="gt_row gt_right"> 58,293*</td>
-<td headers="NA stub_1_1 Conf_cond_ny" class="gt_row gt_left">[24,232; 92,354]</td></tr>
+<td headers="NA stub_1_1 ATT" class="gt_row gt_right">  219,028*</td>
+<td headers="NA stub_1_1 Conf" class="gt_row gt_left">[189,349, 248,706]</td>
+<td headers="NA stub_1_1 ATT_cond" class="gt_row gt_right"> 106,083*</td>
+<td headers="NA stub_1_1 Conf_cond" class="gt_row gt_left">[77,348; 134,818]</td>
+<td headers="NA stub_1_1 ATT_cond_ny" class="gt_row gt_right"> 70,770*</td>
+<td headers="NA stub_1_1 Conf_cond_ny" class="gt_row gt_left">[37,831; 103,709]</td></tr>
     <tr class="gt_group_heading_row">
       <th colspan="7" class="gt_group_heading" scope="colgroup" id="by group:">by group:</th>
     </tr>
     <tr class="gt_row_group_first"><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Antwerpen</th>
-<td headers="by group: stub_1_2 ATT" class="gt_row gt_right"> 864,178*</td>
-<td headers="by group: stub_1_2 Conf" class="gt_row gt_left">[794,147, 934,209]</td>
-<td headers="by group: stub_1_2 ATT_cond" class="gt_row gt_right"> 223,574*</td>
-<td headers="by group: stub_1_2 Conf_cond" class="gt_row gt_left">[35,688; 411,459]</td>
-<td headers="by group: stub_1_2 ATT_cond_ny" class="gt_row gt_right">173,846</td>
-<td headers="by group: stub_1_2 Conf_cond_ny" class="gt_row gt_left">[-6,192; 353,885]</td></tr>
+<td headers="by group: stub_1_2 ATT" class="gt_row gt_right">  863,147*</td>
+<td headers="by group: stub_1_2 Conf" class="gt_row gt_left">[796,213, 930,080]</td>
+<td headers="by group: stub_1_2 ATT_cond" class="gt_row gt_right"> 203,251*</td>
+<td headers="by group: stub_1_2 Conf_cond" class="gt_row gt_left">[103,646; 302,857]</td>
+<td headers="by group: stub_1_2 ATT_cond_ny" class="gt_row gt_right">164,527*</td>
+<td headers="by group: stub_1_2 Conf_cond_ny" class="gt_row gt_left">[2,479; 326,574]</td></tr>
     <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Zeebrugge</th>
-<td headers="by group: stub_1_3 ATT" class="gt_row gt_right">-106,376*</td>
-<td headers="by group: stub_1_3 Conf" class="gt_row gt_left">[-200,478, -12,274]</td>
-<td headers="by group: stub_1_3 ATT_cond" class="gt_row gt_right">-115,616</td>
-<td headers="by group: stub_1_3 Conf_cond" class="gt_row gt_left">[-252,137; 20,905]</td>
-<td headers="by group: stub_1_3 ATT_cond_ny" class="gt_row gt_right">-61,664</td>
-<td headers="by group: stub_1_3 Conf_cond_ny" class="gt_row gt_left">[-177,738; 54,411]</td></tr>
+<td headers="by group: stub_1_3 ATT" class="gt_row gt_right"> -104,006</td>
+<td headers="by group: stub_1_3 Conf" class="gt_row gt_left">[-231,028, 23,016]</td>
+<td headers="by group: stub_1_3 ATT_cond" class="gt_row gt_right">-113,999</td>
+<td headers="by group: stub_1_3 Conf_cond" class="gt_row gt_left">[-245,087; 17,088]</td>
+<td headers="by group: stub_1_3 ATT_cond_ny" class="gt_row gt_right">-60,614</td>
+<td headers="by group: stub_1_3 Conf_cond_ny" class="gt_row gt_left">[-198,639; 77,411]</td></tr>
     <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Barcelona</th>
-<td headers="by group: stub_1_4 ATT" class="gt_row gt_right"> 210,873*</td>
-<td headers="by group: stub_1_4 Conf" class="gt_row gt_left">[104,779, 316,967]</td>
-<td headers="by group: stub_1_4 ATT_cond" class="gt_row gt_right"> 215,379*</td>
-<td headers="by group: stub_1_4 Conf_cond" class="gt_row gt_left">[77,408; 353,350]</td>
-<td headers="by group: stub_1_4 ATT_cond_ny" class="gt_row gt_right">183,187*</td>
-<td headers="by group: stub_1_4 Conf_cond_ny" class="gt_row gt_left">[57,741; 308,633]</td></tr>
+<td headers="by group: stub_1_4 ATT" class="gt_row gt_right">  213,581*</td>
+<td headers="by group: stub_1_4 Conf" class="gt_row gt_left">[120,185, 306,977]</td>
+<td headers="by group: stub_1_4 ATT_cond" class="gt_row gt_right"> 208,255</td>
+<td headers="by group: stub_1_4 Conf_cond" class="gt_row gt_left">[-2,117; 418,626]</td>
+<td headers="by group: stub_1_4 ATT_cond_ny" class="gt_row gt_right">176,910*</td>
+<td headers="by group: stub_1_4 Conf_cond_ny" class="gt_row gt_left">[38,723; 315,097]</td></tr>
     <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Bilbao</th>
-<td headers="by group: stub_1_5 ATT" class="gt_row gt_right"> -17,755</td>
-<td headers="by group: stub_1_5 Conf" class="gt_row gt_left">[-68,626, 33,117]</td>
-<td headers="by group: stub_1_5 ATT_cond" class="gt_row gt_right">  -9,173</td>
-<td headers="by group: stub_1_5 Conf_cond" class="gt_row gt_left">[-74,814; 56,469]</td>
-<td headers="by group: stub_1_5 ATT_cond_ny" class="gt_row gt_right"> -9,564</td>
-<td headers="by group: stub_1_5 Conf_cond_ny" class="gt_row gt_left">[-84,643; 65,516]</td></tr>
+<td headers="by group: stub_1_5 ATT" class="gt_row gt_right">  -16,186</td>
+<td headers="by group: stub_1_5 Conf" class="gt_row gt_left">[-69,569, 37,197]</td>
+<td headers="by group: stub_1_5 ATT_cond" class="gt_row gt_right">  -9,566</td>
+<td headers="by group: stub_1_5 Conf_cond" class="gt_row gt_left">[-81,932; 62,799]</td>
+<td headers="by group: stub_1_5 ATT_cond_ny" class="gt_row gt_right"> -9,971</td>
+<td headers="by group: stub_1_5 Conf_cond_ny" class="gt_row gt_left">[-74,316; 54,374]</td></tr>
     <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Valencia</th>
-<td headers="by group: stub_1_6 ATT" class="gt_row gt_right">  13,745</td>
-<td headers="by group: stub_1_6 Conf" class="gt_row gt_left">[-55,267, 82,757]</td>
-<td headers="by group: stub_1_6 ATT_cond" class="gt_row gt_right">  11,548</td>
-<td headers="by group: stub_1_6 Conf_cond" class="gt_row gt_left">[-57,861; 80,957]</td>
-<td headers="by group: stub_1_6 ATT_cond_ny" class="gt_row gt_right"> 15,581</td>
-<td headers="by group: stub_1_6 Conf_cond_ny" class="gt_row gt_left">[-56,101; 87,262]</td></tr>
+<td headers="by group: stub_1_6 ATT" class="gt_row gt_right">   15,313</td>
+<td headers="by group: stub_1_6 Conf" class="gt_row gt_left">[-62,546, 93,173]</td>
+<td headers="by group: stub_1_6 ATT_cond" class="gt_row gt_right">   3,095</td>
+<td headers="by group: stub_1_6 Conf_cond" class="gt_row gt_left">[-71,195; 77,384]</td>
+<td headers="by group: stub_1_6 ATT_cond_ny" class="gt_row gt_right">  7,220</td>
+<td headers="by group: stub_1_6 Conf_cond_ny" class="gt_row gt_left">[-67,007; 81,448]</td></tr>
     <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Dunkerque</th>
-<td headers="by group: stub_1_7 ATT" class="gt_row gt_right">  25,120</td>
-<td headers="by group: stub_1_7 Conf" class="gt_row gt_left">[-68,145, 118,386]</td>
-<td headers="by group: stub_1_7 ATT_cond" class="gt_row gt_right">  26,179</td>
-<td headers="by group: stub_1_7 Conf_cond" class="gt_row gt_left">[-104,579; 156,937]</td>
-<td headers="by group: stub_1_7 ATT_cond_ny" class="gt_row gt_right"> 27,328</td>
-<td headers="by group: stub_1_7 Conf_cond_ny" class="gt_row gt_left">[-107,096; 161,753]</td></tr>
+<td headers="by group: stub_1_7 ATT" class="gt_row gt_right">   28,123</td>
+<td headers="by group: stub_1_7 Conf" class="gt_row gt_left">[-48,790, 105,035]</td>
+<td headers="by group: stub_1_7 ATT_cond" class="gt_row gt_right">  31,999</td>
+<td headers="by group: stub_1_7 Conf_cond" class="gt_row gt_left">[-33,382; 97,380]</td>
+<td headers="by group: stub_1_7 ATT_cond_ny" class="gt_row gt_right"> 32,191</td>
+<td headers="by group: stub_1_7 Conf_cond_ny" class="gt_row gt_left">[-91,630; 156,012]</td></tr>
     <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Le Havre</th>
-<td headers="by group: stub_1_8 ATT" class="gt_row gt_right"> 161,428</td>
-<td headers="by group: stub_1_8 Conf" class="gt_row gt_left">[-8,513, 331,370]</td>
-<td headers="by group: stub_1_8 ATT_cond" class="gt_row gt_right"> 109,677</td>
-<td headers="by group: stub_1_8 Conf_cond" class="gt_row gt_left">[-9,971; 229,325]</td>
-<td headers="by group: stub_1_8 ATT_cond_ny" class="gt_row gt_right"> 59,054</td>
-<td headers="by group: stub_1_8 Conf_cond_ny" class="gt_row gt_left">[-59,135; 177,242]</td></tr>
+<td headers="by group: stub_1_8 ATT" class="gt_row gt_right">  163,798*</td>
+<td headers="by group: stub_1_8 Conf" class="gt_row gt_left">[73,231, 254,366]</td>
+<td headers="by group: stub_1_8 ATT_cond" class="gt_row gt_right">  98,737*</td>
+<td headers="by group: stub_1_8 Conf_cond" class="gt_row gt_left">[9,973; 187,502]</td>
+<td headers="by group: stub_1_8 ATT_cond_ny" class="gt_row gt_right"> 49,880</td>
+<td headers="by group: stub_1_8 Conf_cond_ny" class="gt_row gt_left">[-82,114; 181,875]</td></tr>
     <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Marseille</th>
-<td headers="by group: stub_1_9 ATT" class="gt_row gt_right">  57,367</td>
-<td headers="by group: stub_1_9 Conf" class="gt_row gt_left">[-95,896, 210,631]</td>
-<td headers="by group: stub_1_9 ATT_cond" class="gt_row gt_right">  37,351</td>
-<td headers="by group: stub_1_9 Conf_cond" class="gt_row gt_left">[-81,154; 155,856]</td>
-<td headers="by group: stub_1_9 ATT_cond_ny" class="gt_row gt_right"> 31,079</td>
-<td headers="by group: stub_1_9 Conf_cond_ny" class="gt_row gt_left">[-88,139; 150,298]</td></tr>
+<td headers="by group: stub_1_9 ATT" class="gt_row gt_right">   59,848</td>
+<td headers="by group: stub_1_9 Conf" class="gt_row gt_left">[-73,207, 192,903]</td>
+<td headers="by group: stub_1_9 ATT_cond" class="gt_row gt_right">  35,638</td>
+<td headers="by group: stub_1_9 Conf_cond" class="gt_row gt_left">[-95,329; 166,605]</td>
+<td headers="by group: stub_1_9 ATT_cond_ny" class="gt_row gt_right"> 29,429</td>
+<td headers="by group: stub_1_9 Conf_cond_ny" class="gt_row gt_left">[-59,860; 118,717]</td></tr>
     <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Nantes Saint Nazaire</th>
-<td headers="by group: stub_1_10 ATT" class="gt_row gt_right"> -23,585</td>
-<td headers="by group: stub_1_10 Conf" class="gt_row gt_left">[-114,718, 67,547]</td>
-<td headers="by group: stub_1_10 ATT_cond" class="gt_row gt_right"> -25,442</td>
-<td headers="by group: stub_1_10 Conf_cond" class="gt_row gt_left">[-103,178; 52,295]</td>
-<td headers="by group: stub_1_10 ATT_cond_ny" class="gt_row gt_right">-17,098</td>
-<td headers="by group: stub_1_10 Conf_cond_ny" class="gt_row gt_left">[-120,911; 86,714]</td></tr>
+<td headers="by group: stub_1_10 ATT" class="gt_row gt_right">  -21,215</td>
+<td headers="by group: stub_1_10 Conf" class="gt_row gt_left">[-96,199, 53,769]</td>
+<td headers="by group: stub_1_10 ATT_cond" class="gt_row gt_right"> -21,055</td>
+<td headers="by group: stub_1_10 Conf_cond" class="gt_row gt_left">[-98,214; 56,103]</td>
+<td headers="by group: stub_1_10 ATT_cond_ny" class="gt_row gt_right">-13,917</td>
+<td headers="by group: stub_1_10 Conf_cond_ny" class="gt_row gt_left">[-136,799; 108,966]</td></tr>
     <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Piraeus</th>
-<td headers="by group: stub_1_11 ATT" class="gt_row gt_right"> 706,660*</td>
-<td headers="by group: stub_1_11 Conf" class="gt_row gt_left">[431,858, 981,461]</td>
-<td headers="by group: stub_1_11 ATT_cond" class="gt_row gt_right"> 653,858*</td>
-<td headers="by group: stub_1_11 Conf_cond" class="gt_row gt_left">[480,094; 827,622]</td>
-<td headers="by group: stub_1_11 ATT_cond_ny" class="gt_row gt_right">420,324*</td>
-<td headers="by group: stub_1_11 Conf_cond_ny" class="gt_row gt_left">[334,813; 505,835]</td></tr>
+<td headers="by group: stub_1_11 ATT" class="gt_row gt_right">  705,923*</td>
+<td headers="by group: stub_1_11 Conf" class="gt_row gt_left">[512,390, 899,456]</td>
+<td headers="by group: stub_1_11 ATT_cond" class="gt_row gt_right"> 647,703*</td>
+<td headers="by group: stub_1_11 Conf_cond" class="gt_row gt_left">[499,693; 795,713]</td>
+<td headers="by group: stub_1_11 ATT_cond_ny" class="gt_row gt_right">414,728*</td>
+<td headers="by group: stub_1_11 Conf_cond_ny" class="gt_row gt_left">[320,550; 508,906]</td></tr>
     <tr><th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub">Thessaloniki</th>
-<td headers="by group: stub_1_12 ATT" class="gt_row gt_right"> -11,916</td>
-<td headers="by group: stub_1_12 Conf" class="gt_row gt_left">[-70,102, 46,269]</td>
-<td headers="by group: stub_1_12 ATT_cond" class="gt_row gt_right"> -15,157</td>
-<td headers="by group: stub_1_12 Conf_cond" class="gt_row gt_left">[-77,082; 46,769]</td>
-<td headers="by group: stub_1_12 ATT_cond_ny" class="gt_row gt_right">-15,157</td>
-<td headers="by group: stub_1_12 Conf_cond_ny" class="gt_row gt_left">[-77,082; 46,769]</td></tr>
+<td headers="by group: stub_1_12 ATT" class="gt_row gt_right">  -10,277</td>
+<td headers="by group: stub_1_12 Conf" class="gt_row gt_left">[-70,991, 50,437]</td>
+<td headers="by group: stub_1_12 ATT_cond" class="gt_row gt_right"> -13,389</td>
+<td headers="by group: stub_1_12 Conf_cond" class="gt_row gt_left">[-88,493; 61,714]</td>
+<td headers="by group: stub_1_12 ATT_cond_ny" class="gt_row gt_right">-13,389</td>
+<td headers="by group: stub_1_12 Conf_cond_ny" class="gt_row gt_left">[-113,361; 86,583]</td></tr>
     <tr><th id="stub_1_13" scope="row" class="gt_row gt_left gt_stub">Genova</th>
-<td headers="by group: stub_1_13 ATT" class="gt_row gt_right">  57,229</td>
-<td headers="by group: stub_1_13 Conf" class="gt_row gt_left">[-36,778, 151,236]</td>
-<td headers="by group: stub_1_13 ATT_cond" class="gt_row gt_right">  51,492</td>
-<td headers="by group: stub_1_13 Conf_cond" class="gt_row gt_left">[-34,304; 137,287]</td>
-<td headers="by group: stub_1_13 ATT_cond_ny" class="gt_row gt_right"> 47,975</td>
-<td headers="by group: stub_1_13 Conf_cond_ny" class="gt_row gt_left">[-68,548; 164,498]</td></tr>
+<td headers="by group: stub_1_13 ATT" class="gt_row gt_right">   60,045</td>
+<td headers="by group: stub_1_13 Conf" class="gt_row gt_left">[-3,595, 123,685]</td>
+<td headers="by group: stub_1_13 ATT_cond" class="gt_row gt_right">  41,952</td>
+<td headers="by group: stub_1_13 Conf_cond" class="gt_row gt_left">[-71,342; 155,246]</td>
+<td headers="by group: stub_1_13 ATT_cond_ny" class="gt_row gt_right"> 38,824</td>
+<td headers="by group: stub_1_13 Conf_cond_ny" class="gt_row gt_left">[-55,068; 132,716]</td></tr>
     <tr><th id="stub_1_14" scope="row" class="gt_row gt_left gt_stub">Marsaxlokk</th>
-<td headers="by group: stub_1_14 ATT" class="gt_row gt_right"> -20,390</td>
-<td headers="by group: stub_1_14 Conf" class="gt_row gt_left">[-173,654, 132,873]</td>
-<td headers="by group: stub_1_14 ATT_cond" class="gt_row gt_right"> -28,429</td>
-<td headers="by group: stub_1_14 Conf_cond" class="gt_row gt_left">[-104,769; 47,912]</td>
-<td headers="by group: stub_1_14 ATT_cond_ny" class="gt_row gt_right">-20,371</td>
-<td headers="by group: stub_1_14 Conf_cond_ny" class="gt_row gt_left">[-102,363; 61,621]</td></tr>
+<td headers="by group: stub_1_14 ATT" class="gt_row gt_right">  -17,388</td>
+<td headers="by group: stub_1_14 Conf" class="gt_row gt_left">[-150,419, 115,643]</td>
+<td headers="by group: stub_1_14 ATT_cond" class="gt_row gt_right"> -35,503</td>
+<td headers="by group: stub_1_14 Conf_cond" class="gt_row gt_left">[-106,745; 35,739]</td>
+<td headers="by group: stub_1_14 ATT_cond_ny" class="gt_row gt_right">-26,592</td>
+<td headers="by group: stub_1_14 Conf_cond_ny" class="gt_row gt_left">[-97,127; 43,943]</td></tr>
     <tr><th id="stub_1_15" scope="row" class="gt_row gt_left gt_stub">Amsterdam</th>
-<td headers="by group: stub_1_15 ATT" class="gt_row gt_right">  10,291</td>
-<td headers="by group: stub_1_15 Conf" class="gt_row gt_left">[-47,895, 68,477]</td>
-<td headers="by group: stub_1_15 ATT_cond" class="gt_row gt_right">  18,096</td>
-<td headers="by group: stub_1_15 Conf_cond" class="gt_row gt_left">[-32,859; 69,050]</td>
-<td headers="by group: stub_1_15 ATT_cond_ny" class="gt_row gt_right"> 18,096</td>
-<td headers="by group: stub_1_15 Conf_cond_ny" class="gt_row gt_left">[-32,859; 69,050]</td></tr>
+<td headers="by group: stub_1_15 ATT" class="gt_row gt_right">   11,930</td>
+<td headers="by group: stub_1_15 Conf" class="gt_row gt_left">[-48,779, 72,640]</td>
+<td headers="by group: stub_1_15 ATT_cond" class="gt_row gt_right">  17,870</td>
+<td headers="by group: stub_1_15 Conf_cond" class="gt_row gt_left">[-27,182; 62,923]</td>
+<td headers="by group: stub_1_15 ATT_cond_ny" class="gt_row gt_right"> 17,870</td>
+<td headers="by group: stub_1_15 Conf_cond_ny" class="gt_row gt_left">[-33,350; 69,091]</td></tr>
     <tr><th id="stub_1_16" scope="row" class="gt_row gt_left gt_stub">Moerdijk</th>
-<td headers="by group: stub_1_16 ATT" class="gt_row gt_right">  -4,593</td>
-<td headers="by group: stub_1_16 Conf" class="gt_row gt_left">[-70,730, 61,543]</td>
-<td headers="by group: stub_1_16 ATT_cond" class="gt_row gt_right">  21,738</td>
-<td headers="by group: stub_1_16 Conf_cond" class="gt_row gt_left">[-48,321; 91,797]</td>
-<td headers="by group: stub_1_16 ATT_cond_ny" class="gt_row gt_right"> 27,660</td>
-<td headers="by group: stub_1_16 Conf_cond_ny" class="gt_row gt_left">[-47,298; 102,618]</td></tr>
+<td headers="by group: stub_1_16 ATT" class="gt_row gt_right">   -5,873</td>
+<td headers="by group: stub_1_16 Conf" class="gt_row gt_left">[-61,509, 49,763]</td>
+<td headers="by group: stub_1_16 ATT_cond" class="gt_row gt_right">  18,766</td>
+<td headers="by group: stub_1_16 Conf_cond" class="gt_row gt_left">[-63,943; 101,475]</td>
+<td headers="by group: stub_1_16 ATT_cond_ny" class="gt_row gt_right"> 23,736</td>
+<td headers="by group: stub_1_16 Conf_cond_ny" class="gt_row gt_left">[-49,463; 96,934]</td></tr>
     <tr><th id="stub_1_17" scope="row" class="gt_row gt_left gt_stub">Rotterdam</th>
-<td headers="by group: stub_1_17 ATT" class="gt_row gt_right"> 690,072*</td>
-<td headers="by group: stub_1_17 Conf" class="gt_row gt_left">[567,262, 812,882]</td>
-<td headers="by group: stub_1_17 ATT_cond" class="gt_row gt_right">-275,384*</td>
-<td headers="by group: stub_1_17 Conf_cond" class="gt_row gt_left">[-363,438; -187,329]</td>
-<td headers="by group: stub_1_17 ATT_cond_ny" class="gt_row gt_right">-28,715</td>
-<td headers="by group: stub_1_17 Conf_cond_ny" class="gt_row gt_left">[-149,432; 92,002]</td></tr>
+<td headers="by group: stub_1_17 ATT" class="gt_row gt_right">1,032,160*</td>
+<td headers="by group: stub_1_17 Conf" class="gt_row gt_left">[953,172, 1,111,148]</td>
+<td headers="by group: stub_1_17 ATT_cond" class="gt_row gt_right"> 381,716*</td>
+<td headers="by group: stub_1_17 Conf_cond" class="gt_row gt_left">[328,779; 434,653]</td>
+<td headers="by group: stub_1_17 ATT_cond_ny" class="gt_row gt_right">123,788</td>
+<td headers="by group: stub_1_17 Conf_cond_ny" class="gt_row gt_left">[-635; 248,211]</td></tr>
     <tr><th id="stub_1_18" scope="row" class="gt_row gt_left gt_stub">Gdynia</th>
-<td headers="by group: stub_1_18 ATT" class="gt_row gt_right">  44,165</td>
-<td headers="by group: stub_1_18 Conf" class="gt_row gt_left">[-124,748, 213,077]</td>
-<td headers="by group: stub_1_18 ATT_cond" class="gt_row gt_right">  29,008</td>
-<td headers="by group: stub_1_18 Conf_cond" class="gt_row gt_left">[-155,530; 213,546]</td>
-<td headers="by group: stub_1_18 ATT_cond_ny" class="gt_row gt_right"> 25,930</td>
-<td headers="by group: stub_1_18 Conf_cond_ny" class="gt_row gt_left">[-125,708; 177,569]</td></tr>
+<td headers="by group: stub_1_18 ATT" class="gt_row gt_right">   43,410</td>
+<td headers="by group: stub_1_18 Conf" class="gt_row gt_left">[-44,144, 130,964]</td>
+<td headers="by group: stub_1_18 ATT_cond" class="gt_row gt_right">  28,988</td>
+<td headers="by group: stub_1_18 Conf_cond" class="gt_row gt_left">[-128,759; 186,735]</td>
+<td headers="by group: stub_1_18 ATT_cond_ny" class="gt_row gt_right"> 24,567</td>
+<td headers="by group: stub_1_18 Conf_cond_ny" class="gt_row gt_left">[-87,070; 136,203]</td></tr>
     <tr><th id="stub_1_19" scope="row" class="gt_row gt_left gt_stub">Ambarli</th>
-<td headers="by group: stub_1_19 ATT" class="gt_row gt_right"> -41,414</td>
-<td headers="by group: stub_1_19 Conf" class="gt_row gt_left">[-148,832, 66,004]</td>
-<td headers="by group: stub_1_19 ATT_cond" class="gt_row gt_right"> -61,094</td>
-<td headers="by group: stub_1_19 Conf_cond" class="gt_row gt_left">[-174,352; 52,164]</td>
-<td headers="by group: stub_1_19 ATT_cond_ny" class="gt_row gt_right">-49,005</td>
-<td headers="by group: stub_1_19 Conf_cond_ny" class="gt_row gt_left">[-158,273; 60,264]</td></tr>
+<td headers="by group: stub_1_19 ATT" class="gt_row gt_right">  -37,238</td>
+<td headers="by group: stub_1_19 Conf" class="gt_row gt_left">[-113,214, 38,737]</td>
+<td headers="by group: stub_1_19 ATT_cond" class="gt_row gt_right"> -74,743</td>
+<td headers="by group: stub_1_19 Conf_cond" class="gt_row gt_left">[-165,250; 15,765]</td>
+<td headers="by group: stub_1_19 ATT_cond_ny" class="gt_row gt_right">-61,344</td>
+<td headers="by group: stub_1_19 Conf_cond_ny" class="gt_row gt_left">[-126,929; 4,241]</td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">
