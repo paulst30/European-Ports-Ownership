@@ -439,6 +439,66 @@ plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
 ggsave(width=10, height=15, filename = "port_ts_graph.pdf", path = file.path(getwd(), "figures"))
 ```
 
+
+```{r include=FALSE}
+# Plot for presentation
+
+plots <- plot_grid(plotlist = plot_list, ncol=6, align = "hv") 
+
+plots1 <- plot_grid(plots, y.title, legend,note, ncol=1, rel_heights = c(0.9,0.025, 0.025, 0.05) ) 
+#plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
+
+plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
+
+ggsave(width=17, height=10, filename = "port_ts_graph_presentation.pdf", path = file.path(getwd(), "results_tables_presentation"))
+
+
+# just "interesting" ports
+plot_list <- list()
+
+for (i in 1:length(treated_ports)){
+  treatment_period <- unique(port_data_TEU$group[port_data_TEU$port_code==treated_ports[i]])
+  treatment_time <- unique(port_data_TEU$time[port_data_TEU$period==treatment_period])
+  port_name <- unique(port_data_TEU$port[port_data_TEU$port_code==treated_ports[i]])
+  
+  plot_list[[i]] <- port_data_TEU %>% filter(port_code==treated_ports[i] | group==0) %>% group_by(port_code, time) %>%
+                                         summarize(sum = sum(total_TEU, na.rm=T),
+                                                   ownership_china = max(ownership_china),
+                                                   group = max(group),
+                                                   year = max(year)) %>% 
+                                                  #group_by(port_code) %>% 
+                                                  #mutate(sum = sum / mean(sum, na.rm=T)) %>% 
+                                                   group_by(group, time) %>% 
+                                         summarize(count = n_distinct(port_code),
+                                                   container = ifelse(port_code=="NLRTM" & between(year,2011,2020), NA, sum(sum, na.rm=T)/count),
+                                                   ownership_china = max(ownership_china)) %>%
+              ggplot(aes(x=time, y=container/1000)) + geom_line(aes(linetype=as.factor(group))) +
+              geom_vline(xintercept = treatment_time) +
+              scale_linetype_manual(values=c("dotted", "solid")) +
+              labs(title = port_name ) +
+              theme_minimal() +
+              theme(panel.background = element_blank(),
+                    strip.text = element_text(hjust = 0, size=16),
+                    text = element_text(size=16, family="LM Roman 10"),
+                    legend.position = "none",
+                    axis.title.x = element_blank(),
+                    axis.title.y = element_blank())
+}
+
+
+plots <- plot_grid(plotlist = plot_list[c(1,2,3,7,10,12)], ncol=3, align = "hv") 
+
+plots1 <- plot_grid(plots, y.title, legend,note, ncol=1, rel_heights = c(0.9,0.025, 0.025, 0.05) ) 
+#plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
+
+plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
+
+ggsave(width=12, height=8, filename = "port_ts_graph_presentation_6.pdf", path = file.path(getwd(), "results_tables_presentation"))
+
+```
+
+
+
 ```{r include=F}
 
 # calculate summary statistics by group
@@ -784,6 +844,10 @@ change_note <- ggdraw() + geom_text(aes(label="Note: Data includes inward contai
 
 # putting it all together
 upper_graph <- plot_grid(change_graph + theme(legend.position = "none"), top_ten_graph+ theme(legend.position = "none"), change_legend, top_ten_legend, ncol = 2, rel_heights = c(.9,.1))
+
+#save upper graph for presentation
+upper_graph
+ggsave(width=12, height=7, filename = "map_presentation.pdf", path = file.path(getwd(), "results_tables_presentation"))
 
 plot_grid(upper_graph,contribution_graph,change_note, ncol = 1, rel_heights = c(0.46,0.46,0.08))
 
