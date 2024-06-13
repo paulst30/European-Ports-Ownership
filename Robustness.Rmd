@@ -486,6 +486,40 @@ cat(latex_code, file = file.path(getwd(), "results_tables", "wochina_results.tex
 
 ```
 
+```{r include =FALSE}
+# table for presentation
+
+results_presentation <- results_final[,c(1,2,4)]
+
+# Insert multirow cell into the appropriate position in the LaTeX code
+addtorow <- list()
+addtorow$pos <- list(nrow(results_final),1)
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{3}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval does not include zero. \\\\ Superscript x indicates that we can reject the null of equal average pseudo \\\\ treatment effects between treated and untreated.}}", 
+                      "[1ex]")
+
+# Modify the LaTeX code
+latex_code <- print.xtable(xtable(results_presentation),
+                           label = "tab:wochina_results",
+                           caption.placement = "top",
+                           include.rownames = FALSE,
+                           add.to.row = addtorow,
+                           hline.after = c(-1,-1,0, 2),
+                           size = "\\begin{adjustbox}{max width=\\textwidth}")
+
+latex_code <- gsub("Estimate & ATT & ATT1","Dependent var.: & \\\\multicolumn{1}{c}{TEU without China} & \\\\multicolumn{1}{c}{Share of Chinese TEU} \\\\\\\\\n \\\\cmidrule(lr){2-2} \\\\cmidrule(lr){3-3} PTA & Cond. & Uncond." , latex_code)
+
+latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:wochina_results}", latex_code)
+latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
+latex_code <- gsub("lll", "lcc", latex_code)
+latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{x\\\\\\}", "\\\\textsuperscript{x}", latex_code)
+
+# Save modified LaTeX code to a .tex file
+cat(latex_code, file = file.path(getwd(), "results_tables_presentation", "wochina_results_presentation.tex"))
+
+
+```
+
+
 ```{r include=T, echo=FALSE}
 
 results_gt_woCHN
