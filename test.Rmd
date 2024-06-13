@@ -20,7 +20,7 @@ library(stringr)
 library(patchwork)
 library(ggplot2)
 library(did)
-library(CInf)
+#library(CInf)
 library(readxl)
 library(gt)
 library(xtable)
@@ -286,9 +286,9 @@ attgt_cond_ny2 <- simple_staggered_did(yname = "container",            #outcome 
 # putting together the results
 
 
-results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond_ny$groupwise_treatment_effects$id), port_list$id)]),
+results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond_ny2$groupwise_treatment_effects$id), port_list$id)]),
                        ATT = c(attgt_cond_ny2$average_treatment_effect$att,
-                                   attgt_cond_ny$groupwise_treatment_effects$att),
+                                   attgt_cond_ny2$groupwise_treatment_effects$att),
                        lower = c(attgt_cond_ny2$average_treatment_effect$att - attgt_cond_ny2$average_treatment_effect$crit_val,
                                 attgt_cond_ny2$groupwise_treatment_effects$att - attgt_cond_ny2$groupwise_treatment_effects$crit_val),
                        upper = c(attgt_cond_ny2$average_treatment_effect$att + attgt_cond_ny2$average_treatment_effect$crit_val,
@@ -301,7 +301,7 @@ results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.ch
                       ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
                       Conf = paste0("[",str_trim(lower),"; ",str_trim(upper),"]"))
 
-results2 <- results[c("Estimate", "ATT", "Conf")]
+results2 <- results2[c("Estimate", "ATT", "Conf")]
 
 ```
 
@@ -343,11 +343,11 @@ results_final <- rbind(results_final[1,],c("by group", rep("", ncol(results_fina
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(results_final),1)
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Dependent variable is number of partner ports per period for the extensive margins estimation. \\\\ Dependent variable is container throughput per partner per period for the intensive margins estimation. \\\\ Both estimations give the conditional ATT with not yet treated control group. Superscript x indicates\\\\ that we can reject the null of equal average pseudo.}}", 
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Dependent variable is number of partner ports per period\\\\ for the extensive margins estimation. Dependent variable is container\\\\ throughput per partner per period for the intensive margins estimation. \\\\Both estimations give the conditional ATT with not yet treated\\\\ control group. Superscript x indicates that we can reject the null of \\\\equal average pseudo.}}", 
                       "[1ex]")
 
 # Modify the LaTeX code
-latex_code <- print.xtable(xtable(results_final, caption = "ATreatment effects on the extensive and intensive margins"),
+latex_code <- print.xtable(xtable(results_final, caption = "Treatment effects on the extensive and intensive margins"),
                            label = "tab:separate_results",
                            caption.placement = "top",
                            include.rownames = FALSE,
