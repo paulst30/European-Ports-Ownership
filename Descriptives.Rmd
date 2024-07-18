@@ -73,7 +73,7 @@ merge(port_data, port_data_TEU, by.x = c("port_code", "sender_code", "year", "qu
   mutate(loaded_TEU = total_TEU-empty_TEU) %>%
   ggplot(aes(x=loaded_TEU, y=container)) + geom_point() +
   ylab("container throughput (thousand tonnes)") +
-         xlab("container throughput (thousand TEU)") +
+         xlab("container throughput (TEU)") +
          labs(title = "Container throughput: Weight versus volume (2000-2022)", caption = "Container throughput by TEU only includes loaded containers.") 
 
 
@@ -422,7 +422,7 @@ for (i in 1:length(treated_ports)){
                     axis.title.y = element_blank())
 }
 
-x.title <- ggdraw() + geom_text(aes(label="TEU (millions)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
+x.title <- ggdraw() + geom_text(aes(label="TEU (thousands)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
 y.title <- ggdraw() + geom_text(aes(label="Year"), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
 
 note <- ggdraw() + geom_text(aes(label="Note: Vertical line indicates treatment timing.\nSource: Eurostat, own calculation."), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 4, family="LM Roman 10")
@@ -717,8 +717,8 @@ load("port_data_TEU_in.RData")
 # clean inflow data
 port_data_TEU_in <- filter(port_data_TEU_in, aggregate==0,
                         stat_port==1,              #filter out non-stat ports (and geographic aggregates)
-                        TEU_yrly >=10000,          #filter out small ports
-                        port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
+                        TEU_yrly >=10000) %>%           #filter out small ports
+                        #port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
   mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
   group_by(port_code, sender_code) %>%
   mutate(pair_id=cur_group_id()) %>% ungroup() %>%
@@ -786,8 +786,8 @@ change_graph <- port_data_TEU_in %>% mutate(partner_region= ifelse(partner_regio
                      geom_line(data= total, aes(linetype=region), linewidth=.7) +
                      geom_step(data=CHN_investments, aes(x=year,y=cum_inv/700, linetype="Investment stock"), linewidth=.7)+
                      xlim(c(1999,2021)) +
-                     xlab("Year") + ylab("TEU (billions)") + labs(title="a) Container throughput and Chinese investment") +
-                     scale_y_continuous(name = "TEU (billions)",
+                     xlab("Year") + ylab("TEU (millions)") + labs(title="a) Container throughput and Chinese investment") +
+                     scale_y_continuous(name = "TEU (mllions)",
                                         sec.axis = sec_axis( trans=~./1000*700, name="Investment stock (billion Euro)")) + 
                      scale_linetype_manual(name = "Legend",
                                           values = c("solid","dashed" , "dotted"),
@@ -851,9 +851,9 @@ upper_graph <- plot_grid(change_graph , top_ten_graph, ncol = 2, align = "h")
 upper_graph
 ggsave(width=12, height=7, filename = "map_presentation.pdf", path = file.path(getwd(), "results_tables_presentation"))
 
-#plot_grid(upper_graph,contribution_graph,change_note, ncol = 1, rel_heights = c(0.46,0.46,0.08))
+plot_grid(upper_graph,contribution_graph,change_note, ncol = 1, rel_heights = c(0.46,0.46,0.08))
 
-#ggsave(width=12, height=15, filename = "map2.pdf", path = file.path(getwd(), "figures"))
+ggsave(width=12, height=15, filename = "map2.pdf", path = file.path(getwd(), "figures"))
 
 ```
 

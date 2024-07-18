@@ -34,8 +34,7 @@ load("port_data_TEU.RData")
 
 port_data_TEU <- filter(port_data_TEU, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
-                                       TEU_yrly >=20000,          #filter out small ports
-                                       port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
+                                       TEU_yrly >=20000) %>%         #filter out small ports
              mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() %>%
@@ -57,9 +56,12 @@ port_data_agg <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container
                               mutate(port_id = cur_group_id(),
                                      mean_container = mean(container, na.rm=T)) %>% ungroup()
 
-#exclude Rotterdam
+#exclude Rotterdam and treated values for Hamburg
 port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
 port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
+
+port_data_TEU$container[port_data_TEU$port_code=="DEHAM" & port_data_TEU$period >= 106]<-NA
+port_data_agg$container[port_data_agg$port_code=="DEHAM" & port_data_agg$period >= 106]<-NA
 
 port_data_agg_ny <- port_data_agg %>% filter(group!=0)
 
@@ -507,7 +509,8 @@ For the DiD framework to deliver unbiased results, the parallel trend assumption
 
 
 #manually putting together eventstudy graph 
-graph_results <- attgt_cond$grouptime_treatment_effects %>%
+graph_results <- attgt_cond_ny$grouptime_treatment_effects %>%
+                  filter(g!=106) %>%                            #drop Hamburg due to no treatment effects
                   mutate(treatment = ifelse(t < g, "pre", "post"),
                          ymin=att-uniform_crit_val,
                          ymax=att+uniform_crit_val)
@@ -524,7 +527,7 @@ ggplot(graph_results, aes(x = t, y = att/1000)) +
   geom_point(aes(shape = treatment ),fill= "white", size = 1.2) +
   geom_ribbon(aes(ymin = ymin/1000, ymax = ymax/1000), fill = "lightgrey", alpha = 0.3) +
   facet_wrap(~port, ncol = 2, scales = "free_y") +
-  labs(x = "Period", y = "TEU (millions)", caption = "Note: Uniform confidence interval is based on bootstrapped errors.") +
+  labs(x = "Period", y = "TEU (thousands)", caption = "Note: Uniform confidence interval is based on bootstrapped errors.") +
   theme_minimal() +
   theme(panel.background = element_blank(),
         strip.text = element_text(hjust = 0, size=12),

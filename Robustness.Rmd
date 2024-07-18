@@ -36,8 +36,7 @@ load("port_data_TEU.RData")
 
 port_data_TEU <- filter(port_data_TEU, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
-                                       TEU_yrly >=20000,          #filter out small ports
-                                       port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
+                                       TEU_yrly >=20000) %>%      #filter out small units
              mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() %>%
@@ -70,9 +69,12 @@ port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$
 port_list <- port_data_agg %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
 
 
-#exclude Rotterdam
+#exclude Rotterdam and Hamburg's treated values
 port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
 port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
+
+port_data_TEU$container[port_data_TEU$port_code=="DEHAM" & port_data_TEU$period >= 106]<-NA
+port_data_agg$container[port_data_agg$port_code=="DEHAM" & port_data_agg$period >= 106]<-NA
 
 # add Cosco and Terminal data to the data set
 terminal_data <- read_xlsx("terminal_throughput.xlsx")
@@ -158,7 +160,8 @@ for (i in seq_along(unique(terminal_data$port_code[terminal_data$treated==1]))) 
 
 
 
-graph_list[[i]] <- terminal_data %>% mutate(residual = ifelse(!is.na(terminal_TEU) & container!=0, container-terminal_TEU, container)) %>% 
+graph_list[[i]] <- terminal_data %>% mutate(residual = ifelse(!is.na(terminal_TEU) & container!=0, container-terminal_TEU, container),
+                                            residual = ifelse(is.na(residual),0,residual)) %>% 
                           pivot_longer(c("terminal_TEU", "residual"), names_to = "type", values_to = "throughput") %>% 
                           filter(port_code==port_c) %>%
                           ggplot(aes(x=period, y=throughput/1000, fill=type)) + 
@@ -187,7 +190,7 @@ graph_list[[i]] <- terminal_data %>% mutate(residual = ifelse(!is.na(terminal_TE
 # 
 # plot_grid(title, plots, note, ncol = 1, rel_heights = c(0.1, 0.9)) 
 
-x.title <- ggdraw() + geom_text(aes(label="TEU (millions)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
+x.title <- ggdraw() + geom_text(aes(label="TEU (thousands)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
 y.title <- ggdraw() + geom_text(aes(label="Period"), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
 
 #note <- ggdraw() + geom_text(aes(label="Note:"), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 3, family="LM Roman 10")
@@ -367,8 +370,9 @@ port_data_agg_woCHN <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(con
                               merge(wpi_data, by.x = c("port_code"), by.y = c("port_code"), all.x = T) 
 
 
-#exclude Rotterdam
+#exclude Rotterdam and Hamburg
 port_data_agg_woCHN$container[port_data_agg_woCHN$port_code=="NLRTM" & between(port_data_agg_woCHN$year,2011,2020)]<-NA
+port_data_agg_woCHN$container[port_data_agg_woCHN$port_code=="DEHAM" & port_data_agg_woCHN$period >= 106]<-NA
 
 port_data_agg_woCHN$quay_length[port_data_agg_woCHN$quay_length==0] <- 100
 port_data_agg_woCHN$cranes[port_data_agg_woCHN$cranes==0] <- 1
