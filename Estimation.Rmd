@@ -56,6 +56,8 @@ port_data_agg <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container
                               mutate(port_id = cur_group_id(),
                                      mean_container = mean(container, na.rm=T)) %>% ungroup()
 
+
+
 #exclude Rotterdam and treated values for Hamburg
 port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
 port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
@@ -103,9 +105,13 @@ port_data_agg$quay_length[port_data_agg$quay_length==0] <- 100
 port_data_agg$cranes[port_data_agg$cranes==0] <- 1
 
 ### Control variables for DID ####
+port_data_agg <- port_data_agg %>% group_by(port_code) %>% 
+                                   mutate(delta_cranes1y = cranes - cranes[ifelse(row_number()-4<=0,1,row_number()-4)],
+                                          delta_cranes5y = cranes - cranes[ifelse(row_number()-20<=0,1,row_number()-20)],
+                                          delta_cranes3y = cranes - cranes[ifelse(row_number()-12<=0,1,row_number()-12)],
+                                          delta_cranes10y = cranes - cranes[ifelse(row_number()-40<=0,1,row_number()-40)])
 
-
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "max_lift", "cargo_depth")  #"cranes","delta_cranes1y","delta_cranes5y"
 var_controls <- c("quay_length")
 
 #controls <- c("cranes", "max_lift", "cargo_depth")
@@ -262,6 +268,7 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               #xformula = c("ships"),
                               #varformula = c("ships"),
                               #control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -272,6 +279,7 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               xformula = controls,
                               varformula = var_controls,
                               #control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -321,6 +329,7 @@ attgt_ny <- simple_staggered_did(yname = "container",            #outcome variab
                               #xformula = c("ships"),
                               #varformula = c("ships"),
                               control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -331,6 +340,7 @@ attgt_cond_ny <- simple_staggered_did(yname = "container",            #outcome v
                               xformula = controls,
                               varformula = var_controls,
                               control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_agg)
 
 

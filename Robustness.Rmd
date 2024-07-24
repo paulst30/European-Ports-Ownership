@@ -133,7 +133,7 @@ terminal_data$cranes[terminal_data$cranes==0] <- 1
 ### Control variables for DID ####
 
 
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "max_lift", "cargo_depth")
 var_controls <- c("quay_length")
 
 

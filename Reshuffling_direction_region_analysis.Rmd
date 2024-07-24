@@ -24,7 +24,7 @@ library(did)
 library(gt)
 library(CInf)
 library(stringr)
-
+library(xtable)
 
 load("port_data_TEU_out.RData")
 
@@ -220,7 +220,7 @@ number_control <- port_data_agg_in %>%
 
 ### Control variables for DID ####
 
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "max_lift", "cargo_depth")
 var_controls <- c("quay_length")
 
 ### Produce treated ports list for results presentation
@@ -346,7 +346,7 @@ number_control <- port_data_agg_out %>%
 
 ### Control variables for DID ####
 
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "max_lift", "cargo_depth")
 var_controls <- c("quay_length")
 
 ### Produce treated ports list for results presentation
@@ -473,7 +473,7 @@ number_control <- port_data_agg_out %>%
 
 ### Control variables for DID ####
 
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "max_lift", "cargo_depth")
 var_controls <- c("quay_length")
 
 ### Produce treated ports list for results presentation
@@ -600,7 +600,7 @@ number_control <- port_data_agg_in %>%
 
 ### Control variables for DID ####
 
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "max_lift", "cargo_depth")
 var_controls <- c("quay_length")
 
 ### Produce treated ports list for results presentation
@@ -725,7 +725,7 @@ number_control <- port_data_agg_in %>%
 
 ### Control variables for DID ####
 
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "max_lift", "cargo_depth")
 var_controls <- c("quay_length")
 
 ### Produce treated ports list for results presentation
@@ -849,7 +849,7 @@ number_control <- port_data_agg_out %>%
 
 ### Control variables for DID ####
 
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "max_lift", "cargo_depth")
 var_controls <- c("quay_length")
 
 ### Produce treated ports list for results presentation
