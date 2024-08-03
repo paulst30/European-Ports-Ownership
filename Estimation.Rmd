@@ -42,7 +42,7 @@ port_data_TEU <- filter(port_data_TEU, aggregate==0,
 
 
 port_data_agg <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container) & (sender_code=="CN_X_HK" | sender_code=="HK"),container,0)) %>%
-                               group_by(port, port_code, period, reporter_code) %>% 
+                               group_by(port, port_code, period, reporter_code, reporter) %>% 
                                summarize(container = sum(container, na.rm=T),
                                          real_gdp_reporter = mean(real_gdp_reporter),
                                          origin_china = sum(origin_china),
@@ -119,6 +119,92 @@ var_controls <- c("quay_length")
 
 ```
 
+```{r include=FALSE, warning=FALSE, message=FALSE}
+# include Sea dummies: Mediterranean Sea (47), Atlantic Ocean (34), North Sea (37), Baltic Sea (19), Black Sea (3)
+
+## (1) Mediterranean Sea ports: 1 for all ports in countries at the Mediterranean Sea
+
+med_sea_countries <- c("Cyprus", "Greece", "Croatia", "Italy", 
+                       "Montenegro", "Malta", "Slovenia", "Turkey", "Spain", "France")
+
+port_data_agg <- port_data_agg %>%
+  mutate(Med_Sea = ifelse(reporter %in% med_sea_countries, 1, 0))
+
+### Replace with 0 for ports in Turkey, Spain, France that are not at the Mediterranean Sea
+
+port_data_agg <- port_data_agg %>%
+  mutate(Med_Sea = ifelse(port == "Samsun", 0, Med_Sea))
+
+non_med_ports_spanish <- c("Bilbao", "Gijon", "Huelva", "Las Palmas", 
+                   "Marin y ria de Pontevedra", "Santa Cruz de Tenerife", 
+                   "Santander", "Sevilla", "Vigo", "Villagarcia")
+
+port_data_agg <- port_data_agg %>%
+  mutate(Med_Sea = ifelse(reporter == "Spain" & port %in% non_med_ports_spanish, 0, Med_Sea))
+
+non_med_ports_french <- c("France: Guadeloupe and Martinique", 
+                           "Brest", "Dunkerque", "Le Havre", 
+                           "Nantes Saint Nazaire", "Pointe a Pitre (Guadeloupe)", 
+                           "Fort de France (Martinique)", 
+                           "Port Réunion (ex Pointe-des-Galets) (Réunion)")
+
+port_data_agg <- port_data_agg %>%
+  mutate(Med_Sea = ifelse(reporter == "France" & port %in% non_med_ports_french, 0, Med_Sea))
+
+med_sea_ports <- port_data_agg %>%
+  filter(Med_Sea == 1) %>%
+  distinct(port) %>%
+  pull(port)
+
+print(med_sea_ports)
+### 47 of our ports are in the greater space of the Mediterranean Sea and 93 are not, total ports = 140, therefore 1/3 of the sample ports are in the Mediterranean.
+
+## (2) Atlantic Ocean
+atlantic_ports <- c("Bilbao", "Gijon", "Huelva", "Las Palmas", 
+                    "Marin y ria de Pontevedra", "Santa Cruz de Tenerife", 
+                    "Santander", "Sevilla", "Vigo", "Villagarcia", 
+                    "Brest", "Dunkerque", "Le Havre", "Nantes Saint Nazaire", "France:                      Guadeloupe and Martinique", "Canical", "Funchal (Madeira)", "Fort de                     France (Martinique)", "Belfast", "Bristol", "Cardiff", "Portsmouth", 
+                    "Southampton", "Warrenpoint", "Drogheda", 
+                    "Dublin", "Cork", "Waterford", "Leixoes", 
+                    "Lisboa", "Ponta Delgada (Ilha de S. Miguel, Acores)", 
+                    "Praia da Vitoria (Ilha Terceira, Acores)", "Setubal", 
+                    "Sines")
+
+port_data_agg <- port_data_agg %>%
+  mutate(Atlantic_Ocean = ifelse(port %in% atlantic_ports, 1, 0))
+### 34 ports are in the Atlantic Ocean or connect to it.
+
+## (3) North Sea
+north_sea_ports <- c("Antwerp-Bruges", "Antwerpen", "Gent (Ghent)", "Zeebrugge", 
+                     "Bremerhaven", "Cuxhaven", "Hamburg", "Kiel", "Lubeck", 
+                     "Wilhelmshaven", "Aalborg", "Arhus", "Borg", "Kobenhavns Havn", 
+                     "Esbjerg", "Fredericia (Og Shell-Havnen)", "Amsterdam", 
+                     "Moerdijk", "Rotterdam", "Aberdeen", "Felixstowe", 
+                     "Goole", "Hull", "Immingham", "London", "Medway", 
+                     "Tees & Hartlepool", "Fredrikstad", "Porsgrunn, Rafnes, Herøya, Brevik, Skien, Langesund, Voldsfjorden", "Kristiansand", "Mosjoen", 
+                     "Moss", "Oslo", "Goteborg", "Halmstad", "Helsingborg", "Malmo")
+
+port_data_agg <- port_data_agg %>%
+  mutate(North_Sea = ifelse(port %in% north_sea_ports, 1, 0))
+### 37 ports are in the North Sea or connect to it.
+
+## (4) Baltic Sea
+baltic_ports <- c("Tallinn", "Helsinki", "Hanko", "Oulu", "Pori",
+                   "Rauma", "Klaipeda", "Riga", "Gdansk", "Gdynia", "Szczecin",
+                   "Gavle", "Halmstad", "Helsingborg", "Malmo", "Norrkoping",
+                   "Sodertalje", "Vasteras", "Gavle")
+
+port_data_agg <- port_data_agg %>%
+  mutate(Baltic_Sea = ifelse(port %in% baltic_ports, 1, 0))
+# 19 ports are in the Baltic Sea or connect to it.
+
+## (5) Black Sea
+black_sea_ports <- c("Varna", "Constanta", "Samsun")
+
+port_data_agg <- port_data_agg %>%
+  mutate(Black_Sea = ifelse(port %in% black_sea_ports, 1, 0))
+### 3 ports are in the Black Sea.
+```
 
 # Baseline equation (fixed effects)
 
