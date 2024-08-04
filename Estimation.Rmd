@@ -120,7 +120,7 @@ var_controls <- c("quay_length")
 ```
 
 ```{r include=FALSE, warning=FALSE, message=FALSE}
-# include Sea dummies: Mediterranean Sea (47), Atlantic Ocean (34), North Sea (37), Baltic Sea (19), Black Sea (3)
+# include Sea dummies: Mediterranean Sea (45) [24 Eastern Mediterranean, 21 Western Mediterranean], Atlantic Ocean (36), North Sea (37), Baltic Sea (19), Black Sea (3)
 
 ## (1) Mediterranean Sea ports: 1 for all ports in countries at the Mediterranean Sea
 
@@ -136,7 +136,7 @@ port_data_agg <- port_data_agg %>%
   mutate(Med_Sea = ifelse(port == "Samsun", 0, Med_Sea))
 
 non_med_ports_spanish <- c("Bilbao", "Gijon", "Huelva", "Las Palmas", 
-                   "Marin y ria de Pontevedra", "Santa Cruz de Tenerife", 
+                   "Marin y ria de Pontevedra", "Santa Cruz de Tenerife", "Las Nieves (Agaete)", "Cadiz",
                    "Santander", "Sevilla", "Vigo", "Villagarcia")
 
 port_data_agg <- port_data_agg %>%
@@ -157,14 +157,14 @@ med_sea_ports <- port_data_agg %>%
   pull(port)
 
 print(med_sea_ports)
-### 47 of our ports are in the greater space of the Mediterranean Sea and 93 are not, total ports = 140, therefore 1/3 of the sample ports are in the Mediterranean.
+### 45 of our ports are in the greater space of the Mediterranean Sea and 93 are not, total ports = 140, therefore 1/3 of the sample ports are in the Mediterranean.
 
 ## (2) Atlantic Ocean
 atlantic_ports <- c("Bilbao", "Gijon", "Huelva", "Las Palmas", 
                     "Marin y ria de Pontevedra", "Santa Cruz de Tenerife", 
-                    "Santander", "Sevilla", "Vigo", "Villagarcia", 
+                    "Santander", "Sevilla", "Vigo", "Villagarcia", "Las Nieves (Agaete)",
                     "Brest", "Dunkerque", "Le Havre", "Nantes Saint Nazaire", "France:                      Guadeloupe and Martinique", "Canical", "Funchal (Madeira)", "Fort de                     France (Martinique)", "Belfast", "Bristol", "Cardiff", "Portsmouth", 
-                    "Southampton", "Warrenpoint", "Drogheda", 
+                    "Southampton", "Warrenpoint", "Drogheda", "Cadiz",
                     "Dublin", "Cork", "Waterford", "Leixoes", 
                     "Lisboa", "Ponta Delgada (Ilha de S. Miguel, Acores)", 
                     "Praia da Vitoria (Ilha Terceira, Acores)", "Setubal", 
@@ -172,7 +172,7 @@ atlantic_ports <- c("Bilbao", "Gijon", "Huelva", "Las Palmas",
 
 port_data_agg <- port_data_agg %>%
   mutate(Atlantic_Ocean = ifelse(port %in% atlantic_ports, 1, 0))
-### 34 ports are in the Atlantic Ocean or connect to it.
+### 36 ports are in the Atlantic Ocean or connect to it.
 
 ## (3) North Sea
 north_sea_ports <- c("Antwerp-Bruges", "Antwerpen", "Gent (Ghent)", "Zeebrugge", 
@@ -204,6 +204,49 @@ black_sea_ports <- c("Varna", "Constanta", "Samsun")
 port_data_agg <- port_data_agg %>%
   mutate(Black_Sea = ifelse(port %in% black_sea_ports, 1, 0))
 ### 3 ports are in the Black Sea.
+
+## (5) splitting up the Mediterranean in Eastern and Western Mediterranean Sea
+
+eastern_ports <- c(
+  "Lemesos (Limassol)", "Piraeus", "Thessaloniki", "Ploce", "Rijeka", "Ancona", "Bari", "Catania", "Ravenna", "Taranto", "Trieste", "Venezia", "Bar", "Marsaxlokk", "Koper", "Aliaga",
+  "Ambarli", "Antalya", "Gemlik", "Iskenderun, Hatay", "Izmir", "Izmit", "Mersin", "Tekirdag"
+)
+
+western_ports <- c(
+  "Malaga", "Alicante", "Algeciras", "Barcelona", "Cartagena",
+  "Castellon", "Melilla", "Gioia Tauro", "Palma de Mallorca", "Tarragona", "Valencia", "Marseille", "Cagliari",
+  "Civitavecchia", "Genova", "Livorno", "Marina Di Carrara", "Napoli", "Salerno", "La Spezia", "Savona"
+)
+
+port_data_agg$Med_Sea_east <- ifelse(port_data_agg$port %in% eastern_ports, 1, 0)
+port_data_agg$Med_Sea_west <- ifelse(port_data_agg$port %in% western_ports, 1, 0)
+
+### 24 ports are in the Eastern Mediterranean and 21 ports are in the Western Mediterranean.
+
+# Create a categorial variable. Sea1 captures all Mediterranean ports, Sea2 differentiated between Eastern and Western Mediterranean ports
+
+port_data_agg <- port_data_agg %>%
+  mutate(Sea1 = case_when(
+    Med_Sea == 1 ~ "Med_Sea",
+    Atlantic_Ocean == 1 ~ "Atlantic_Ocean",
+    North_Sea == 1 ~ "North_Sea",
+    Baltic_Sea == 1 ~ "Balti_Sea",
+    Black_Sea == 1 ~ "Black_Sea"
+  ))
+
+port_data_agg$Sea1 <- as.factor(port_data_agg$Sea1)
+
+port_data_agg <- port_data_agg %>%
+  mutate(Sea2 = case_when(
+    Med_Sea_east == 1 ~ "Med_Sea_east",
+    Med_Sea_west == 1 ~ "Med_Sea_west",
+    Atlantic_Ocean == 1 ~ "Atlantic_Ocean",
+    North_Sea == 1 ~ "North_Sea",
+    Baltic_Sea == 1 ~ "Balti_Sea",
+    Black_Sea == 1 ~ "Black_Sea"
+  ))
+
+port_data_agg$Sea2 <- as.factor(port_data_agg$Sea2)
 ```
 
 # Baseline equation (fixed effects)
