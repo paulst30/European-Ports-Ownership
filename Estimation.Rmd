@@ -247,6 +247,16 @@ port_data_agg <- port_data_agg %>%
   ))
 
 port_data_agg$Sea2 <- as.factor(port_data_agg$Sea2)
+
+# generate interaction-terms with main controls to implement regional control groups
+
+port_data_agg <- port_data_agg %>% mutate(across(c("Med_Sea", "Atlantic_Ocean", "North_Sea", "Baltic_Sea", "Black_Sea"),list(quay=~.*quay_length, lift=~.*max_lift, depth=~.*cargo_depth), .names = "{.col}_{.fn}"  ))
+
+regional_controls <- c("Med_Sea", "Atlantic_Ocean", "North_Sea", "Baltic_Sea", "Black_Sea", 
+                       "Med_Sea_quay", "Atlantic_Ocean_quay", "North_Sea_quay", "Baltic_Sea_quay", "Black_Sea_quay",
+                       "Med_Sea_lift", "Atlantic_Ocean_lift", "North_Sea_lift", "Baltic_Sea_lift", "Black_Sea_lift",
+                       "Med_Sea_depth", "Atlantic_Ocean_depth", "North_Sea_depth", "Baltic_Sea_depth", "Black_Sea_depth")
+
 ```
 
 # Baseline equation (fixed effects)
@@ -682,7 +692,100 @@ ggsave(width=10, height=15, filename = "ATT_graph.pdf", path = file.path(getwd()
 
 ```
 
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+# robustness check for estimating treatment effect in a regional comparison
+attgt_cond_ny_regional <- simple_staggered_did(yname = "container",            #outcome variable
+                              tname = "period",                 #time variable
+                              idname = "port_id",                    #id for units (should be port_code*sender)
+                              gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
+                              xformula = regional_controls,
+                              varformula = var_controls,
+                              control_group = "not_yet_treated",
+                              bstrap = 400,
+                              data = port_data_agg)
 
+# get results
+results_ny_reg <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond_ny_regional$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT_cond_ny = c(attgt_cond_ny_regional$average_treatment_effect$att,
+                                   attgt_cond_ny_regional$groupwise_treatment_effects$att),
+                       lower_cond_ny = c(attgt_cond_ny_regional$average_treatment_effect$att - attgt_cond_ny_regional$average_treatment_effect$crit_val,
+                                attgt_cond_ny_regional$groupwise_treatment_effects$att - attgt_cond_ny_regional$groupwise_treatment_effects$crit_val),
+                       upper_cond_ny = c(attgt_cond_ny_regional$average_treatment_effect$att + attgt_cond_ny_regional$average_treatment_effect$crit_val,
+                                  attgt_cond_ny_regional$groupwise_treatment_effects$att + attgt_cond_ny_regional$groupwise_treatment_effects$crit_val),
+                       p_value_cond_ny = c(NA, attgt_cond_ny_regional$groupwise_treatment_effects$pre_treatment_p_value)) %>%
+               mutate(sig_cond = (ATT_cond_ny>0 & lower_cond_ny>0) | (ATT_cond_ny<0 & upper_cond_ny<0),
+                      pretest_cond = (p_value_cond_ny < 0.05) & !is.na(p_value_cond_ny),
+                      across(c("ATT_cond_ny","lower_cond_ny","upper_cond_ny"), ~ format(round(.,digits=0), big.mark = ",")),
+                      ATT_cond_ny = ifelse(sig_cond==T, paste0(ATT_cond_ny, "*"), ATT_cond_ny),
+                      ATT_cond_ny = ifelse(pretest_cond==T, paste0(ATT_cond_ny, "^{x}"),ATT_cond_ny),
+                      Conf_cond_ny = paste0("[",str_trim(lower_cond_ny),"; ",str_trim(upper_cond_ny),"]"))
+
+
+results_ny_reg_final <- rbind(results_ny_reg[1,],c("by group", rep("", ncol(results_ny_reg)-1)) ,results_ny_reg[2:19,]) 
+
+# generating a gt table
+results_ny_reg_gt <- gt(results_ny_reg[c("Estimate","ATT_cond_ny","Conf_cond_ny")], rowname_col = "Estimate") |>
+              tab_header(
+                title = "Aggregation of group time treatment effects with regional control groups",
+                subtitle = "Dependent variable: Total throughput in thousand TEU") |>
+              cols_label(
+                ATT_cond_ny="conditional",
+                Conf_cond_ny="95% CI"
+              ) |>
+              tab_spanner(label = "Not yet treated",
+                          columns = c("ATT_cond_ny", "Conf_cond_ny")) |>
+              tab_row_group(label = "by group:",
+                            rows = c(2:19)) |>
+              row_group_order(groups = c(NA,"by group:")) |>
+              sub_missing(columns = everything(),
+                          rows = everything(),
+                          missing_text = "") |>
+              tab_footnote(footnote = "Stars indicate that the confidence interval does not include zero.") |>
+              tab_options(stub.border.width = 0,
+                          table_body.hlines.width = 0
+              )
+
+
+```
+
+
+```{r echo=FALSE}
+results_ny_reg_gt
+```
+
+```{r include=TRUE, warning=FALSE, echo=FALSE}
+#manually putting together eventstudy graph 
+graph_results <- attgt_cond_ny_regional$grouptime_treatment_effects %>%
+                  filter(g!=106) %>%                            #drop Hamburg due to no treatment effects
+                  mutate(treatment = ifelse(t < g, "pre", "post"),
+                         ymin=att-uniform_crit_val,
+                         ymax=att+uniform_crit_val)
+
+# arrange ordering according to port size
+graph_results$port <- port_list$port[match(graph_results$id, port_list$id)]
+
+factor_level <- c("Rotterdam", "Antwerpen", "Valencia", "Piraeus", "Barcelona", "Le Havre","Ambarli", "Genova", "Marseille", "Zeebrugge", "Bilbao", "Gdynia", "Thessaloniki", "Dunkerque", "Nantes Saint Nazaire", "Moerdijk", "Amsterdam", "Marsaxlokk")
+
+graph_results$port <- factor(graph_results$port, levels=factor_level)
+
+
+ggplot(graph_results, aes(x = t, y = att/1000)) + 
+  geom_point(aes(shape = treatment ),fill= "white", size = 1.2) +
+  geom_ribbon(aes(ymin = ymin/1000, ymax = ymax/1000), fill = "lightgrey", alpha = 0.3) +
+  facet_wrap(~port, ncol = 2, scales = "free_y") +
+  labs(x = "Period", y = "TEU (thousands)", caption = "Note: Uniform confidence interval is based on bootstrapped errors.") +
+  theme_minimal() +
+  theme(panel.background = element_blank(),
+        strip.text = element_text(hjust = 0, size=12),
+        text = element_text(size=10, family="LM Roman 10"),
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.caption = element_text(hjust = 0)) +
+  scale_shape_manual(values = c(19,1))
+
+
+
+```
 
 
 ```{r include=FALSE, warning=FALSE}
