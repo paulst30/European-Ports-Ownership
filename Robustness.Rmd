@@ -175,7 +175,8 @@ graph_list[[i]] <- terminal_data %>% mutate(residual = ifelse(!is.na(terminal_TE
                           theme(panel.background = element_blank(),
                                 strip.text = element_text(hjust = 0, size=12),
                                 text = element_text(size=10, family="LM Roman 10"),
-                                legend.position = "none",
+                                #legend.position = "bottom",
+                                legend.title = element_blank(),
                                 axis.title.x = element_blank(),
                                 axis.title.y = element_blank())
 }
@@ -195,12 +196,15 @@ y.title <- ggdraw() + geom_text(aes(label="Period"), x = 0.5, y = 0.5, hjust = 0
 
 #note <- ggdraw() + geom_text(aes(label="Note:"), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 3, family="LM Roman 10")
 
-legend <- get_legend(graph_list[[1]] + 
-                       theme(legend.position="bottom", legend.title = element_blank()))
+legend <- get_legend(graph_list[[1]] + guides(fill = guide_legend(direction = "horizontal")))
+
+for (i in 1:6){
+  graph_list[[i]] = graph_list[[i]] + theme(legend.position = "none")
+}
 
 plots1 <- plot_grid(plotlist = graph_list, ncol=2, align = "hv") 
 
-plots1 <- plot_grid(plots1, y.title, legend, ncol=1, rel_heights = c(0.925,0.05, 0.025) ) 
+plots1 <- plot_grid(plots1, y.title, legend, ncol=1, rel_heights = c(0.90,0.05, 0.05) ) 
 #plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
 
 plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
