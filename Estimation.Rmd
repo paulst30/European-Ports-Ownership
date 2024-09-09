@@ -300,7 +300,7 @@ spec4 <- feols(container ~ ownership_china + ownership_china:s_china  | port_cod
 
 
 #set formatting names
-setFixest_dict(c(ownership_china = "Ownership Chinese SOE",
+setFixest_dict(c(ownership_china = "Ownership Chinese company",
                  s_china = "Origin China",
                  port_code = "Port",
                  period = "Period",
@@ -315,7 +315,7 @@ cat(esttex(spec1, spec2, spec3, spec4,
                                         fixef.suffix = "", yesNo = "yes"),
                     vcov = "twoway",
                     adjustbox = TRUE,
-                    title = "Fixed effects Results",
+                    title = "Fixed effects results",
                     label = "tab:fe_results"
                     #tex = TRUE
            ), file = file.path(getwd(),"results_tables","fe_results.tex"))
@@ -626,7 +626,7 @@ latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{x\\\\\\}", "\\\\textsuperscript{x}",
 # \\\\end{minipage}", latex_code)
 
 # Save modified LaTeX code to a .tex file
-cat(latex_code, file = file.path(getwd(), "results_tables_presentation", "did_results_presentation.tex"))
+cat(latex_code, file = file.path(getwd(), "results_tables", "did_results_presentation.tex"))
 
 
 ```
