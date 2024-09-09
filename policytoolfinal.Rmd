@@ -16,6 +16,7 @@ library(tidyr)
 library(stringr)
 library(patchwork)
 library(ggplot2)
+library(cowplot)
 library(fixest)
 library(did)
 library(CInf)
@@ -895,6 +896,9 @@ port_data_TEU_in <- port_data_TEU_in %>%
 port_data_TEU_out <- port_data_TEU_out %>%
   rename(container = total_TEU)
 
+#exclude Rotterdam data for compromised years
+port_data_TEU_out$container[port_data_TEU_out$port_code=="NLRTM" & between(port_data_TEU_out$year,2011,2020)]<-NA
+
 
 Gdynia_LT_in <- port_data_TEU_in %>% filter(port=="Gdynia" & sender_code=="LT")
 Gdynia_LT_out <- port_data_TEU_out %>% filter(port=="Gdynia" & sender_code=="LT")
@@ -1061,14 +1065,13 @@ plot4 <- ggplot() +
 
 
 plot5 <- ggplot() +
-  geom_line(data = Gdansk_CN_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
   geom_line(data = Gdansk_CN_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
   geom_vline(xintercept = 100, color = "black") + ggtitle("Container flows between Gdansk and China")+ theme_minimal() + 
   theme(text = element_text(size=10, family="LM Roman 10"),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         legend.position = "none") +
-  scale_linetype_manual(values = c("solid", "dashed"))
+  scale_linetype_manual(values = c("dashed"))
 
 plot6 <- ggplot() +
   geom_line(data = Gdansk_LT_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
