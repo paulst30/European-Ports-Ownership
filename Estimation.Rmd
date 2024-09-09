@@ -671,7 +671,7 @@ graph_results <- attgt_cond_ny$grouptime_treatment_effects %>%
 # arrange ordering according to port size
 graph_results$port <- port_list$port[match(graph_results$id, port_list$id)]
 
-factor_level <- c("Rotterdam", "Antwerpen", "Valencia", "Piraeus", "Barcelona", "Le Havre","Ambarli", "Genova", "Marseille", "Zeebrugge", "Bilbao", "Gdynia", "Thessaloniki", "Dunkerque", "Nantes Saint Nazaire", "Moerdijk", "Amsterdam", "Marsaxlokk")
+factor_level <- c("Rotterdam", "Antwerpen", "Valencia", "Piraeus", "Barcelona", "Le Havre","Ambarli", "Genova", "Marseille", "Zeebrugge", "Bilbao", "Gdynia", "Thessaloniki", "Dunkerque", "Nantes Saint Nazaire", "Moerdijk", "Amsterdam", "Marsaxlokk", "Savona")
 
 graph_results$port <- factor(graph_results$port, levels=factor_level)
 
