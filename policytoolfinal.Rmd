@@ -1019,64 +1019,137 @@ Klaipeda_major_partners <- port_data_TEU %>% filter(port=="Klaipeda", partner=="
 
 
 plot1 <- ggplot() +
-  geom_point(data = Rotterdam_CN_in, aes(x = period, y = container)) +
-  geom_point(data = Rotterdam_CN_out, aes(x = period, y = container), shape = 4) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Rotterdam and China")
+  geom_line(data = Rotterdam_CN_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
+  geom_line(data = Rotterdam_CN_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
+  geom_vline(xintercept = 100, color = "black") + ggtitle("Container flows between Rotterdam and China") + theme_minimal() + 
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"))
+
 
 plot2 <- ggplot() +
-  geom_point(data = Rotterdam_LT_in, aes(x = period, y = container)) +
-  geom_point(data = Rotterdam_LT_out, aes(x = period, y = container), shape = 4) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Rotterdam and Lithuania")
+  geom_line(data = Rotterdam_LT_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
+  geom_line(data = Rotterdam_LT_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
+  geom_vline(xintercept = 100,  color = "black") + ggtitle("Container flows between Rotterdam and Lithuania")+ theme_minimal() + 
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"))
 
 plot3 <- ggplot() +
-  geom_point(data = Hamburg_CN_in, aes(x = period, y = container)) +
-  geom_point(data = Hamburg_CN_out, aes(x = period, y = container), shape = 4) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Hamburg and China")
+  geom_line(data = Hamburg_CN_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
+  geom_line(data = Hamburg_CN_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
+  geom_vline(xintercept = 100,  color = "black") + ggtitle("Container flows between Hamburg and China")+ theme_minimal() + 
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"))
 
 plot4 <- ggplot() +
-  geom_point(data = Hamburg_LT_in, aes(x = period, y = container)) +
-  geom_point(data = Hamburg_LT_out, aes(x = period, y = container), shape = 4) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Hamburg and Lithuania")
+  geom_line(data = Hamburg_LT_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
+  geom_line(data = Hamburg_LT_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
+  geom_vline(xintercept = 100,  color = "black") + ggtitle("Container flows between Hamburg and Lithuania")+ theme_minimal() + 
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"))
 
 
 plot5 <- ggplot() +
-  geom_point(data = Gdansk_CN_in, aes(x = period, y = container)) +
-  geom_point(data = Gdansk_CN_out, aes(x = period, y = container), shape = 4) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Gdansk and China")
+  geom_line(data = Gdansk_CN_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
+  geom_line(data = Gdansk_CN_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
+  geom_vline(xintercept = 100, color = "black") + ggtitle("Container flows between Gdansk and China")+ theme_minimal() + 
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"))
 
 plot6 <- ggplot() +
-  geom_point(data = Gdansk_LT_in, aes(x = period, y = container)) +
-  geom_point(data = Gdansk_LT_out, aes(x = period, y = container), shape = 4) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Gdansk and Lithuania")
+  geom_line(data = Gdansk_LT_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
+  geom_line(data = Gdansk_LT_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
+  geom_vline(xintercept = 100, color = "black") + ggtitle("Container flows between Gdansk and Lithuania")+ theme_minimal() + 
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"))
 
 
 plot7 <- ggplot() +
-  geom_point(data = Riga_LT_in, aes(x = period, y = container)) +
-  geom_point(data = Riga_LT_out, aes(x = period, y = container), shape = 4) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Riga and Lithuania")
+  geom_line(data = Riga_LT_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
+  geom_line(data = Riga_LT_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
+  geom_vline(xintercept = 100,  color = "black") + ggtitle("Container flows between Riga and Lithuania")+ theme_minimal() + 
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"))
 
 
 plot8 <- ggplot() +
-  geom_point(data = Gdynia_LT_in, aes(x = period, y = container)) +
-  geom_point(data = Gdynia_LT_out, aes(x = period, y = container), shape = 4) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Gdynia and Lithuania")
+  geom_line(data = Gdynia_LT_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
+  geom_line(data = Gdynia_LT_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
+  geom_vline(xintercept = 100, color = "black") + ggtitle("Container flows between Gdynia and Lithuania")+ theme_minimal() + 
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none") +
+  scale_linetype_manual(values = c("solid", "dashed"))
 
 plot9 <- ggplot() +
-  geom_point(data = Klaipeda_all_in, aes(x = period, y = container)) +
-  geom_point(data = Klaipeda_all_out, aes(x = period, y = container), shape = 4) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Klaipeda and all partners")
+  geom_line(data = Klaipeda_all_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
+  geom_line(data = Klaipeda_all_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
+  geom_vline(xintercept = 100, color = "black") + ggtitle("Container flows between Klaipeda and all partners")+ theme_minimal() + 
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        legend.position = "bottom",
+        legend.title = element_blank()) +
+  ylab("TEU (thousands)") + xlab("Period") +
+  scale_linetype_manual(values = c("solid", "dashed"))
 
 
 plot10 <- ggplot() +
-  geom_line(data = Klaipeda_major_partners, aes(x = period, y = container, color = partner)) +
-  geom_vline(xintercept = 100, linetype = "dashed", color = "black") + ggtitle("Container flows between Klaipeda and important partners")
+  geom_area(data = Klaipeda_major_partners, aes(x = period, y = container/1000,  fill = partner), position = "stack") +
+  geom_vline(xintercept = 100, color = "black") + 
+  #ggtitle("Container flows between Klaipeda and important partners")+ 
+  theme_minimal() + 
+  xlab("Period") +
+  ylab("TEU (thousands)") +
+  labs(caption="Note: Vertical line indicates treatment timing.\nSource: Eurostat, own calculation.") +
+  theme(text = element_text(size=10, family="LM Roman 10"),
+        legend.title = element_blank(),
+        legend.position = "right",
+        plot.caption = element_text(hjust = 0))
 
+# set up axis names and notes
+x.title <- ggdraw() + geom_text(aes(label="TEU (thousands)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
+y.title <- ggdraw() + geom_text(aes(label="Period"), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
 
-policytool_plots2 <- grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, plot7, plot8, ncol = 2, nrow = 4)
+note <- ggdraw() + geom_text(aes(label="Note: Vertical line indicates treatment timing.\nSource: Eurostat, own calculation."), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 4, family="LM Roman 10")
+
+#extract legend
+legend <- get_legend(plot1 + 
+                     theme(legend.position="right",
+                           legend.direction = "horizontal",
+                           legend.title = element_blank()))
+
+# arrange first plot
+plots <- plot_grid(plot1, plot2, plot3, plot4, plot5, plot6, plot7, plot8, ncol = 2, nrow = 4)
+
+plots <- plot_grid(plots, y.title, legend, note, ncol=1, rel_heights = c(0.85,0.025,0.05,0.05))
+
+policytool_plots2 <- plot_grid(x.title, plots, ncol = 2, rel_widths = c(0.05,0.95))
+
 ggsave("figures/policytool_plots2.pdf", policytool_plots2, width = 14, height = 10, dpi = 300)
 
-
-policytool_plots1 <- grid.arrange(plot9, plot10, ncol = 2, nrow = 1)
-ggsave("figures/policytool_plots1.pdf", policytool_plots1, width = 14, height = 6, dpi = 300)
+# arrange second plot
+policytool_plots1 <- plot10
+#policytool_plots1 <- plot_grid(plot9, plot10, ncol = 2, nrow = 1, align = "h")
+ggsave("figures/policytool_plots1.pdf", policytool_plots1, width = 5, height = 5, dpi = 300)
 ```
 
