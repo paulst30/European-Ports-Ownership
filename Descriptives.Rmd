@@ -825,7 +825,7 @@ contribution_graph <- world %>% merge(catch_up, by.x="iso_a2", by.y="sender_code
           ggplot() + geom_sf(aes(fill=change_SE))  +
            scale_fill_continuous(low="grey90", high="grey60", 
                        guide="colorbar",na.value="white") + 
-            labs(title="c) Origins of containers shipped to South European Ports") +
+            labs(title="c) Partner countries of South European Ports") +
            theme(legend.position = "none",
                   text = element_text(size=14, family="LM Roman 10"),
                   plot.title = element_text(face = "bold", hjust=0.1),
