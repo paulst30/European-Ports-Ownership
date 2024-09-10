@@ -1017,8 +1017,19 @@ port_data_TEU <- filter(port_data_TEU, aggregate==0,
 port_data_TEU <- port_data_TEU %>%
   rename(partner = sender_code)
 
-Klaipeda_major_partners <- port_data_TEU %>% filter(port=="Klaipeda", partner=="DE" | partner=="PL" | partner=="RU" | partner=="LV" | partner=="NL" | partner=="FR", period>=70)
+#Klaipeda_major_partners <- port_data_TEU %>% filter(port=="Klaipeda", partner=="DE" | partner=="PL" | partner=="RU" | partner=="LV" | partner=="NL" | partner=="FR", period>=70)
+Klaipeda_all <- port_data_TEU %>% filter(port=="Klaipeda", period >=70) %>% group_by(period) %>%
+                summarize(container=sum(container))
 
+major <- c("DE", "PL", "RU", "LV", "UK", "FR")
+
+Klaipeda_major_partners <- port_data_TEU %>% filter(port=="Klaipeda", partner %in% major) %>%
+  mutate(partner = case_when(partner=="DE" ~ "Germany",
+                             partner=="PL" ~ "Poland",
+                             partner=="RU" ~ "Russia",
+                             partner=="LV" ~ "Latvia",
+                             partner=="UK" ~ "United Kingdom",
+                             partner=="FR" ~ "France"))
 
 
 
@@ -1106,24 +1117,24 @@ plot8 <- ggplot() +
   scale_linetype_manual(values = c("solid", "dashed"))
 
 plot9 <- ggplot() +
-  geom_line(data = Klaipeda_all_in, aes(x = period, y = container/1000, linetype = "Inflow")) +
-  geom_line(data = Klaipeda_all_out, aes(x = period, y = container/1000, linetype = "Outflow")) +
-  geom_vline(xintercept = 100, color = "black") + ggtitle("Container flows between Klaipeda and all partners")+ theme_minimal() + 
+  geom_line(data = Klaipeda_all, aes(x = period, y = container/1000)) +
+  geom_vline(xintercept = 100, color = "black") + ggtitle("a) Container flows between Klaipeda and all partners")+ theme_minimal() + 
   theme(text = element_text(size=10, family="LM Roman 10"),
-        legend.position = "bottom",
+        legend.position = "right",
         legend.title = element_blank()) +
-  ylab("TEU (thousands)") + xlab("Period") +
-  scale_linetype_manual(values = c("solid", "dashed"))
+  ylab("TEU (thousands)") + xlab("Period") 
 
 
 plot10 <- ggplot() +
-  geom_area(data = Klaipeda_major_partners, aes(x = period, y = container/1000,  fill = partner), position = "stack") +
+  geom_line(data = Klaipeda_major_partners[Klaipeda_major_partners$period>=90,], aes(x = period, y = container/1000)) +
+  facet_wrap(~partner) +
   geom_vline(xintercept = 100, color = "black") + 
-  #ggtitle("Container flows between Klaipeda and important partners")+ 
+  ggtitle("b) Container flows between Klaipeda and important partners")+ 
   theme_minimal() + 
   xlab("Period") +
   ylab("TEU (thousands)") +
   labs(caption="Note: Vertical line indicates treatment timing.\nSource: Eurostat, own calculation.") +
+  scale_fill_grey(start = 0.8, end = 0.2) +
   theme(text = element_text(size=10, family="LM Roman 10"),
         legend.title = element_blank(),
         legend.position = "right",
@@ -1151,8 +1162,8 @@ policytool_plots2 <- plot_grid(x.title, plots, ncol = 2, rel_widths = c(0.05,0.9
 ggsave("figures/policytool_plots2.pdf", policytool_plots2, width = 14, height = 10, dpi = 300)
 
 # arrange second plot
-policytool_plots1 <- plot10
-#policytool_plots1 <- plot_grid(plot9, plot10, ncol = 2, nrow = 1, align = "h")
+#policytool_plots1 <- plot10
+policytool_plots1 <- plot_grid(plot9, plot10, ncol = 1, rel_heights = c(0.4,0.6))
 ggsave("figures/policytool_plots1.pdf", policytool_plots1, width = 5, height = 5, dpi = 300)
 ```
 
