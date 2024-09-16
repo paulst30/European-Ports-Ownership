@@ -9,10 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-<!-- Estimate the extensive margins: bilateral data: count number of partners per port per period (count rows per port per period) -->
-
-```{r include=FALSE, warning=FALSE, message=FALSE}
+```{r include=FALSE}
 library(dplyr)
 library(tidyr)
 library(stringr)
@@ -25,18 +22,28 @@ library(readxl)
 library(gt)
 library(xtable)
 library(extrafont)
+```
+
+
+# Extensive margin
+
+```{r include=FALSE, warning=FALSE, message=FALSE}
 
 loadfonts(device = "win")
 set.seed(100)
 
 #load data
-load("port_data_TEU.RData")
+load("port_data_TEU_110.RData")
+
+sample <- c("BEANR", "BEGNE", "BEZEE", "BGVAR", "CYLMS", "DEBRV", "DECUX", "DEHAM", "DELBC", "DEWVN", "DKAAL", "DKAAR", "DKCPH", "DKEBJ", "DKFRC", "EETLL", "ESAGP", "ESALC", "ESALG", "ESBCN", "ESBIO", "ESCAD", "ESCAR", "ESCAS", "ESGIJ",  "ESLPA", "ESMLN", "ESMPG", "ESPMI", "ESSCT", "ESSDR", "ESSVQ", "ESTAR", "ESVGO", "ESVIL", "ESVLC", "FIHEL", "FIHKO", "FIOUL", "FIPOR", "FIRAU", "FRBES", "FRDKK", "FRLEH", "FRMRS", "FRNTE", "GBBEL", "GBBRS", "GBCDF", "GBFOR", "GBFXT", "GBGOO", "GBHUL", "GBIMM", "GBLIV", "GBLON", "GBMED", "GBMME", "GBPME", "GBSOU", "GBWPT", "GRPIR", "GRSKG", "HRPLE", "HRRJK", "IEDRO", "IEDUB", "IEORK", "IEWAT", "ITAOI", "ITBRI", "ITCAG", "ITCTA", "ITCVV", "ITGIT", "ITGOA", "ITLIV", "ITMDC", "ITNAP", "ITRAN", "ITSAL", "ITSPE", "ITSVN", "ITTAR", "ITTRS", "ITVCE", "LTKLJ", "LVRIX", "MEBAR", "MTMAR", "NLAMS", "NLMOE", "NLRTM", "NOKRS", "NOMJF", "NOMSS", "NOOSL", "PLGDN", "PLGDY", "PLSZZ", "PTCNL", "PTFNC", "PTLEI", "PTLIS", "PTPDL", "PTPRV", "PTSET", "PTSIE", "ROCND", "SEGOT", "SEGVX", "SEHAD", "SEHEL", "SEMMA", "SENRK", "SESOE", "SEVST", "SIKOP", "TRAMB", "TRAYT", "TRGEM", "TRISK", "TRIZM", "TRIZT", "TRMER", "TRSSX", "TRTEK")
 
 port_data_TEU <- filter(port_data_TEU, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
-                                       TEU_yrly >=20000,          #filter out small ports
-                                       port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
-             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                                       TEU_yrly >=20000,      #filter out small ports
+                                       port_code %in% sample,
+                                        period<=105)  %>%         #filter out small ports
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+                    port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() %>%
              rename(container=total_TEU)
@@ -67,6 +74,11 @@ port_data_agg <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container
 port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
 port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
 
+
+port_data_TEU$group[port_data_TEU$port_code == "DEHAM"] <- 0
+port_data_agg$group[port_data_agg$port_code == "DEHAM"] <- 0
+
+# make treated port list
 port_data_agg_ny <- port_data_agg %>% filter(group!=0)
 
 port_list <- port_data_agg %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
@@ -82,8 +94,6 @@ port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$
 
 # Add Control variables --------------------------------------------------------
 
-# add terminal data to the data set
-#terminal_data <- read_xlsx("port_manual_berth.xlsx")
 
 load("berth_data.RData")
 terminal_data <- berth_data
@@ -109,7 +119,7 @@ port_data_agg$cranes[port_data_agg$cranes==0] <- 1
 ### Control variables for DID ####
 
 
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "max_lift", "cargo_depth") 
 var_controls <- c("quay_length")
 
 ```
@@ -118,45 +128,43 @@ var_controls <- c("quay_length")
 ```{r include=F, message=FALSE, warning=FALSE}
 
 #### Estimation ot ATT with never treated as control group ####
-attgt <- simple_staggered_did(yname = "partner_number",            #outcome variable
+attgt1 <- simple_staggered_did(yname = "partner_number",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_agg)
 
 
-attgt_cond <- simple_staggered_did(yname = "partner_number",            #outcome variable
+attgt_cond1 <- simple_staggered_did(yname = "partner_number",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_agg)
 
 
 
 # putting together the results
 
-results1 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt$groupwise_treatment_effects$id), port_list$id)]),
-                       ATT = c(attgt$average_treatment_effect$att,
-                                   attgt$groupwise_treatment_effects$att),
-                       lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
-                                attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
-                       upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
-                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val))
+results11 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt1$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT = c(attgt1$average_treatment_effect$att,
+                                   attgt1$groupwise_treatment_effects$att),
+                       lower = c(attgt1$average_treatment_effect$att - attgt1$average_treatment_effect$crit_val,
+                                attgt1$groupwise_treatment_effects$att - attgt1$groupwise_treatment_effects$crit_val),
+                       upper = c(attgt1$average_treatment_effect$att + attgt1$average_treatment_effect$crit_val,
+                                  attgt1$groupwise_treatment_effects$att + attgt1$groupwise_treatment_effects$crit_val))
 
-results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond$groupwise_treatment_effects$id), port_list$id)]),
-                       ATT_cond = c(attgt_cond$average_treatment_effect$att,
-                                   attgt_cond$groupwise_treatment_effects$att),
-                       lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
-                                attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
-                       upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
-                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val))
-results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
+results22 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond1$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT_cond = c(attgt_cond1$average_treatment_effect$att,
+                                   attgt_cond1$groupwise_treatment_effects$att),
+                       lower_cond = c(attgt_cond1$average_treatment_effect$att - attgt_cond1$average_treatment_effect$crit_val,
+                                attgt_cond1$groupwise_treatment_effects$att - attgt_cond1$groupwise_treatment_effects$crit_val),
+                       upper_cond = c(attgt_cond1$average_treatment_effect$att + attgt_cond1$average_treatment_effect$crit_val,
+                                  attgt_cond1$groupwise_treatment_effects$att + attgt_cond1$groupwise_treatment_effects$crit_val))
+results_E <- merge(results11, results22, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
@@ -164,51 +172,51 @@ results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  s
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
-results <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
+results_E <- results_E[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 
 
 
 #### Estimate ATT with not-yet-treated control group ####
-attgt_ny <- simple_staggered_did(yname = "partner_number",            #outcome variable
+attgt_ny1 <- simple_staggered_did(yname = "partner_number",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
                               control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_agg)
 
 
-attgt_cond_ny <- simple_staggered_did(yname = "partner_number",            #outcome variable
+attgt_cond_ny1 <- simple_staggered_did(yname = "partner_number",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
                               control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_agg)
 
 
 
 # putting together the results
 
-results_ny1 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_ny$groupwise_treatment_effects$id), port_list$id)]),
-                       ATT_ny = c(attgt_ny$average_treatment_effect$att,
-                                   attgt_ny$groupwise_treatment_effects$att),
-                       lower_ny = c(attgt_ny$average_treatment_effect$att - attgt_ny$average_treatment_effect$crit_val,
-                                attgt_ny$groupwise_treatment_effects$att - attgt_ny$groupwise_treatment_effects$crit_val),
-                       upper_ny = c(attgt_ny$average_treatment_effect$att + attgt_ny$average_treatment_effect$crit_val,
-                                  attgt_ny$groupwise_treatment_effects$att + attgt_ny$groupwise_treatment_effects$crit_val))
+results_ny11 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_ny1$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT_ny = c(attgt_ny1$average_treatment_effect$att,
+                                   attgt_ny1$groupwise_treatment_effects$att),
+                       lower_ny = c(attgt_ny1$average_treatment_effect$att - attgt_ny1$average_treatment_effect$crit_val,
+                                attgt_ny1$groupwise_treatment_effects$att - attgt_ny1$groupwise_treatment_effects$crit_val),
+                       upper_ny = c(attgt_ny1$average_treatment_effect$att + attgt_ny1$average_treatment_effect$crit_val,
+                                  attgt_ny1$groupwise_treatment_effects$att + attgt_ny1$groupwise_treatment_effects$crit_val))
 
-results_ny2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond_ny$groupwise_treatment_effects$id), port_list$id)]),
-                       ATT_cond_ny = c(attgt_cond_ny$average_treatment_effect$att,
-                                   attgt_cond_ny$groupwise_treatment_effects$att),
-                       lower_cond_ny = c(attgt_cond_ny$average_treatment_effect$att - attgt_cond_ny$average_treatment_effect$crit_val,
-                                attgt_cond_ny$groupwise_treatment_effects$att - attgt_cond_ny$groupwise_treatment_effects$crit_val),
-                       upper_cond_ny = c(attgt_cond_ny$average_treatment_effect$att + attgt_cond_ny$average_treatment_effect$crit_val,
-                                  attgt_cond_ny$groupwise_treatment_effects$att + attgt_cond_ny$groupwise_treatment_effects$crit_val)) 
+results_ny22 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond_ny1$groupwise_treatment_effects$id), port_list$id)]),
+                       ATT_cond_ny = c(attgt_cond_ny1$average_treatment_effect$att,
+                                   attgt_cond_ny1$groupwise_treatment_effects$att),
+                       lower_cond_ny = c(attgt_cond_ny1$average_treatment_effect$att - attgt_cond_ny1$average_treatment_effect$crit_val,
+                                attgt_cond_ny1$groupwise_treatment_effects$att - attgt_cond_ny1$groupwise_treatment_effects$crit_val),
+                       upper_cond_ny = c(attgt_cond_ny1$average_treatment_effect$att + attgt_cond_ny1$average_treatment_effect$crit_val,
+                                  attgt_cond_ny1$groupwise_treatment_effects$att + attgt_cond_ny1$groupwise_treatment_effects$crit_val)) 
 
-results_ny <- merge(results_ny1, results_ny2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
+results_ny_E <- merge(results_ny11, results_ny22, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT_ny>0 & lower_ny>0) | (ATT_ny<0 & upper_ny<0),
                       sig_cond = (ATT_cond_ny>0 & lower_cond_ny>0) | (ATT_cond_ny<0 & upper_cond_ny<0),
                       across(c("ATT_ny","ATT_cond_ny","lower_ny","upper_ny","lower_cond_ny","upper_cond_ny"), ~ format(round(.,digits=0), big.mark = ",")),
@@ -216,12 +224,12 @@ results_ny <- merge(results_ny1, results_ny2, by.x="Estimate", by.y="Estimate", 
                       ATT_cond_ny = ifelse(sig_cond==T, paste0(ATT_cond_ny, "*"), ATT_cond_ny),
                       Conf_ny = paste0("[",str_trim(lower_ny),", ",str_trim(upper_ny),"]"),
                       Conf_cond_ny = paste0("[",str_trim(lower_cond_ny),"; ",str_trim(upper_cond_ny),"]"))
-results_ny <- results_ny[c("Estimate", "ATT_cond_ny", "Conf_cond_ny")]
+results_ny_E <- results_ny_E[c("Estimate", "ATT_cond_ny", "Conf_cond_ny")]
 
-results <- merge(results, results_ny, by.x="Estimate", by.y="Estimate", sort=F)
+results_E <- merge(results_E, results_ny_E, by.x="Estimate", by.y="Estimate", sort=F)
 
 # generating a gt table
-results_gt <- gt(results, rowname_col = "Estimate") |>
+results_gt_E <- gt(results_E, rowname_col = "Estimate") |>
               tab_header(
                 title = "Aggregation of group time treatment effects",
                 subtitle = "Dependent variable: Total throughput in thousand TEU") |>
@@ -252,65 +260,28 @@ results_gt <- gt(results, rowname_col = "Estimate") |>
 
 
 ```{r include=TRUE, echo=FALSE}
-results_gt
-```
-
-```{r include=F}
-# generate a Latex table
-
-results_final <- rbind(results[1,],c("by group", rep("", ncol(results)-1)) ,results[2:19,]) 
-
-# Insert multirow cell into the appropriate position in the LaTeX code
-addtorow <- list()
-addtorow$pos <- list(nrow(results_final),1)
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Stars indicate that the uniform confidence interval does not include zero.\\\\}}", 
-                      "[1ex]")
-
-# Modify the LaTeX code
-latex_code <- print.xtable(xtable(results_final, caption = "Treatment effects on the extensive margin: Number of port partners"),
-                           label = "tab:did_results",
-                           caption.placement = "top",
-                           include.rownames = FALSE,
-                           add.to.row = addtorow,
-                           hline.after = c(-1,-1,0, 2),
-                           size = "\\begin{adjustbox}{max width=\\textwidth}")
-
-latex_code <- gsub("Estimate & ATT & Conf & ATT\\\\_cond & Conf\\\\_cond & ATT\\\\_cond\\\\_ny & Conf\\\\_cond\\\\_ny","Control group: & \\\\multicolumn{4}{c}{Never treated} & \\\\multicolumn{2}{c}{Not yet treated} \\\\\\\\\n \\\\cmidrule(lr){2-5} \\\\cmidrule(lr){6-7}  PTA & Uncond. & 95\\\\% CI & Cond. & 95\\\\% CI & Cond. & 95\\\\% CI ", latex_code)
-
-latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:did_results}", latex_code)
-latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
-latex_code <- gsub("lllllll", "lcccccc", latex_code)
-
-# Save modified LaTeX code to a .tex file
-cat(latex_code, file = file.path(getwd(), "results_tables", "did_extensive_results.tex"))
+results_gt_E
 ```
 
 
-<!-- Estimate the intensive margins: bilateral data -->
-
-<!-- Prepare dataset-->
+# Intensive margin
 
 ```{r include=FALSE}
-library(dplyr)
-library(writexl)
-library(readxl)
-library(ggplot2)
-library(echoice2)
-library(doBy)
-library(zoo)
-library(fixest)
-library(did)
-library(gt)
-library(CInf)
-library(stringr)
 
-load("port_data_TEU.RData")
+loadfonts(device = "win")
+set.seed(100)
+
+load("port_data_TEU_110.RData")
+
+sample <- c("BEANR", "BEGNE", "BEZEE", "BGVAR", "CYLMS", "DEBRV", "DECUX", "DEHAM", "DELBC", "DEWVN", "DKAAL", "DKAAR", "DKCPH", "DKEBJ", "DKFRC", "EETLL", "ESAGP", "ESALC", "ESALG", "ESBCN", "ESBIO", "ESCAD", "ESCAR", "ESCAS", "ESGIJ",  "ESLPA", "ESMLN", "ESMPG", "ESPMI", "ESSCT", "ESSDR", "ESSVQ", "ESTAR", "ESVGO", "ESVIL", "ESVLC", "FIHEL", "FIHKO", "FIOUL", "FIPOR", "FIRAU", "FRBES", "FRDKK", "FRLEH", "FRMRS", "FRNTE", "GBBEL", "GBBRS", "GBCDF", "GBFOR", "GBFXT", "GBGOO", "GBHUL", "GBIMM", "GBLIV", "GBLON", "GBMED", "GBMME", "GBPME", "GBSOU", "GBWPT", "GRPIR", "GRSKG", "HRPLE", "HRRJK", "IEDRO", "IEDUB", "IEORK", "IEWAT", "ITAOI", "ITBRI", "ITCAG", "ITCTA", "ITCVV", "ITGIT", "ITGOA", "ITLIV", "ITMDC", "ITNAP", "ITRAN", "ITSAL", "ITSPE", "ITSVN", "ITTAR", "ITTRS", "ITVCE", "LTKLJ", "LVRIX", "MEBAR", "MTMAR", "NLAMS", "NLMOE", "NLRTM", "NOKRS", "NOMJF", "NOMSS", "NOOSL", "PLGDN", "PLGDY", "PLSZZ", "PTCNL", "PTFNC", "PTLEI", "PTLIS", "PTPDL", "PTPRV", "PTSET", "PTSIE", "ROCND", "SEGOT", "SEGVX", "SEHAD", "SEHEL", "SEMMA", "SENRK", "SESOE", "SEVST", "SIKOP", "TRAMB", "TRAYT", "TRGEM", "TRISK", "TRIZM", "TRIZT", "TRMER", "TRSSX", "TRTEK")
 
 port_data_TEU <- filter(port_data_TEU, aggregate==0,
                         stat_port==1,              #filter out non-stat ports (and geographic aggregates)
-                        TEU_yrly >=20000,          #filter out small ports
-                        port_code!="DEHAM") %>%    
-  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                        TEU_yrly >=20000,      #filter out small ports
+                        port_code %in% sample,
+                        period<=105) %>%          #filter out other ports
+  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+         port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
   group_by(port_code, sender_code) %>%
   mutate(pair_id=cur_group_id()) %>% ungroup() %>%
   rename(container=total_TEU) %>%
@@ -319,55 +290,6 @@ port_data_TEU <- filter(port_data_TEU, aggregate==0,
 
 port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
 
-
-listpartner <- port_data_TEU %>%
-  group_by(partner_code) %>%
-  slice(1) %>%
-  ungroup() %>%
-  select(partner_code, partner)
-
-
-listreporter <- port_data_TEU %>%
-  group_by(reporter_code) %>%
-  slice(1) %>%
-  ungroup() %>%
-  select(reporter_code, reporter)
-
-partner_region <- read_xlsx("partner_region.xlsx", sheet = "Sheet1")
-
-reporter_region <- merge(listreporter, partner_region, by.x = "reporter_code", by.y = "partner_code", all.x = T) %>% 
-  select(reporter_code, partner_region) %>% 
-  rename("reporter_region" = "partner_region")
-
-port_data_TEU <- merge(port_data_TEU,partner_region, by.x = "partner_code", by.y = "partner_code", all.x = T) %>%
-  relocate(partner_region, .after = partner_code) %>%
-  rename(partner_region=partner_region)
-  
-port_data_TEU <- merge(port_data_TEU,reporter_region, by = "reporter_code", all.x = T) %>%
-  relocate(reporter_region, .after = reporter_code) 
-
-port_data_TEU$NENE_region <- ifelse(port_data_TEU$reporter_region == 'NE' & port_data_TEU$partner_region == 'NE', 1, 0)
-sum(port_data_TEU$NENE_region)
-
-port_data_TEU$SESE_region <- ifelse(port_data_TEU$reporter_region == 'SE' & port_data_TEU$partner_region == 'SE', 1, 0)
-sum(port_data_TEU$SESE_region)
-
-port_data_TEU$NESE_region <- ifelse(port_data_TEU$reporter_region == 'NE' & port_data_TEU$partner_region == 'SE', 1, 0)
-sum(port_data_TEU$NESE_region)
-
-port_data_TEU$SENE_region <- ifelse(port_data_TEU$reporter_region == 'SE' & port_data_TEU$partner_region == 'NE', 1, 0)
-sum(port_data_TEU$SENE_region)
-
-port_data_TEU$NEEX_region <- ifelse(port_data_TEU$reporter_region == 'NE' & port_data_TEU$partner_region == 'EX', 1, 0)
-sum(port_data_TEU$NEEX_region)
-
-port_data_TEU$SEEX_region <- ifelse(port_data_TEU$reporter_region == 'SE' & port_data_TEU$partner_region == 'EX', 1, 0)
-sum(port_data_TEU$SEEX_region)
-
-region_pair <- ec_undummy(port_data_TEU, c('NENE_region', 'SESE_region', 'NESE_region', 'SENE_region','NEEX_region','SEEX_region'), "region_pair", ref_level = "What") %>%
-  select(port_code, partner_code, region_pair, year, quarter) 
-
-port_data_TEU <- merge(port_data_TEU,region_pair, by.x=c("port_code", "partner_code", "year", "quarter"), by.y=c("port_code", "partner_code", "year", "quarter"))
 
 
 # Add Control variables --------------------------------------------------------
@@ -412,22 +334,14 @@ port_data_TEU <- port_data_TEU %>%
 
 port_list <- port_data_TEU %>% filter(group!=0) %>% group_by(port) %>% summarize(id = mean(port_id))
 
-# # smaller sample for testing
-# control_ids <- sample(unique(port_data_TEU$port_id[port_data_TEU$group==0]), 10)
-# treat_ids <- sample(unique(port_data_TEU$port_id[port_data_TEU$group!=0]), 5)
-# test_ids <- c(control_ids, treat_ids)
-# test_sample <- port_data_TEU %>% filter(port_id %in% test_ids) #test sample
-
 #### Estimation ot ATT with never treated as control group ####
 attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
                               unitname = "port_id",                    
                               idname = "pair_id",                 #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
-                               data = port_data_TEU)
+                              bstrap = 400,
+                              data = port_data_TEU)
 
 
 attgt_cond <- simple_staggered_did(yname = "container",            #outcome variable
@@ -437,7 +351,7 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
+                              bstrap =400,
                               data = port_data_TEU) 
 
 
@@ -477,9 +391,7 @@ attgt_ny <- simple_staggered_did(yname = "container",            #outcome variab
                               idname = "pair_id",                    #id for units (should be port_code*sender)
                               unitname = "port_id",                 
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_TEU)
 
 
@@ -491,6 +403,7 @@ attgt_cond_ny <- simple_staggered_did(yname = "container",            #outcome v
                               xformula = controls,
                               varformula = var_controls,
                               control_group = "not_yet_treated",
+                              bstrap = 400,
                               data = port_data_TEU)
 
 
@@ -559,4 +472,42 @@ results_gt <- gt(results, rowname_col = "Estimate") |>
 ```{r include=TRUE, echo=FALSE}
 results_gt
 ```
+
+
+
+
+```{r include=F}
+# generate a Latex table
+
+results_final <- cbind(results_ny_E, results_ny[,c(2,3)]) 
+colnames(results_final)[c(1,2,3,4,5)] <- c("PTA", "Cond", "95% CI","Cond", "95% CI")
+
+results_final <- rbind(results_final[1,],c("by group", rep("", ncol(results_final)-1)) ,results_final[2:19,]) 
+
+# Insert multirow cell into the appropriate position in the LaTeX code
+addtorow <- list()
+addtorow$pos <- list(nrow(results_final),1)
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Dependent variable is number of partner countries per period for the extensive margin estimation. \\\\ Dependent variable is container throughput per partner per period for the intensive margin estimation. \\\\ Stars indicate that the uniform confidence interval does not include zero.}}", 
+                      "[1ex]")
+
+# Modify the LaTeX code
+latex_code <- print.xtable(xtable(results_final, caption = "Treatment effects on the extensive and intensive margins"),
+                           label = "tab:margins_results",
+                           caption.placement = "top",
+                           include.rownames = FALSE,
+                           add.to.row = addtorow,
+                           hline.after = c(-1,-1,0, 2),
+                           size = "\\begin{adjustbox}{max width=\\textwidth}")
+
+latex_code <- gsub("Estimate & ATT & Conf & ATT1 & Conf1","Dependent var.: & \\\\multicolumn{2}{c}{Extensive Margin} & \\\\multicolumn{2}{c}{Intensive Margin} \\\\\\\\\n \\\\cmidrule(lr){2-3} \\\\cmidrule(lr){4-5} PTA & Cond. & 95\\\\% CI & Cond. & 95\\\\% CI" , latex_code)
+
+latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:marginal_results}", latex_code)
+latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
+latex_code <- gsub("lllll", "lcccc", latex_code)
+latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{x\\\\\\}", "\\\\textsuperscript{x}", latex_code)
+
+# Save modified LaTeX code to a .tex file
+cat(latex_code, file = file.path(getwd(), "results_tables", "margins_results.tex"))
+```
+
 

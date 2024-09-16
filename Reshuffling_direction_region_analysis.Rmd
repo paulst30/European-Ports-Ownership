@@ -9,7 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-<!-- Prepare outflow dataset-->
 
 ```{r include=FALSE}
 library(dplyr)
@@ -26,21 +25,26 @@ library(CInf)
 library(stringr)
 library(xtable)
 
-load("port_data_TEU_out.RData")
+load("port_data_TEU_out_110.RData")
+
+sample <- c("BEANR", "BEGNE", "BEZEE", "BGVAR", "CYLMS", "DEBRV", "DECUX", "DELBC", "DEHAM", "DEWVN", "DKAAL", "DKAAR", "DKCPH", "DKEBJ", "DKFRC", "EETLL", "ESAGP", "ESALC", "ESALG", "ESBCN", "ESBIO", "ESCAD", "ESCAR", "ESCAS", "ESGIJ",  "ESLPA", "ESMLN", "ESMPG", "ESPMI", "ESSCT", "ESSDR", "ESSVQ", "ESTAR", "ESVGO", "ESVIL", "ESVLC", "FIHEL", "FIHKO", "FIOUL", "FIPOR", "FIRAU", "FRBES", "FRDKK", "FRLEH", "FRMRS", "FRNTE", "GBBEL", "GBBRS", "GBCDF", "GBFOR", "GBFXT", "GBGOO", "GBHUL", "GBIMM", "GBLIV", "GBLON", "GBMED", "GBMME", "GBPME", "GBSOU", "GBWPT", "GRPIR", "GRSKG", "HRPLE", "HRRJK", "IEDRO", "IEDUB", "IEORK", "IEWAT", "ITAOI", "ITBRI", "ITCAG", "ITCTA", "ITCVV", "ITGIT", "ITGOA", "ITLIV", "ITMDC", "ITNAP", "ITRAN", "ITSAL", "ITSPE", "ITSVN", "ITTAR", "ITTRS", "ITVCE", "LTKLJ", "LVRIX", "MEBAR", "MTMAR", "NLAMS", "NLMOE", "NLRTM", "NOKRS", "NOMJF", "NOMSS", "NOOSL", "PLGDN", "PLGDY", "PLSZZ", "PTCNL", "PTFNC", "PTLEI", "PTLIS", "PTPDL", "PTPRV", "PTSET", "PTSIE", "ROCND", "SEGOT", "SEGVX", "SEHAD", "SEHEL", "SEMMA", "SENRK", "SESOE", "SEVST", "SIKOP", "TRAMB", "TRAYT", "TRGEM", "TRISK", "TRIZM", "TRIZT", "TRMER", "TRSSX", "TRTEK")
 
 port_data_TEU_out <- filter(port_data_TEU_out, aggregate==0,
                         stat_port==1,              #filter out non-stat ports (and geographic aggregates)
                         TEU_yrly >=10000,          #filter out small ports
-                        port_code!="DEHAM") %>%    
-  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                        port_code %in% sample,
+                        period<=105) %>%    
+  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+         port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
   group_by(port_code, sender_code) %>%
   mutate(pair_id=cur_group_id()) %>% ungroup() %>%
   rename(container=total_TEU) %>%
   rename(partner_code=sender_code) %>%
   rename(partner=sender)
 
-# Filter out observations for reporter="Netherlands" in the years 2011-2020
-port_data_TEU_out <- subset(port_data_TEU_out, !(reporter == "Netherlands" & year >= 2011 & year <= 2020))
+# Filter out observations for Rotterdam in the years 2011-2020
+port_data_TEU_out <- subset(port_data_TEU_out, !(port == "Rotterdam" & year >= 2011 & year <= 2020))
+
 
 listpartner <- port_data_TEU_out %>%
   group_by(partner_code) %>%
@@ -94,23 +98,27 @@ port_data_TEU_out <- merge(port_data_TEU_out,region_pair, by.x=c("port_code", "p
 ```
 
 
-<!-- Prepare inflow dataset-->
 
-```{r include=FALSE}
+```{r include=FALSE, warning=FALSE}
 
-load("port_data_TEU_in.RData")
+load("port_data_TEU_in_110.RData")
 
 port_data_TEU_in <- filter(port_data_TEU_in, aggregate==0,
                         stat_port==1,              #filter out non-stat ports (and geographic aggregates)
                         TEU_yrly >=10000,          #filter out small ports
-                        port_code!="DEHAM") %>%    #exclude Hamburg due to very recent treatment
-  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                        port_code %in% sample,
+                        period<=105) %>%    
+  mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+         port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
   group_by(port_code, sender_code) %>%
   mutate(pair_id=cur_group_id()) %>% ungroup() %>%
   rename(container=total_TEU) %>%
   rename(partner_code=sender_code) %>%
   rename(partner=sender)
 
+
+# Filter out observations for Rotterdam in the years 2011-2020
+port_data_TEU_in <- subset(port_data_TEU_in, !(port == "Rotterdam" & year >= 2011 & year <= 2020))
 
 listpartner <- port_data_TEU_in %>%
   group_by(partner_code) %>%
@@ -162,9 +170,9 @@ region_pair <- ec_undummy(port_data_TEU_in, c('NENE_region', 'SESE_region', 'NES
 port_data_TEU_in <- merge(port_data_TEU_in,region_pair, by.x=c("port_code", "partner_code", "year", "quarter"), by.y=c("port_code", "partner_code", "year", "quarter"))
 ```
 
-<!-- Inflows from Extern aggregate, N = 9324, number of ports in control group = 89-->
+# Inflows from extern
 
-```{r include=FALSE}
+```{r include=FALSE, warning=FALSE}
 
 port_data_in <- port_data_TEU_in %>% 
   filter(region_pair=="NEEX_region" | region_pair=="SEEX_region") %>%
@@ -232,9 +240,6 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
                               data = port_data_agg_in)
 
 
@@ -288,9 +293,9 @@ results_1
 
 ```
 
-<!-- Outflows to the other region aggregate, N = 6571, number of ports in control group = 81-->
+# Outflows to the other region
 
-```{r include=FALSE}
+```{r include=FALSE, warning=FALSE}
 
 port_data_out <- port_data_TEU_out %>% 
   filter(region_pair=="NESE_region" | region_pair=="SENE_region") %>%
@@ -415,9 +420,9 @@ results_2
 
 ```
 
-<!-- Outflows to within the region aggregate, N = 11597, ports in control group = 90-->
+# Outflows to within the region
 
-```{r include=FALSE}
+```{r include=FALSE, warning=FALSE}
 
 port_data_out <- port_data_TEU_out %>% 
   filter(region_pair=="NENE_region" | region_pair=="SESE_region") %>%
@@ -485,9 +490,6 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
                               data = port_data_agg_out)
 
 
@@ -542,9 +544,9 @@ results_3 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 results_3
 ```
 
-<!-- Inflows from within the regions aggregate, N = 11736, control group ports = 91-->
+# Inflows from within the regions
 
-```{r include=FALSE}
+```{r include=FALSE, warning=FALSE}
 
 port_data_in <- port_data_TEU_in %>% 
   filter(region_pair=="SESE_region" | region_pair=="NENE_region") %>%
@@ -612,9 +614,6 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
                               data = port_data_agg_in)
 
 
@@ -667,9 +666,9 @@ results_4 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 
 ```
 
-<!-- Inflows from other regions aggregate, N = 6615, control group ports = 85-->
+# Inflows from other regions
 
-```{r include=FALSE}
+```{r include=FALSE, warning=FALSE}
 
 port_data_in <- port_data_TEU_in %>% 
   filter(region_pair=="NESE_region" | region_pair=="SENE_region") %>%
@@ -737,9 +736,6 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
                               data = port_data_agg_in)
 
 
@@ -791,9 +787,9 @@ results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  s
 results_5 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 ```
 
-<!-- Outflows to Extern aggregate, N = 9324, number of ports in control group = 89-->
+# Outflows to extern
 
-```{r include=FALSE}
+```{r include=FALSE, warning=FALSE}
 
 port_data_out <- port_data_TEU_out %>% 
   filter(region_pair=="NEEX_region" | region_pair=="SEEX_region") %>%
@@ -861,9 +857,6 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
                               data = port_data_agg_out)
 
 
@@ -917,7 +910,7 @@ results_6 <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 results_6
 ```
 
-```{r include=FALSE}
+```{r include=FALSE, warning=FALSE}
 
 # combine all results 
 

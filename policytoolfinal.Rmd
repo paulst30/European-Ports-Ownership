@@ -29,9 +29,9 @@ loadfonts(device = "win")
 set.seed(100)
 
 #load data
-load("port_data_TEU_in.RData")
+load("port_data_TEU_in_110.RData")
 
-sample <- c("BEANR", "BEGNE", "BEZEE", "BGVAR", "CYLMS", "DEBRV", "DECUX", "DELBC", "DEWVN", "DKAAL", "DKAAR", "DKCPH", "DKEBJ", "DKFRC", "EETLL", "ESAGP", "ESALC", "ESALG", "ESBCN", "ESBIO", "ESCAD", "ESCAR", "ESCAS", "ESGIJ",  "ESLPA", "ESMLN", "ESMPG", "ESPMI", "ESSCT", "ESSDR", "ESSVQ", "ESTAR", "ESVGO", "ESVIL", "ESVLC", "FIHEL", "FIHKO", "FIOUL", "FIPOR", "FIRAU", "FRBES", "FRDKK", "FRLEH", "FRMRS", "FRNTE", "GBBEL", "GBBRS", "GBCDF", "GBFOR", "GBFXT", "GBGOO", "GBHUL", "GBIMM", "GBLIV", "GBLON", "GBMED", "GBMME", "GBPME", "GBSOU", "GBWPT", "GRPIR", "GRSKG", "HRPLE", "HRRJK", "IEDRO", "IEDUB", "IEORK", "IEWAT", "ITAOI", "ITBRI", "ITCAG", "ITCTA", "ITCVV", "ITGIT", "ITGOA", "ITLIV", "ITMDC", "ITNAP", "ITRAN", "ITSAL", "ITSPE", "ITSVN", "ITTAR", "ITTRS", "ITVCE", "LTKLJ", "LVRIX", "MEBAR", "MTMAR", "NLAMS", "NLMOE", "NLRTM", "NOKRS", "NOMJF", "NOMSS", "NOOSL", "PLGDN", "PLGDY", "PLSZZ", "PTCNL", "PTFNC", "PTLEI", "PTLIS", "PTPDL", "PTPRV", "PTSET", "PTSIE", "ROCND", "SEGOT", "SEGVX", "SEHAD", "SEHEL", "SEMMA", "SENRK", "SESOE", "SEVST", "SIKOP", "TRAMB", "TRAYT", "TRGEM", "TRISK", "TRIZM", "TRIZT", "TRMER", "TRSSX", "TRTEK")
+sample <- c("BEANR", "BEGNE", "BEZEE", "BGVAR", "CYLMS", "DEBRV", "DEHAM", "DECUX", "DELBC", "DEWVN", "DKAAL", "DKAAR", "DKCPH", "DKEBJ", "DKFRC", "EETLL", "ESAGP", "ESALC", "ESALG", "ESBCN", "ESBIO", "ESCAD", "ESCAR", "ESCAS", "ESGIJ",  "ESLPA", "ESMLN", "ESMPG", "ESPMI", "ESSCT", "ESSDR", "ESSVQ", "ESTAR", "ESVGO", "ESVIL", "ESVLC", "FIHEL", "FIHKO", "FIOUL", "FIPOR", "FIRAU", "FRBES", "FRDKK", "FRLEH", "FRMRS", "FRNTE", "GBBEL", "GBBRS", "GBCDF", "GBFOR", "GBFXT", "GBGOO", "GBHUL", "GBIMM", "GBLIV", "GBLON", "GBMED", "GBMME", "GBPME", "GBSOU", "GBWPT", "GRPIR", "GRSKG", "HRPLE", "HRRJK", "IEDRO", "IEDUB", "IEORK", "IEWAT", "ITAOI", "ITBRI", "ITCAG", "ITCTA", "ITCVV", "ITGIT", "ITGOA", "ITLIV", "ITMDC", "ITNAP", "ITRAN", "ITSAL", "ITSPE", "ITSVN", "ITTAR", "ITTRS", "ITVCE", "LTKLJ", "LVRIX", "MEBAR", "MTMAR", "NLAMS", "NLMOE", "NLRTM", "NOKRS", "NOMJF", "NOMSS", "NOOSL", "PLGDN", "PLGDY", "PLSZZ", "PTCNL", "PTFNC", "PTLEI", "PTLIS", "PTPDL", "PTPRV", "PTSET", "PTSIE", "ROCND", "SEGOT", "SEGVX", "SEHAD", "SEHEL", "SEMMA", "SENRK", "SESOE", "SEVST", "SIKOP", "TRAMB", "TRAYT", "TRGEM", "TRISK", "TRIZM", "TRIZT", "TRMER", "TRSSX", "TRTEK")
 
 port_data_TEU <- port_data_TEU_in
 
@@ -51,16 +51,18 @@ port_data_TEU <- filter(port_data_TEU, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
                                        TEU_yrly >=10000,          #filter out small ports
                                        sender_code=="LT",        #include only containers to and from Lithuania
-                                        port_code %in% sample) %>%      
-             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                                        port_code %in% sample,
+                                        period <=105) %>%      
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+                    port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() %>%
              rename(container=total_TEU)
 
 #exclude Rotterdam and treated values for Hamburg
-port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
+port_data_TEU <- subset(port_data_TEU, !(port == "Rotterdam" & year >= 2011 & year <= 2020))
 
-port_data_TEU$container[port_data_TEU$port_code=="DEHAM" & port_data_TEU$period >= 106]<-NA
+#port_data_TEU$container[port_data_TEU$port_code=="DEHAM" & port_data_TEU$period >= 106]<-NA
 
 port_data_TEU$container[port_data_TEU$container == 0] <- NA
 
@@ -138,10 +140,6 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -151,8 +149,6 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -199,10 +195,6 @@ attgt_ny <- simple_staggered_did(yname = "container",            #outcome variab
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -213,7 +205,6 @@ attgt_cond_ny_in <- simple_staggered_did(yname = "container",            #outcom
                               xformula = controls,
                               varformula = var_controls,
                               control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -299,9 +290,7 @@ loadfonts(device = "win")
 set.seed(100)
 
 #load data
-load("port_data_TEU_out.RData")
-
-sample <- c("BEANR", "BEGNE", "BEZEE", "BGVAR", "CYLMS", "DEBRV", "DECUX", "DELBC", "DEWVN", "DKAAL", "DKAAR", "DKCPH", "DKEBJ", "DKFRC", "EETLL", "ESAGP", "ESALC", "ESALG", "ESBCN", "ESBIO", "ESCAD", "ESCAR", "ESCAS", "ESGIJ",  "ESLPA", "ESMLN", "ESMPG", "ESPMI", "ESSCT", "ESSDR", "ESSVQ", "ESTAR", "ESVGO", "ESVIL", "ESVLC", "FIHEL", "FIHKO", "FIOUL", "FIPOR", "FIRAU", "FRBES", "FRDKK", "FRLEH", "FRMRS", "FRNTE", "GBBEL", "GBBRS", "GBCDF", "GBFOR", "GBFXT", "GBGOO", "GBHUL", "GBIMM", "GBLIV", "GBLON", "GBMED", "GBMME", "GBPME", "GBSOU", "GBWPT", "GRPIR", "GRSKG", "HRPLE", "HRRJK", "IEDRO", "IEDUB", "IEORK", "IEWAT", "ITAOI", "ITBRI", "ITCAG", "ITCTA", "ITCVV", "ITGIT", "ITGOA", "ITLIV", "ITMDC", "ITNAP", "ITRAN", "ITSAL", "ITSPE", "ITSVN", "ITTAR", "ITTRS", "ITVCE", "LTKLJ", "LVRIX", "MEBAR", "MTMAR", "NLAMS", "NLMOE", "NLRTM", "NOKRS", "NOMJF", "NOMSS", "NOOSL", "PLGDN", "PLGDY", "PLSZZ", "PTCNL", "PTFNC", "PTLEI", "PTLIS", "PTPDL", "PTPRV", "PTSET", "PTSIE", "ROCND", "SEGOT", "SEGVX", "SEHAD", "SEHEL", "SEMMA", "SENRK", "SESOE", "SEVST", "SIKOP", "TRAMB", "TRAYT", "TRGEM", "TRISK", "TRIZM", "TRIZT", "TRMER", "TRSSX", "TRTEK")
+load("port_data_TEU_out_110.RData")
 
 port_data_TEU <- port_data_TEU_out
 
@@ -319,16 +308,18 @@ port_data_TEU <- filter(port_data_TEU, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
                                        TEU_yrly >=10000,          #filter out small ports
                                        sender_code=="LT",        #include only containers to and from Lithuania
-                                        port_code %in% sample) %>%    
-             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                                        port_code %in% sample,
+                                        period <=105) %>%    
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+                    port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() %>%
              rename(container=total_TEU)
 
 #exclude Rotterdam and treated values for Hamburg
-port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
+port_data_TEU <- subset(port_data_TEU, !(port == "Rotterdam" & year >= 2011 & year <= 2020))
 
-port_data_TEU$container[port_data_TEU$port_code=="DEHAM" & port_data_TEU$period >= 106]<-NA
+#port_data_TEU$container[port_data_TEU$port_code=="DEHAM" & port_data_TEU$period >= 106]<-NA
 
 port_data_TEU$container[port_data_TEU$container == 0] <- NA
 
@@ -368,7 +359,6 @@ port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$
 # Add Control variables --------------------------------------------------------
 
 # add terminal data to the data set
-#terminal_data <- read_xlsx("port_manual_berth.xlsx")
 
 load("berth_data.RData")
 terminal_data <- berth_data
@@ -385,8 +375,6 @@ control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code",
 # merge with aggregated data
 port_data_agg <- merge(port_data_agg, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
 
-#port_data_agg$ships[port_data_agg$ships==0] <- 1
-
 port_data_agg$quay_length[port_data_agg$quay_length==0] <- 100
 port_data_agg$cranes[port_data_agg$cranes==0] <- 1
 
@@ -397,7 +385,7 @@ port_data_agg <- port_data_agg %>% group_by(port_code) %>%
                                           delta_cranes3y = cranes - cranes[ifelse(row_number()-12<=0,1,row_number()-12)],
                                           delta_cranes10y = cranes - cranes[ifelse(row_number()-40<=0,1,row_number()-40)])
 
-controls <- c("quay_length", "max_lift", "cargo_depth")  #"cranes","delta_cranes1y","delta_cranes5y"
+controls <- c("quay_length", "max_lift", "cargo_depth") 
 var_controls <- c("quay_length")
 
 port_data_gdynia <- port_data_agg %>%
@@ -418,10 +406,6 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -431,8 +415,6 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -479,10 +461,7 @@ attgt_ny <- simple_staggered_did(yname = "container",            #outcome variab
                               tname = "period",                 #time variable
                               idname = "port_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
                               control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -493,7 +472,6 @@ attgt_cond_ny_out <- simple_staggered_did(yname = "container",            #outco
                               xformula = controls,
                               varformula = var_controls,
                               control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_agg)
 
 
@@ -579,7 +557,7 @@ loadfonts(device = "win")
 set.seed(100)
 
 #load data
-load("port_data_TEU_out.RData")
+load("port_data_TEU_out_110.RData")
 
 port_data_TEU <- port_data_TEU_out
 
@@ -597,18 +575,18 @@ port_data_TEU$inc_ports_n[port_data_TEU$port_code == "FRLEH"] <- 1
 port_data_TEU <- filter(port_data_TEU, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
                                        TEU_yrly >=10000,        #include only containers to and from Lithuania
-                                        port_code %in% sample) %>% 
-             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                                        port_code %in% sample,
+                                        period<=105) %>% 
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+                    port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() %>%
              rename(container=total_TEU)
 
-#exclude Rotterdam and treated values for Hamburg
+#exclude Rotterdam
 port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
 port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
 
-port_data_TEU$container[port_data_TEU$port_code=="DEHAM" & port_data_TEU$period >= 106]<-NA
-port_data_agg$container[port_data_agg$port_code=="DEHAM" & port_data_agg$period >= 106]<-NA
 
 port_data_TEU$container[port_data_TEU$container == 0] <- NA
 
@@ -634,8 +612,6 @@ port_data_TEU <- port_data_TEU %>%
 
 # Add Control variables --------------------------------------------------------
 
-# add terminal data to the data set
-#terminal_data <- read_xlsx("port_manual_berth.xlsx")
 
 load("berth_data.RData")
 terminal_data <- berth_data
@@ -653,7 +629,6 @@ control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code",
 # merge with aggregated data
 port_data_TEU <- merge(port_data_TEU, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
 
-#port_data_agg$ships[port_data_agg$ships==0] <- 1
 
 port_data_TEU$quay_length[port_data_agg$quay_length==0] <- 100
 port_data_TEU$cranes[port_data_agg$cranes==0] <- 1
@@ -677,10 +652,6 @@ attgt <- simple_staggered_did(yname = "container",            #outcome variable
                               tname = "period",                 #time variable
                               idname = "pair_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
-                              #control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_TEU)
 
 
@@ -690,8 +661,6 @@ attgt_cond <- simple_staggered_did(yname = "container",            #outcome vari
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
                               xformula = controls,
                               varformula = var_controls,
-                              #control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_TEU)
 
 
@@ -738,10 +707,7 @@ attgt_ny <- simple_staggered_did(yname = "container",            #outcome variab
                               tname = "period",                 #time variable
                               idname = "pair_id",                    #id for units (should be port_code*sender)
                               gname = "group",                    #grouping variable for first treatment. Is zero for never treated units)
-                              #xformula = c("ships"),
-                              #varformula = c("ships"),
                               control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_TEU)
 
 
@@ -752,7 +718,6 @@ attgt_cond_ny_out2 <- simple_staggered_did(yname = "container",            #outc
                               xformula = controls,
                               varformula = var_controls,
                               control_group = "not_yet_treated",
-                              bstrap = 400,
                               data = port_data_TEU)
 
 
@@ -861,7 +826,7 @@ results_final <- rbind(results_final[1,],c("by group", rep("", ncol(results_fina
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(results_final),1)
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Dependent variable is number of partner countries per period for the extensive margin estimation. \\\\ Dependent variable is container throughput per partner per period for the intensive margin estimation. \\\\ Stars indicate that the uniform confidence interval does not include zero.}}", 
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{7}{l}{\\shortstack[l]{Note: Dependent variable is number of partner countries per period for the extensive margin estimation. \\\\ Dependent variable is container throughput per partner per period for the intensive margin estimation. \\\\ Stars indicate that the uniform confidence interval does not include zero.}}", 
                       "[1ex]")
 
 # Modify the LaTeX code
@@ -890,11 +855,10 @@ cat(latex_code, file = file.path(getwd(), "results_tables", "policytool_results.
 ```{r include=TRUE, echo=FALSE}
 library(gridExtra)
 
-port_data_TEU_in <- port_data_TEU_in %>%
-  rename(container = total_TEU)
-
-port_data_TEU_out <- port_data_TEU_out %>%
-  rename(container = total_TEU)
+port_data_TEU_in <- filter(port_data_TEU_in, period<=105) %>%
+                    rename(container = total_TEU)
+port_data_TEU_out <- filter(port_data_TEU_out, period<=105)%>%
+                    rename(container = total_TEU)
 
 #exclude Rotterdam data for compromised years
 port_data_TEU_out$container[port_data_TEU_out$port_code=="NLRTM" & between(port_data_TEU_out$year,2011,2020)]<-NA
@@ -940,8 +904,10 @@ port_data_TEU_in$inc_ports_n[port_data_TEU_in$port_code == "FRLEH"] <- 1
 port_data_TEU_in <- filter(port_data_TEU_in, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
                                        TEU_yrly >=10000,          #filter out small ports
-                                        port_code %in% sample) %>%      
-             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                                        port_code %in% sample,
+                                        period<=105) %>%      
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+                    port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() 
 
@@ -977,8 +943,10 @@ port_data_TEU_out$inc_ports_n[port_data_TEU_out$port_code == "FRLEH"] <- 1
 port_data_TEU_out <- filter(port_data_TEU_out, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
                                        TEU_yrly >=10000,          #filter out small ports
-                                        port_code %in% sample) %>%      
-             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                                        port_code %in% sample,
+                                        period<=105) %>%      
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+                    port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() 
 
@@ -1003,13 +971,15 @@ Klaipeda_all_in <- port_data_agg_in %>% filter(port=="Klaipeda")
 Klaipeda_all_out <- port_data_agg_out %>% filter(port=="Klaipeda")
 
 
-load("port_data_TEU.RData")
+load("port_data_TEU_110.RData")
 
 port_data_TEU <- filter(port_data_TEU, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
                                        TEU_yrly >=10000,        #filter out small ports
-                                        port_code %in% sample) %>%      
-             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                                        port_code %in% sample,
+                                        period<=105) %>%      
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+                    port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() %>%
  rename(container=total_TEU)
@@ -1017,7 +987,7 @@ port_data_TEU <- filter(port_data_TEU, aggregate==0,
 port_data_TEU <- port_data_TEU %>%
   rename(partner = sender_code)
 
-#Klaipeda_major_partners <- port_data_TEU %>% filter(port=="Klaipeda", partner=="DE" | partner=="PL" | partner=="RU" | partner=="LV" | partner=="NL" | partner=="FR", period>=70)
+
 Klaipeda_all <- port_data_TEU %>% filter(port=="Klaipeda", period >=70) %>% group_by(period) %>%
                 summarize(container=sum(container))
 
@@ -1162,7 +1132,6 @@ policytool_plots2 <- plot_grid(x.title, plots, ncol = 2, rel_widths = c(0.05,0.9
 ggsave("figures/policytool_plots2.pdf", policytool_plots2, width = 14, height = 10, dpi = 300)
 
 # arrange second plot
-#policytool_plots1 <- plot10
 policytool_plots1 <- plot_grid(plot9, plot10, ncol = 1, rel_heights = c(0.4,0.6))
 ggsave("figures/policytool_plots1.pdf", policytool_plots1, width = 5, height = 5, dpi = 300)
 ```

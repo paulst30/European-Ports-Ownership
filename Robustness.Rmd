@@ -29,18 +29,21 @@ library(xtable)
 library(extrafont)
 
 loadfonts(device = "win")
+set.seed(100)
 
 #load data
-load("port_data_TEU.RData")
+load("port_data_TEU_110.RData")
 
-sample <- c("BEANR", "BEGNE", "BEZEE", "BGVAR", "CYLMS", "DEBRV", "DECUX", "DEHAM", "DELBC", "DEWVN", "DKAAL", "DKAAR", "DKCPH", "DKEBJ", "DKFRC", "EETLL", "ESAGP", "ESALC", "ESALG", "ESBCN", "ESBIO", "ESCAD", "ESCAR", "ESCAS", "ESGIJ",  "ESLPA", "ESMLN", "ESMPG", "ESPMI", "ESSCT", "ESSDR", "ESSVQ", "ESTAR", "ESVGO", "ESVIL", "ESVLC", "FIHEL", "FIHKO", "FIOUL", "FIPOR", "FIRAU", "FRBES", "FRDKK", "FRLEH", "FRMRS", "FRNTE", "GBBEL", "GBBRS", "GBCDF", "GBFOR", "GBFXT", "GBGOO", "GBHUL", "GBIMM", "GBLIV", "GBLON", "GBMED", "GBMME", "GBPME", "GBSOU", "GBWPT", "GRPIR", "GRSKG", "HRPLE", "HRRJK", "IEDRO", "IEDUB", "IEORK", "IEWAT", "ITAOI", "ITBRI", "ITCAG", "ITCTA", "ITCVV", "ITGIT", "ITGOA", "ITLIV", "ITMDC", "ITNAP", "ITRAN", "ITSAL", "ITSPE", "ITSVN", "ITTAR", "ITTRS", "ITVCE", "LTKLJ", "LVRIX", "MEBAR", "MTMAR", "NLAMS", "NLMOE", "NLRTM", "NOKRS", "NOMJF", "NOMSS", "NOOSL", "PLGDN", "PLGDY", "PLSZZ", "PTCNL", "PTFNC", "PTLEI", "PTLIS", "PTPDL", "PTPRV", "PTSET", "PTSIE", "ROCND", "SEGOT", "SEGVX", "SEHAD", "SEHEL", "SEMMA", "SENRK", "SESOE", "SEVST", "SIKOP", "TRAMB", "TRAYT", "TRGEM", "TRISK", "TRIZM", "TRIZT", "TRMER", "TRSSX", "TRTEK")
+sample <- c("BEANR", "BEGNE", "BEZEE", "BGVAR", "CYLMS", "DEBRV", "DECUX", "DELBC", "DEHAM", "DEWVN", "DKAAL", "DKAAR", "DKCPH", "DKEBJ", "DKFRC", "EETLL", "ESAGP", "ESALC", "ESALG", "ESBCN", "ESBIO", "ESCAD", "ESCAR", "ESCAS", "ESGIJ",  "ESLPA", "ESMLN", "ESMPG", "ESPMI", "ESSCT", "ESSDR", "ESSVQ", "ESTAR", "ESVGO", "ESVIL", "ESVLC", "FIHEL", "FIHKO", "FIOUL", "FIPOR", "FIRAU", "FRBES", "FRDKK", "FRLEH", "FRMRS", "FRNTE", "GBBEL", "GBBRS", "GBCDF", "GBFOR", "GBFXT", "GBGOO", "GBHUL", "GBIMM", "GBLIV", "GBLON", "GBMED", "GBMME", "GBPME", "GBSOU", "GBWPT", "GRPIR", "GRSKG", "HRPLE", "HRRJK", "IEDRO", "IEDUB", "IEORK", "IEWAT", "ITAOI", "ITBRI", "ITCAG", "ITCTA", "ITCVV", "ITGIT", "ITGOA", "ITLIV", "ITMDC", "ITNAP", "ITRAN", "ITSAL", "ITSPE", "ITSVN", "ITTAR", "ITTRS", "ITVCE", "LTKLJ", "LVRIX", "MEBAR", "MTMAR", "NLAMS", "NLMOE", "NLRTM", "NOKRS", "NOMJF", "NOMSS", "NOOSL", "PLGDN", "PLGDY", "PLSZZ", "PTCNL", "PTFNC", "PTLEI", "PTLIS", "PTPDL", "PTPRV", "PTSET", "PTSIE", "ROCND", "SEGOT", "SEGVX", "SEHAD", "SEHEL", "SEMMA", "SENRK", "SESOE", "SEVST", "SIKOP", "TRAMB", "TRAYT", "TRGEM", "TRISK", "TRIZM", "TRIZT", "TRMER", "TRSSX", "TRTEK")
 
 
 port_data_TEU <- filter(port_data_TEU, aggregate==0,
                                        stat_port==1,              #filter out non-stat ports (and geographic aggregates)
                                        TEU_yrly >=20000,      #filter out small ports
-                                       port_code %in% sample) %>%        
-             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0)) %>%
+                                       port_code %in% sample,
+                                        period<=105) %>%        
+             mutate(s_china = ifelse(sender_code=="CN_X_HK" | sender_code=="HK", 1, 0),
+                     port = ifelse(port=="Antwerpen", "Antwerp", port)) %>%
              group_by(port_code, sender_code) %>%
              mutate(pair_id=cur_group_id()) %>% ungroup() %>%
              rename(container=total_TEU)
@@ -76,8 +79,6 @@ port_list <- port_data_agg %>% filter(group!=0) %>% group_by(port) %>% summarize
 port_data_TEU$container[port_data_TEU$port_code=="NLRTM" & between(port_data_TEU$year,2011,2020)]<-NA
 port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg$year,2011,2020)]<-NA
 
-port_data_TEU$container[port_data_TEU$port_code=="DEHAM" & port_data_TEU$period >= 106]<-NA
-port_data_agg$container[port_data_agg$port_code=="DEHAM" & port_data_agg$period >= 106]<-NA
 
 # add Cosco and Terminal data to the data set
 terminal_data <- read_xlsx("terminal_throughput.xlsx")
@@ -87,18 +88,6 @@ terminal_data <- read_xlsx("terminal_throughput.xlsx")
 load("berth_data.RData")
 wpi_data <- read.csv("WPI_data.csv")
 
-
-# terminal_number <- read_xlsx("port_terminal_berth.xlsx") %>%
-#                    filter(type == "General") %>%
-#                    group_by(port_code, terminal) %>%
-#                    summarize(no_berths=n()) %>%
-#                    group_by(port_code) %>%
-#                    summarize(no_terminal=n(),
-#                              no_berths=sum(no_berths)) %>%
-#                    ungroup() %>% 
-#                    merge(read_xlsx(("port_manual_berth.xlsx")), all.x=T, all.y=T) %>%
-#                    select(-port) %>%
-#                    merge(read.csv("WPI_data.csv"), all.x=T, all.y=T)
 
 
 terminal_data <- merge(port_data_agg, terminal_data, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>%
@@ -145,15 +134,11 @@ var_controls <- c("quay_length")
 
 # Cosco terminal level robustness check
 
-## Terminal-level Difference in Difference
+## Terminal-level graph
 
-In the previous estimations, we used port-level data to measure the effect of Chinese investments on port performance. While this approach allowed us to control for various confounding variables in the fixed effects approach and gave us a nearly exhaustive coverage for the difference in difference calculations, it also comes with a lack in precision. Most of the Chinese investments do not target the whole port, but just one operational unit (usually a terminal). Therefore, our results might be driven by other terminals, which are part of the respective port but are not owned by Chinese investors. Vice versa, potentially poor performance of non-chinese terminals might negatively affect the estimated treatment effect. To tackle this shortcoming, this robustness check explores the effect of Chinese investments using terminal-level throughput data. The terminal-level throughput data is published on the Cosco website and covers all investments terminals Cosco invested in overseas. (footnote: unfortunately, CMP and Hutison ports do not publish terminal-level throughput data. However, given that most of the significant effects were found for Cosco-controlled ports, this robustness check covers most of the relevant ports.) The graphs below display the terminal-level throughput reported by Coscos in relation to the total throughput of the respective port as reported by Eurostat. (footnote: Zeebruegge and Antwerp, and Bilbao and Valencia had to be combined due to Cosco's reporting practice) Clearly, besides Piraeus, none of the ports are fully under control of Cosco. In some cases, the throughput associated with Cosco's terminal only makes up a fraction of the total port throughput. 
+
 
 ```{r include=FALSE, warning=FALSE, message=FALSE}
-# counterfactual <- terminal_data %>% filter(treated!=1) %>%
-#                   group_by(period) %>%
-#                   summarise(untreat_TEU_per_ship = mean(untreat_TEU_per_ship, na.rm=T),
-#                             type="other") %>% ungroup()
 
 
 graph_list <- list()
@@ -187,17 +172,8 @@ graph_list[[i]] <- terminal_data %>% mutate(residual = ifelse(!is.na(terminal_TE
 
 ```{r include=TRUE, message=FALSE, echo=FALSE, warning=FALSE, fig.dim = c(6, 9),fig.align = 'center'}
 
-
-# plots <- plot_grid(plotlist = graph_list, ncol=2) 
-# 
-# note <- ggdraw() + draw_text("Note: The blue areas represent the throughput of Cosco's terminals.\n The red area represents the container throughput of other non-chinese terminals within the respective port.", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 8)
-# 
-# plot_grid(title, plots, note, ncol = 1, rel_heights = c(0.1, 0.9)) 
-
 x.title <- ggdraw() + geom_text(aes(label="TEU (thousands)", angle = 90), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
 y.title <- ggdraw() + geom_text(aes(label="Period"), x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 5, family="LM Roman 10")
-
-#note <- ggdraw() + geom_text(aes(label="Note:"), x = 0.05, y = 0, hjust = 0,vjust = -1, size = 3, family="LM Roman 10")
 
 legend <- get_legend(graph_list[[1]] + guides(fill = guide_legend(direction = "horizontal")))
 
@@ -208,47 +184,15 @@ for (i in 1:6){
 plots1 <- plot_grid(plotlist = graph_list, ncol=2, align = "hv") 
 
 plots1 <- plot_grid(plots1, y.title, legend, ncol=1, rel_heights = c(0.90,0.05, 0.05) ) 
-#plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
 
 plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
 
-ggsave(width=10, height=11, filename = "rob_ts_graph.pdf", path = file.path(getwd(), "figures"))
+print(plots1)
+ggsave(width=10, height=11, filename = "rob.pdf", path = file.path(getwd(), "figures"))
   
 ```
 
-
-
-
-To pair Cosco's terminal-level data with our port-level data, we normalize the throughput by port size. Naturally, larger ports should have higher throughput and should have a higher capacity for growth. To make the port- and terminal-level data comparable, we consider the number of berths of each port (including berths used for passenger traffic), the number of berths that are predominantly used for container shippings, and the total number of container ships that can dock at containter terminal(s) (measured by quay length divided by 300m. For ports without quay length, the number of ships was guesstimated on google maps.). The graphs below illustrate how good each measure explains the container throughput of the ports in year 2020.  
-
-
-```{r include=TRUE, warning=FALSE, echo=FALSE, message=FALSE, fig.align = 'center'}
-graph_list <- list()
-i<-0
-for (level in c("container", "change")) {
-  for (terminal in c("quay_length" ,"cranes")) {
-  i <- i+1
-  graph_list[[i]] <- ggplot(data=terminal_data[terminal_data$year==2020,], aes_string(y=level,x=terminal)) + 
-                     geom_point() + 
-                     geom_smooth(method = "lm", se=FALSE)
-  }
-}
-
-title <- ggdraw() +
-  draw_text("Different measures of port size, throughput in levels and first differences", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 14)
-
-plots <- plot_grid(plotlist = graph_list, ncol=2) 
-
-note <- ggdraw() + draw_text("Note: Number of general berths are taken from Shipnext.com.\n The alternative measure for number of berths and the length in terms of large container ships is derived from Google satelite images\n and official quay length from port websites.", x = 0.5, y = 0.5, hjust = 0.5, vjust = 1, size = 8)
-
-plot_grid(title, plots, note, ncol = 1, rel_heights = c(0.1, 0.9)) 
-
-```
-
-The graph above indicates that the length of the quay measured in container ship length best explains the port-level throughput. Therefore, we will normalize the terminal-level throughput of cosco-controlled terminals and the port-level throughput by the number of container ships that can dock at all container terminals. 
-
-
-
+## Terminal-level DiD
 
 ```{r include=FALSE, warning=FALSE, echo=FALSE}
 # Construct the dataset for DiD 
@@ -261,9 +205,6 @@ robustness_cosco <- terminal_data %>% filter(!is.na(terminal_TEU)) %>% select(po
                  group_by(port_code) %>%
                  mutate(group=min(period)+1) %>% ungroup()
 
-#manually add controls for Zeebrugge Antwerp
-# robustness_cosco[robustness_cosco$port_code=="BE003", "max_lift"]<-12
-# robustness_cosco[robustness_cosco$port_code=="BE003", "cargo_depth"]<-14
 
 #control ports
 control_ports <- terminal_data %>% filter(group==0 & !is.infinite(cargo_depth))  
@@ -356,14 +297,11 @@ results_gt_rob
 
 ```
 
-The main disadvantage of this robustness check is that it cannot provide any indication of the validity of the PTA, since there is no terminal-level data before the Chinese investment available. To circumvent this, the first period of the treatment is used as the untreated throughput of each treated terminal. This assumption might be reasonable, considering that it is unlikely to see stark changes in infrastructure and management just one quarter after the take-over. On the other side, some might argue that the first period might a unfitting comparison, as ther port needs some adjustment time to the management change. This would cause an upward bias in the results. Additionally, in some cases, it appears likely that the investment targeted a more productive terminal of the port, which would result in an selection bias. To counteract this, either more information on port equipment (cranes or storage) could be used to construct counterfactuals. 
 
 ## The role of Chinese Containers
 
-The previous analysis has shown that ports controlled by Chinese investors outperform other comparable European ports. One possible explanation is, that Chinese owned ports are the preferred destination of the Chinese container ships. That fits well with the literature on (add cosco line paper, maybe investment selection? Ports owned by a chinese company with a own fleet grow more that others. Media reports on "foot in the door strategy"). In this extension, we look into how much of the port growth after Chinese investment is indeed caused by more container arriving from China. To investigate this question, we return to the bilateral port-level data from Eurostat and estimate two additional DiD. In the first, we again aggregate the container throughput on port-quarter level but exclude all container traffic with China Mainland and Hong Kong. In the second, we use the share of chinese containers relative to containers from other origins in each port as dependent variable. In the latter case, the identifying parallel trends assumption that needs to hold is that the relative throughput of Chinese containers in treated ports trend in the same way as the relative throughput of Chinese containers in untreated ports @Olden.2022. (footnote: This setup has a number of advantages over a simple difference in difference using Chinese container throughput in levels as the outcome variable. In particular, the triple difference setup helps reducing potential bias that could be in a difference in difference estimation of Chinese container throughput versus container throughput of other origins for treated ports and untreated ports.) With the help of these two setups, we can infer whether the growth in throughput has been carried primarily by Chinese container shipments and whether that growth came at the expense of container shipments from other origins. 
 
-
-```{r include=F}
+```{r include=F, warning=FALSE}
 
 #### DiD without China ###
 port_data_agg_woCHN <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container) & (sender_code=="CN_X_HK" | sender_code=="HK"),container,0)) %>%
@@ -377,9 +315,8 @@ port_data_agg_woCHN <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(con
                               merge(wpi_data, by.x = c("port_code"), by.y = c("port_code"), all.x = T) 
 
 
-#exclude Rotterdam and Hamburg
+#exclude Rotterdam 
 port_data_agg_woCHN$container[port_data_agg_woCHN$port_code=="NLRTM" & between(port_data_agg_woCHN$year,2011,2020)]<-NA
-port_data_agg_woCHN$container[port_data_agg_woCHN$port_code=="DEHAM" & port_data_agg_woCHN$period >= 106]<-NA
 
 port_data_agg_woCHN$quay_length[port_data_agg_woCHN$quay_length==0] <- 100
 port_data_agg_woCHN$cranes[port_data_agg_woCHN$cranes==0] <- 1
@@ -525,7 +462,7 @@ latex_code <- gsub("lll", "lcc", latex_code)
 latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{x\\\\\\}", "\\\\textsuperscript{x}", latex_code)
 
 # Save modified LaTeX code to a .tex file
-cat(latex_code, file = file.path(getwd(), "results_tables_presentation", "wochina_results_presentation.tex"))
+cat(latex_code, file = file.path(getwd(), "presentation_results", "wochina_results_presentation.tex"))
 
 
 ```
@@ -536,4 +473,3 @@ cat(latex_code, file = file.path(getwd(), "results_tables_presentation", "wochin
 results_gt_woCHN
 ```
 
-# References

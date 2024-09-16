@@ -28,59 +28,18 @@ library(xtable)
 library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
-#library(showtext)
 
 loadfonts(device = "win")
-#showtext_auto()
 
-load("port_data.RData")
-load("port_data_TEU.RData")
+load("port_data_TEU_110.RData")
 
-port_data <- filter(port_data, aggregate==0, stat_port==1) 
-port_data_TEU <- filter(port_data_TEU, aggregate==0, stat_port==1)
+port_data_TEU <- filter(port_data_TEU, aggregate==0, stat_port==1) %>%
+                 mutate(port = ifelse(port=="Antwerpen", "Antwerp", port))
 
 
-# #add control variables
-# wpi_data <- read.csv("WPI_data.csv")
-# 
-# port_data_TEU <- merge(port_data_TEU, wpi_data, by.x = "port_code", by.y="port_code", all.x = T)
 ```
 
 # What is the relevant sample? 
-
-## Which type of cargo?
-
-Most throughput of energy commodities (transported in bulks) and Ro-Ro comes from countries other than China. The highest share of Chinese products is shipped with container cargo. Therefore, the sample is restricted to container cargo only.
-
-```{r , echo=FALSE,message=FALSE}
-theme_set(theme_minimal() + theme(legend.position = 'none'))
-
-port_data %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)"))) %>%
-  pivot_longer(cols = c("roro", "bulk", "container", "other"), names_to = "type", values_to = "throughput") %>%
-  group_by(type, china) %>% summarize(throughput = sum(throughput, na.rm = T)) %>% 
-  ggplot(aes(y=throughput, x=reorder(type, desc(throughput)))) + geom_bar(stat="identity", position = "stack", aes(fill = china) ) +
-  xlab("cargo type") + 
-  labs(title="Throughput by type", caption = "Blue bars represent cargo from China.")
-
-
-```
-
-## Container weight versus volume 
-
-```{r echo=FALSE, warning=FALSE}
-merge(port_data, port_data_TEU, by.x = c("port_code", "sender_code", "year", "quarter"), by.y = c("port_code", "sender_code", "year", "quarter")) %>% 
-  select(container, total_TEU, empty_TEU) %>% 
-  mutate(loaded_TEU = total_TEU-empty_TEU) %>%
-  ggplot(aes(x=loaded_TEU, y=container)) + geom_point() +
-  ylab("container throughput (thousand tonnes)") +
-         xlab("container throughput (TEU)") +
-         labs(title = "Container throughput: Weight versus volume (2000-2022)", caption = "Container throughput by TEU only includes loaded containers.") 
-
-
-```
-
-Container processing can be measured with two variables: Container weight or volume (TEU). Above graph shows, that the relation between the two is mostly linear. To make the results of our analysis more comparable to other studies and data sources, we will proceed using data on container TEUs. 
-
 
 ## Which ports are relevant? 
 
@@ -156,7 +115,7 @@ port_data_TEU %>% filter(year>=2010) %>% mutate(china = ((sender == "Hong Kong" 
 
 
 ```{r, include=FALSE}
-port_data_TEU <- filter(port_data_TEU, TEU_yrly >=20000, port_code!="DEHAM") #exclude port that have an average yearly container throughput above 20000
+port_data_TEU <- filter(port_data_TEU, TEU_yrly >=20000) #exclude port that have an average yearly container throughput above 20000
 
 port_data_agg <- port_data_TEU %>% group_by(port, port_code, period, reporter_code) %>% 
                                summarize(container = sum(total_TEU, na.rm=T),
@@ -177,8 +136,7 @@ sample <- c("BEANR", "BEGNE", "BEZEE", "BGVAR", "CYLMS", "DEBRV", "DECUX", "DEHA
  port_data_agg <- filter(port_data_agg, port_data_agg$port_code %in% sample)
 
 # add terminal data to the data set
-#terminal_data <- read_xlsx("port_manual_berth.xlsx")
-
+ 
 load("berth_data.RData")
 terminal_data <- berth_data
   
@@ -188,7 +146,6 @@ wpi_data <- read.csv("WPI_data.csv")
 # control variables
 control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
                select(port_code,
-                      #ships, cosco_owned_ships,
                       year, quarter, quay_length, cranes,
                       cranes_fixed, cranes_mobile, 
                       cranes_floating, max_lift, 
@@ -275,15 +232,8 @@ nat_stat_groups <- filter(nat_stat_groups, !is.na(container_2019))
 
 ```
 
-```{r echo=FALSE}
-# kable(nat_stat_groups,
-#       caption = "National Statistical Groups combining many Ports")
-```
-
-
 
 ## Distribution of throughput by ports and origin
-
 
 
 ```{r include=FALSE}
@@ -324,37 +274,6 @@ port_data_TEU %>% filter(year>=2010, port %in% top50_china) %>%  mutate(china = 
                     axis.title.x = element_blank())
 ```
 
-```{r include=FALSE}
-#china share
-china_share <- port_data_TEU %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & total_TEU >0),
-                                        throughput_others = case_when(china==1 ~ 0,
-                                                                      china==0 ~ total_TEU),
-                                        throughput_china = case_when(china==1 ~ total_TEU,
-                                                                     china==0 ~ 0)) %>%
-  group_by(year) %>% summarise(throughput_others=sum(throughput_others, na.rm=T),
-                               throughput_china=sum(throughput_china, na.rm=T),
-                               share = throughput_china/throughput_others*100*2500000)
-
-```
-Above graphs indicate that the share of Chinese cargo is (surprisingly) low. The graph below plots the total container shipments from China, the total container shipments from origins other than China and the share of Chinese containers in percent. Recent global crises, like the financial crisis in 2007-2009, the corona-pandemic in 2020, and the Ukraine war in 2023 have led to drops in total cargo shipments. Interestingly, despite the narrative of the ever increasing dependency on Chinese goods, the share of Chinese container shipments is on a declining path since 2012. 
-
-```{r echo=FALSE,message=FALSE}
-port_data_TEU   %>% mutate(china = ((sender == "Hong Kong" | sender == "China (except Hong Kong)") & total_TEU>0)) %>%
-                group_by(year, china) %>% summarise(throughput=sum(total_TEU, na.rm=T)) %>% ungroup() %>%
-                ggplot(aes(x=year)) + 
-                geom_line(aes(y=throughput, color = china)) +
-                geom_line(data=china_share, aes(x=year,y=share)) + 
-                scale_y_continuous(
-                  name = "throughput",
-                  sec.axis = sec_axis( trans=~./2500000, name="share in percent")) + 
-                labs(title = "Aggregate container throughput over time", 
-                caption = "Blue line represents throughput of chinese goods. 
-                           Red line represents throughput from all other countries.
-                           Black line represents share in percent.") +
-                theme(axis.title.y.right = element_text(angle = 90))
-
-```
-
 
 
 ```{r echo=FALSE, message=FALSE}
@@ -390,7 +309,7 @@ Originally, we found 26 ports which were at some point at least partly owned by 
 The following graph display all 18 treated ports and their annual container throughput as a share of their mean container throughput. The vertical lines indicate treatment time. Solid line represent the container throughput of the respective port. The dashed line represents the average throughput of the control group. Note that not all ports report the throughput for every period. This might influence the average.
 
 ```{r echo=FALSE, message=FALSE, warning=F, fig.dim = c(8, 14)}
-treated_ports <- port_data_TEU %>% filter(group!=0) %>% 
+treated_ports <- port_data_TEU %>% filter(group!=0 & port_code!="DEHAM" & period<=105) %>% 
                  group_by(port_code, time) %>% 
                  summarize(total_TEU = sum(total_TEU, na.rm=T)) %>% 
                  group_by(port_code) %>% summarise(max = max(total_TEU, na.rm=T)) %>% 
@@ -403,7 +322,7 @@ for (i in 1:length(treated_ports)){
   treatment_time <- unique(port_data_TEU$time[port_data_TEU$period==treatment_period])
   port_name <- unique(port_data_TEU$port[port_data_TEU$port_code==treated_ports[i]])
   
-  plot_list[[i]] <- port_data_TEU %>% filter(port_code==treated_ports[i] | group==0) %>% group_by(port_code, time) %>%
+  plot_list[[i]] <- port_data_TEU %>% filter(port_code==treated_ports[i] | group==0, period<=105) %>% group_by(port_code, time) %>%
                                          summarize(sum = sum(total_TEU, na.rm=T),
                                                    ownership_china = max(ownership_china),
                                                    group = max(group),
@@ -453,11 +372,10 @@ ggsave(width=10, height=15, filename = "port_ts_graph.pdf", path = file.path(get
 plots <- plot_grid(plotlist = plot_list, ncol=6, align = "hv") 
 
 plots1 <- plot_grid(plots, y.title, legend,note, ncol=1, rel_heights = c(0.9,0.025, 0.025, 0.05) ) 
-#plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
 
 plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
 
-ggsave(width=17, height=10, filename = "port_ts_graph_presentation.pdf", path = file.path(getwd(), "results_tables_presentation"))
+ggsave(width=17, height=10, filename = "port_ts_graph_presentation.pdf", path = file.path(getwd(), "presentation_results"))
 
 
 # just "interesting" ports
@@ -496,11 +414,10 @@ for (i in 1:length(treated_ports)){
 plots <- plot_grid(plotlist = plot_list[c(1,2,3,7,10,12)], ncol=3, align = "hv") 
 
 plots1 <- plot_grid(plots, y.title, legend,note, ncol=1, rel_heights = c(0.9,0.025, 0.025, 0.05) ) 
-#plots1 <- plot_grid(plots1, note, ncol=1, rel_heights = c(0.975,0.025) ) 
 
 plot_grid(x.title, plots1, ncol = 2, rel_widths = c(0.05,0.95))
 
-ggsave(width=12, height=8, filename = "port_ts_graph_presentation_6.pdf", path = file.path(getwd(), "results_tables_presentation"))
+ggsave(width=12, height=8, filename = "port_ts_graph_presentation_6.pdf", path = file.path(getwd(), "presentation_results"))
 
 ```
 
@@ -511,7 +428,7 @@ ggsave(width=12, height=8, filename = "port_ts_graph_presentation_6.pdf", path =
 # calculate summary statistics by group
 
 #controls
-share <- port_data_TEU %>% mutate(china = (sender_code=="CN_X_HK")) %>% group_by(port_code, china, period) %>%
+share <- port_data_TEU %>% filter(port_code!="DEHAM") %>% mutate(china = (sender_code=="CN_X_HK")) %>% group_by(port_code, china, period) %>%
                            summarize(container = sum(total_TEU, na.rm=T)) %>% 
                            pivot_wider(id_cols = c("port_code", "period"), 
                                        values_from = "container", 
@@ -519,9 +436,10 @@ share <- port_data_TEU %>% mutate(china = (sender_code=="CN_X_HK")) %>% group_by
                                        names_prefix = "china") %>%
                            mutate(share = ifelse(!is.na(chinaTRUE),chinaTRUE/(chinaFALSE+chinaTRUE)*100,0))
 
-sumstat_controls <- port_data_agg %>% group_by(port_id) %>% mutate(treated=max(ownership_china)) %>% ungroup() %>%
+sumstat_controls <- port_data_agg  %>% group_by(port_id) %>% mutate(treated=max(ownership_china)) %>% ungroup() %>%
                                       filter(treated==0, container!=0, 
-                                             !is.na(quay_length) & !is.na(cranes) & !is.na(max_lift) & !is.na(cargo_depth)) %>%
+                                             !is.na(quay_length) & !is.na(cranes) & !is.na(max_lift) & !is.na(cargo_depth),
+                                             port_code!="DEHAM") %>%
                                       merge(share, 
                                             by.x = c("port_code", "period"), 
                                             by.y = c("port_code", "period"), 
@@ -529,8 +447,7 @@ sumstat_controls <- port_data_agg %>% group_by(port_id) %>% mutate(treated=max(o
                                       arrange(port_id, period) %>%
                                       group_by(port_id) %>%
                                       summarize(across(c("container", "share", "quay_length", "cranes", "max_lift", "cargo_depth"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
-                                                across(c("container", "share", "quay_length", "cranes", "max_lift", "cargo_depth"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>% 
-                                      #filter(!is.nan(ships_mean), !is.nan(cargo_depth_mean))%>% 
+                                                across(c("container", "share", "quay_length", "cranes", "max_lift", "cargo_depth"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
                                       ungroup() %>% select(-port_id) %>%
                                       summarize(across(ends_with("mean"), mean, .names = "{col}"),
                                                 across(ends_with("grate"),~ mean(.x,na.rm=T), .names = "{col}")) %>% 
@@ -538,8 +455,8 @@ sumstat_controls <- port_data_agg %>% group_by(port_id) %>% mutate(treated=max(o
                                                    names_to = c("vars", ".value"),
                                                    names_pattern = "(.*)_(.*)")
 #treated 
-sumstat_treated <- port_data_agg %>% group_by(port_id) %>% mutate(treated=max(ownership_china))  %>%
-                                      filter(treated==1, container!=0) %>% 
+sumstat_treated <- port_data_agg %>%  group_by(port_id) %>% mutate(treated=max(ownership_china))  %>%
+                                      filter(treated==1, container!=0, port_code!="DEHAM") %>% 
                                        merge(share, 
                                             by.x = c("port_code", "period"), 
                                             by.y = c("port_code", "period"), 
@@ -566,12 +483,15 @@ sumstats <- merge(sumstat_controls, sumstat_treated, by=c("vars")) %>%
             mutate(across(starts_with("agrate"),~ifelse(.x=="0","-",.x)))
 
 sumstats <- sumstats[c(2,6,5,3,1,4),]
+sumstats <- sumstats[sumstats$vars!="cranes",]
 
 # rename
 sumstats$vars[sumstats$vars == "share"] <- "china share"
 sumstats$vars[sumstats$vars == "quay_length"] <- "quay length"
 sumstats$vars[sumstats$vars == "cargo_depth"] <- "cargo depth"
 sumstats$vars[sumstats$vars == "max_lift"] <- "max lift"
+
+
     
 
 ```
@@ -628,96 +548,16 @@ sumstats_gt
 
 ```
 
-```{r include=FALSE}
-# add Port liner connectivity index
 
-PLCI <- read.csv("PLCI_cleaned")
-partner_region <- read_excel(file.path(getwd(),"partner_region.xlsx"))
-
-# generate map 
-european_ports <- port_data_agg %>% merge(PLCI, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.y=T) %>%
-                                    merge(partner_region, by.x = "reporter_code", by.y="partner_code", all.x = T) %>%
-                                    filter(year==2020 | year==2006, !is.na(lat), !is.na(long)) %>% group_by(port, partner_region ,year) %>%
-                                    summarize(#container = sum(container),
-                                              plci_value = mean(plci_value),
-                                              lat = mean(lat),
-                                              long = mean(long),
-                                              ownership_china = max(ownership_china)) %>% group_by(port) %>%
-                                    mutate(ownership_china=max(ownership_china)) %>%
-                                    pivot_wider(names_from = year, values_from = plci_value, names_prefix = "y") %>%
-                                    mutate(delta=y2020-y2006,
-                                           growth=(y2020/y2006-1)*100,
-                                           pos = as.factor(ifelse(delta>0,"PLCI increase", "PLCI decrease"))) %>% 
-                                    filter(!is.na(pos)) %>% ungroup()
-
-ave_NE <- european_ports %>% filter(partner_region=="NE") %>% summarize(mean_delta=round(mean(growth,na.rm=T),digits = 1)) %>% pull(mean_delta)
-ave_SE <- european_ports %>% filter(partner_region=="SE") %>% summarize(mean_delta=round(mean(growth,na.rm=T),digits = 1)) %>% pull(mean_delta)
-
-
-world <- ne_countries(scale = "medium", returnclass = "sf")    
-
-# Create a ggplot object
-ggmap_change <- ggplot(data=world) + geom_sf() +
-            geom_point(data = european_ports, aes(x = long, y = lat, size = growth, shape=pos ), fill = ifelse(european_ports$pos=="PLCI increase","green4", "red3")) +
-            geom_segment(aes(x = -18, y = 46, 
-                             xend = 0, yend = 46), 
-                             linetype = "dashed", color = "black") +  # Horizontal segment
-            geom_segment(aes(x = 0, y = 46, 
-                             xend = 28, yend = 51), 
-                             linetype = "dashed", color = "black") +
-            annotate("text", x=-17, y=59, label="North", family="LM Roman 10", hjust=0)+
-            annotate("text", x=-17, y=58, label=paste0("~Delta==",ave_NE,"*'%'"),parse=T, family="LM Roman 10", hjust=0)+
-            annotate("text", x=-17, y=45, label="South", family="LM Roman 10",hjust=0)+
-            annotate("text", x=-17, y=44, label=paste0("~Delta==",ave_SE,"*'%'"),parse=T, family="LM Roman 10", hjust=0)+
-            #geom_text(aes(x=-17, y=47, label="North", hjust=-0.5), color="black")+
-            #geom_text(aes(x=-17,y=45, label="South", hjust=-0.5), color="black")+
-            coord_sf(xlim = c(-18,28), ylim = c(31,60), expand = FALSE)  + 
-            theme(legend.position = "bottom",
-                  text = element_text(size=10, family="LM Roman 10"),
-                  axis.title = element_blank(),
-                  axis.text = element_blank(),
-                  axis.ticks.x = element_blank(),
-                  axis.ticks.length = unit(.1, "pt"),
-                  axis.ticks.y = element_blank(),
-                  panel.border = element_rect(color = "black", fill = NA, size = 1),
-                  panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank(),
-                  panel.background = element_rect(fill = "grey98"),
-                  plot.margin = margin(0, 0, 0, 0),
-                  legend.background = element_rect(fill = "white"),
-                  legend.box.background = element_rect(colour = "black")
-                  )+
-  scale_shape_manual(values=c(25,24)) +
-  scale_fill_gradient(na.value="white",low = "grey80", high = "grey30")+
-  guides(size = "none",
-          shape = guide_legend(title = "",
-                               override.aes = list(shape = c(25, 24),fill = c("red3","green4"))))
-
-
-
-legend <- get_legend(ggmap_change)
-
-
-```
-
-```{r warning=F}
-# plot
-
-map <- ggdraw(ggmap_change+ theme(legend.position = "none")) + draw_plot(legend, x=0,y=-0.44)
-
-note2 <- ggdraw() + geom_text(aes(label="Note: Size of the triangles indicate change in the Port Liner Connectivity Index (PLCI) in percent. \nData source: UNCTAD."), x = 0.21, y = 0, hjust = 0, vjust=-.55, size = 4, family="LM Roman 10")
-
-plot_grid(map,note2, rel_heights = c(0.9,0.1), ncol = 1)
-ggsave(width=12, height=7, filename = "map.pdf", path = file.path(getwd(), "figures"))
-
-
-```
 
 ## Development of North and South European ports
 
 ```{r}
 # load inflow data
-load("port_data_TEU_in.RData")
+load("port_data_TEU_in_110.RData")
+
+partner_region <- read_excel(file.path(getwd(),"partner_region.xlsx"))
+world <- ne_countries(scale = "medium", returnclass = "sf") 
 
 # clean inflow data
 port_data_TEU_in <- filter(port_data_TEU_in, aggregate==0,
@@ -846,37 +686,18 @@ contribution_graph <- world %>% merge(catch_up, by.x="iso_a2", by.y="sender_code
 # notes
 change_note <- ggdraw() + geom_text(aes(label="Note: Data includes inward container shipments only. \nNote to a): Lines represent total container throughput. Bars represent the gap between Southern European ports and Northern European \nports. Internal refers to container origins within the EU. External refers to container origins outside of the EU. Data on Chinese \ninvestments into European maritime infrastructure is taken from Ghiretti et al (2023). \nNote to c): Shading represents the absolute increase in container throughput in Southern European ports to and from the partner countries \nbetween 2009 and 2019. Darker shades represent higher values. \nData source: Eurostat, Ghiretti et al (2023)."), x = 0, y = 0, hjust = 0, vjust=0, size = 5, family="LM Roman 10")
 
-# #show catch up contribution on world map
-# world %>% merge(catch_up, by.x="iso_a2", by.y="sender_code", all.x=T) %>%
-#           ggplot() + geom_sf(aes(fill=catch_up)) + labs(title="Contribution to catch up of SE")
 
 # putting it all together
 upper_graph <- plot_grid(change_graph , top_ten_graph, ncol = 2, align = "h")
 
 #save upper graph for presentation
 upper_graph
-ggsave(width=12, height=7, filename = "map_presentation.pdf", path = file.path(getwd(), "results_tables_presentation"))
+ggsave(width=12, height=7, filename = "map_presentation.pdf", path = file.path(getwd(), "presentation_results"))
 
 plot_grid(upper_graph,contribution_graph,change_note, ncol = 1, rel_heights = c(0.46,0.46,0.08))
 
 ggsave(width=12, height=15, filename = "map2.pdf", path = file.path(getwd(), "figures"))
 
-```
-
-
-
-## Data availability for treated ports
-
-The DiD approach is sensible to missing data in the timeseries of treated units. In the best case, there are no missing values in each treated unit. There are two options to achieve this: First, trim the time horizon at the front an end to make sure all treated ports start and end at the same time. Second, missing values in the middle of the time series could be imputed. 
-
-```{r echo=FALSE, message=FALSE, fig.dim = c(16,8)}
-missingness_matrix <- port_data_agg %>% filter(group!=0) %>% mutate(missing=case_when(!is.na(container) & ownership_china==0 ~ 1,
-                                                                                      !is.na(container) & ownership_china==1 ~2)) %>%
-                        pivot_wider(id_cols = "period", names_from = "port", values_from = "missing", values_fill = 0) %>%
-                        arrange(period) %>% select(-period)
-missingness_matrix <- as.matrix(missingness_matrix)
-
-levelplot(missingness_matrix)
 ```
 
 
