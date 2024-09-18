@@ -9,6 +9,7 @@ The scripts reproduce all the results presented in the paper. The following step
 1. Download and install our Difference in Difference package:
 
    library(devtools)
+
    install_github("paulst30/counterfactual_inference")
    
 3. Download the container throughput data [here](https://drive.google.com/drive/folders/1_eoF3Hb048h_fgn9r3dTV3uKzQJ6dFKl?usp=drive_link).
