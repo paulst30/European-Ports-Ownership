@@ -1,5 +1,5 @@
 # European-Ports-Ownership
-This repository accompanies the paper 'European ports development under Chinese investments' available on SSRN here. 
+This repository accompanies the paper 'European ports development under Chinese investments' available on SSRN [here](). 
 
 
 ## Replication 
@@ -20,7 +20,7 @@ The scripts produce the following results:
 
 `Estimation.rmd`: Produces fixed effects results, the baseline DiD results, and the event study graph.
 
-`Robustness.rmd`: Produces terminal-level analysis, the terminal-level time-series graph, and the Chine-share robustness check. 
+`Robustness.rmd`: Produces terminal-level analysis, the terminal-level time-series graph, and the China-share robustness check. 
 
 `Reshuffling_direction_region_analysis.rmd`: Produces the reshuffling results.
 
