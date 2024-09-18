@@ -7,10 +7,11 @@ This repository accompanies the paper 'European ports development under Chinese 
 The scripts reproduce all the results presented in the paper. The following steps are necessary before running the scripts: 
 
 1. Download and install our Difference in Difference package:
+
    library(devtools)
    install_github("paulst30/counterfactual_inference")
    
-2. Download the container throughput data [here](https://drive.google.com/drive/folders/1_eoF3Hb048h_fgn9r3dTV3uKzQJ6dFKl?usp=drive_link).
+3. Download the container throughput data [here](https://drive.google.com/drive/folders/1_eoF3Hb048h_fgn9r3dTV3uKzQJ6dFKl?usp=drive_link).
    You can use the scripts `download_TEU.R`, `download_TEU_inflow.R`, and `download_TEU_outflow.R` to download the container data from Eurostat directly. However, this might    lead to different results as history data is sometimes revised.
 
 ### Run the scripts
