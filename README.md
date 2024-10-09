@@ -1,5 +1,5 @@
 # European-Ports-Ownership
-This repository accompanies the paper 'European ports development under Chinese investments' available on SSRN [here](). 
+This repository accompanies the paper 'European ports development under Chinese investments' available on SSRN [here](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4976399). 
 
 
 ## Replication 
@@ -15,7 +15,7 @@ The scripts reproduce all the results presented in the paper. The following step
 ```
 
 2. Download the container throughput data [here](https://drive.google.com/drive/folders/1_eoF3Hb048h_fgn9r3dTV3uKzQJ6dFKl?usp=drive_link).
-   You can use the scripts `download_TEU.R`, `download_TEU_inflow.R`, and `download_TEU_outflow.R` to download the container data from Eurostat directly. However, this might    lead to different results as history data is sometimes revised.
+   You can use the scripts `download_TEU.R`, `download_TEU_inflow.R`, and `download_TEU_outflow.R` to download the container data from Eurostat directly. However, this might lead to different results as historical data is sometimes revised.
 
 ### Run the scripts
 The scripts produce the following results: 
