@@ -14,7 +14,7 @@ The scripts reproduce all the results presented in the paper. The following step
     install_github("paulst30/counterfactual_inference")
 ```
 
-2. Download the container throughput data [here](https://drive.google.com/drive/folders/1_eoF3Hb048h_fgn9r3dTV3uKzQJ6dFKl?usp=drive_link).
+2. Download the container throughput data [here](https://drive.google.com/drive/folders/1rqlXxkYFbFRuLsu8Cy5LnupaLJyjd5Ht?usp=sharing).
    You can use the scripts `download_TEU.R`, `download_TEU_inflow.R`, and `download_TEU_outflow.R` to download the container data from Eurostat directly. However, this might lead to different results as historical data is sometimes revised.
 
 ### Run the scripts
