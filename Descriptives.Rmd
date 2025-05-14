@@ -141,25 +141,35 @@ load("berth_data.RData")
 terminal_data <- berth_data
   
 # add channel depth and cranes from World port index
-wpi_data <- read.csv("WPI_data.csv")
+wpi_data <- read.csv("WPI_data2.csv")
 
-# control variables
-control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
-               select(port_code,
-                      year, quarter, quay_length, cranes,
-                      cranes_fixed, cranes_mobile, 
-                      cranes_floating, max_lift, 
-                      cargo_depth, lat, long)
+# WPI control variables new
+control_var <- merge(wpi_data, terminal_data, by=c("port_code", "year"), all = T) %>%
+               select(port_code, 
+                      year, quarter, quay_length, cranes, 
+                      #cranes_fixed, cranes_mobile, cranes_floating, 
+                      max_lift, cargo_depth,
+                      cosco_length) %>% arrange(port_code, desc(year)) %>% group_by(port_code) %>%
+               fill(c("max_lift", "cargo_depth"), .direction = "downup")
 
 
 # merge with aggregated data
-port_data_agg <- merge(port_data_agg, control_var, 
-                       by.x = c("port_code", "year", "quarter"), 
-                       by.y = c("port_code", "year", "quarter"), 
-                       all.x = T) 
+port_data_agg <- merge(port_data_agg, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
 
+# market size controls 
+markets <- read.csv(file.path(getwd(),"control variables_new", "markets.csv"))
+
+# markets data does not need interpolation, as we only gathered it for years with treatment
+port_data_agg  <- merge(port_data_agg , markets[,c("port_code", "year", "local_markets", "foreign_markets", "all_markets")], by.x=c("port_code", "year"), by.y = c("port_code", "year"), all.x=T) %>% arrange(port_code, desc(period)) %>% group_by(port_code) %>% fill(c("local_markets", "local_markets", "foreign_markets", "all_markets"), .direction = "downup")
+
+# TENtec infrastructure variables
+TENtec <- read.csv(file.path(getwd(),"control variables_new", "TENtec_corridors.csv"))       # on port_code level (check)
+
+port_data_agg  <- merge(port_data_agg , TENtec[,c("port_code", "node.score", "TENtec.core.port")], by.x=c("port_code"), by.y = c("port_code"), all.x=T)
+
+# no zeros allowed in controlvariables
+port_data_agg$quay_length[port_data_agg$quay_length==0] <- 100
 port_data_agg$cranes[port_data_agg$cranes==0] <- 1
-port_data_agg$quay_length[port_data_agg$quay_length==0] <- 1
 
 ```
 
@@ -438,7 +448,7 @@ share <- port_data_TEU %>% filter(port_code!="DEHAM") %>% mutate(china = (sender
 
 sumstat_controls <- port_data_agg  %>% group_by(port_id) %>% mutate(treated=max(ownership_china)) %>% ungroup() %>%
                                       filter(treated==0, container!=0, 
-                                             !is.na(quay_length) & !is.na(cranes) & !is.na(max_lift) & !is.na(cargo_depth),
+                                             !is.na(quay_length) & !is.na(local_markets) & !is.na(foreign_markets) & !is.na(cargo_depth),
                                              port_code!="DEHAM") %>%
                                       merge(share, 
                                             by.x = c("port_code", "period"), 
@@ -446,12 +456,12 @@ sumstat_controls <- port_data_agg  %>% group_by(port_id) %>% mutate(treated=max(
                                             all.x = T) %>%
                                       arrange(port_id, period) %>%
                                       group_by(port_id) %>%
-                                      summarize(across(c("container", "share", "quay_length", "cranes", "max_lift", "cargo_depth"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
-                                                across(c("container", "share", "quay_length", "cranes", "max_lift", "cargo_depth"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
+                                      summarize(across(c("container", "share", "quay_length", "cargo_depth", "local_markets", "foreign_markets"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
+                                                across(c("container", "share", "quay_length", "cargo_depth", "local_markets", "foreign_markets"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
                                       ungroup() %>% select(-port_id) %>%
                                       summarize(across(ends_with("mean"), mean, .names = "{col}"),
                                                 across(ends_with("grate"),~ mean(.x,na.rm=T), .names = "{col}")) %>% 
-                                      pivot_longer(cols = starts_with(c("container_", "share_", "quay_length_", "cranes_", "max_lift", "cargo_depth_")), 
+                                      pivot_longer(cols = starts_with(c("container_", "share_", "quay_length_", "cargo_depth_", "local_markets_", "foreign_markets_")), 
                                                    names_to = c("vars", ".value"),
                                                    names_pattern = "(.*)_(.*)")
 #treated 
@@ -462,15 +472,15 @@ sumstat_treated <- port_data_agg %>%  group_by(port_id) %>% mutate(treated=max(o
                                             by.y = c("port_code", "period"), 
                                             all.x = T) %>%
                                       arrange(port_id, period) %>%
-                                      mutate(across(c("container","share", "quay_length", "cranes", "max_lift", "cargo_depth"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
+                                      mutate(across(c("container","share", "quay_length", "cargo_depth", "foreign_markets", "local_markets"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
                                       group_by(port_id, ownership_china) %>%
-                                      summarize(across(c("container","share", "quay_length", "cranes", "max_lift", "cargo_depth"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
-                                                across(c("container_mean","share_mean", "quay_length_mean", "cranes_mean", "max_lift_mean", "cargo_depth_mean"), ~ max(.x))) %>%
+                                      summarize(across(c("container","share", "quay_length", "cargo_depth", "foreign_markets", "local_markets"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
+                                                across(c("container_mean","share_mean", "quay_length_mean", "cargo_depth_mean", "foreign_markets_mean", "local_markets_mean"), ~ max(.x))) %>%
                                       group_by(ownership_china) %>% 
                                       summarize(across(ends_with("mean"), mean, .names = "{col}"),
                                                 across(ends_with("grate"),~ mean(.x,na.rm=T), .names = "{col}")) %>%
                                       pivot_wider(names_from = "ownership_china", values_from = ends_with("grate"), names_glue = "{.value}{ownership_china}") %>% 
-                                      pivot_longer(cols = starts_with(c("container_", "share_", "quay_length_", "cranes_", "max_lift_", "cargo_depth_")), 
+                                      pivot_longer(cols = starts_with(c("container_", "share_", "quay_length_", "cargo_depth_", "foreign_markets_", "local_markets_")), 
                                                    names_to = c("vars", ".value"),
                                                    names_pattern = "(.*)_(.*)")
 
@@ -482,14 +492,15 @@ sumstats <- merge(sumstat_controls, sumstat_treated, by=c("vars")) %>%
             mutate(across(c("mean.x","agrate","mean.y","agrate0","agrate1"), ~ format(round(.,digits=2), big.mark = ","))) %>%
             mutate(across(starts_with("agrate"),~ifelse(.x=="0","-",.x)))
 
-sumstats <- sumstats[c(2,6,5,3,1,4),]
+sumstats <- sumstats[c(2,6,5,1,4,3),]
 sumstats <- sumstats[sumstats$vars!="cranes",]
 
 # rename
 sumstats$vars[sumstats$vars == "share"] <- "china share"
 sumstats$vars[sumstats$vars == "quay_length"] <- "quay length"
 sumstats$vars[sumstats$vars == "cargo_depth"] <- "cargo depth"
-sumstats$vars[sumstats$vars == "max_lift"] <- "max lift"
+sumstats$vars[sumstats$vars == "foreign_markets"] <- "foreign markets"
+sumstats$vars[sumstats$vars == "local_markets"] <- "local markets"
 
 
     

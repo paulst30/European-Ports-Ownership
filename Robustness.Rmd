@@ -84,15 +84,22 @@ port_data_agg$container[port_data_agg$port_code=="NLRTM" & between(port_data_agg
 terminal_data <- read_xlsx("terminal_throughput.xlsx")
 
 
-# add quay length, cranes and other control variables
+# add control variables
 load("berth_data.RData")
-wpi_data <- read.csv("WPI_data.csv")
+wpi_data <- read.csv("WPI_data2.csv")
+markets <- read.csv(file.path(getwd(),"control variables_new", "markets.csv"))
+TENtec <- read.csv(file.path(getwd(),"control variables_new", "TENtec_corridors.csv")) 
 
 
 
 terminal_data <- merge(port_data_agg, terminal_data, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>%
                  merge(berth_data, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>%
-                 merge(wpi_data, by.x = c("port_code"), by.y = c("port_code"), all.x = T) %>%
+                 merge(wpi_data, by.x = c("port_code", "year"), by.y = c("port_code", "year"), all.x = T) %>%
+                 merge(markets[,c("port_code", "year", "local_markets", "foreign_markets", "all_markets")],
+                       by.x=c("port_code", "year"), by.y = c("port_code", "year"), all.x=T) %>% 
+                 arrange(port_code, desc(period)) %>% group_by(port_code) %>% 
+                 fill(c("local_markets", "local_markets", "foreign_markets", "all_markets", "cargo_depth"), .direction = "downup") %>%  
+                 merge(TENtec[,c("port_code", "node.score", "TENtec.core.port")], by.x=c("port_code"), by.y = c("port_code"), all.x=T) %>%
                  mutate(port_code = case_when(port_code=="BEZEE" | port_code=="BEANR" ~ "BE003",
                                               port_code=="ESVLC" ~ "ESBIO",
                                               .default = port_code),
@@ -100,8 +107,8 @@ terminal_data <- merge(port_data_agg, terminal_data, by.x = c("port_code", "year
                                          port_code=="ESBIO" ~ "Valencia and Bilbao",
                                          .default = port.x),) %>% 
                  group_by(port_code, port, year, quarter, period) %>%
-                 summarize(across(c(terminal_TEU, container,quay_length, cranes, cosco_cranes, cosco_length), ~sum(., na.rm=T), .names = "{.col}"),
-                           across(c(max_lift, cargo_depth, group), ~max(.,na.rm=T), .names="{.col}")) %>%
+                 summarize(across(c(terminal_TEU, container,quay_length, cosco_length), ~sum(., na.rm=T), .names = "{.col}"),
+                           across(c(local_markets, foreign_markets, node.score, cargo_depth, group), ~max(.,na.rm=T), .names="{.col}")) %>%
                  mutate(terminal_TEU = ifelse(terminal_TEU==0, NA, terminal_TEU),
                         across(starts_with("cosco_") , ~ifelse(is.na(terminal_TEU), NA, .x))) %>%
                  group_by(port_code) %>%
@@ -119,13 +126,12 @@ theme_set(theme_minimal() + theme(legend.position = 'none'))
 
 ### Control variables for DID ####
 terminal_data$quay_length[terminal_data$quay_length==0] <- 100
-terminal_data$cranes[terminal_data$cranes==0] <- 1
 
 
 ### Control variables for DID ####
 
 
-controls <- c("quay_length", "max_lift", "cargo_depth")
+controls <-  c("quay_length", "local_markets", "foreign_markets", "node.score", "cargo_depth")
 var_controls <- c("quay_length")
 
 
@@ -195,13 +201,14 @@ ggsave(width=10, height=11, filename = "rob.pdf", path = file.path(getwd(), "fig
 ## Terminal-level DiD
 
 ```{r include=FALSE, warning=FALSE, echo=FALSE}
+set.seed(100)
+
 # Construct the dataset for DiD 
 
 #How many periods are allowed for adjustment process?
 treatmentlag <- 1
 
-robustness_cosco <- terminal_data %>% filter(!is.na(terminal_TEU)) %>% select(port_code, port, year, quarter, period, terminal_TEU, cosco_length, cosco_cranes, max_lift, cargo_depth) %>% rename(quay_length=cosco_length, cranes = cosco_cranes,
-                        container=terminal_TEU) %>%
+robustness_cosco <- terminal_data %>% filter(!is.na(terminal_TEU)) %>% select(port_code, port, year, quarter, period, terminal_TEU, cosco_length, local_markets, foreign_markets, node.score, cargo_depth) %>% rename(quay_length=cosco_length, container=terminal_TEU) %>%
                  group_by(port_code) %>%
                  mutate(group=min(period)+1) %>% ungroup()
 
@@ -302,6 +309,7 @@ results_gt_rob
 
 
 ```{r include=F, warning=FALSE}
+set.seed(100)
 
 #### DiD without China ###
 port_data_agg_woCHN <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(container) & (sender_code=="CN_X_HK" | sender_code=="HK"),container,0)) %>%
@@ -311,8 +319,13 @@ port_data_agg_woCHN <- port_data_TEU %>% mutate(origin_china = ifelse(!is.na(con
                                          group = max(group)) %>% ungroup() %>%
                               group_by(port_code) %>% 
                               mutate(port_id = cur_group_id()) %>% ungroup() %>%
-                              merge(berth_data, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>%
-                              merge(wpi_data, by.x = c("port_code"), by.y = c("port_code"), all.x = T) 
+                               merge(berth_data, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) %>%
+                 merge(wpi_data, by.x = c("port_code", "year"), by.y = c("port_code", "year"), all.x = T) %>%
+                 merge(markets[,c("port_code", "year", "local_markets", "foreign_markets", "all_markets")],
+                       by.x=c("port_code", "year"), by.y = c("port_code", "year"), all.x=T) %>% 
+                 arrange(port_code, desc(period)) %>% group_by(port_code) %>% 
+                 fill(c("local_markets", "local_markets", "foreign_markets", "all_markets", "cargo_depth"), .direction = "downup") %>%  
+                 merge(TENtec[,c("port_code", "node.score", "TENtec.core.port")], by.x=c("port_code"), by.y = c("port_code"), all.x=T)
 
 
 #exclude Rotterdam 
@@ -339,13 +352,17 @@ results <- data.frame(Estimate = c("simple average", port_list$port[match(as.cha
                                 attgt_woCHN$groupwise_treatment_effects$att - attgt_woCHN$groupwise_treatment_effects$crit_val),
                        upper = c(attgt_woCHN$average_treatment_effect$att + attgt_woCHN$average_treatment_effect$crit_val,
                                   attgt_woCHN$groupwise_treatment_effects$att + attgt_woCHN$groupwise_treatment_effects$crit_val),
-                      p_value = c(NA, attgt_woCHN$groupwise_treatment_effects$pre_treatment_p_value)) %>%
+                      p_value_left = c(NA, attgt_woCHN$groupwise_treatment_effects$pre_treatment_p_value_left)) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
-                      pretest = (p_value < 0.05) & !is.na(p_value),
-                      across(c("ATT","lower","upper"), ~ format(round(.,digits=0), big.mark = ",")),
-                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
-                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
-                      Conf = paste0("[",str_trim(lower),"; ",str_trim(upper),"]"))
+                              pretest_left = (p_value_left < 0.05) & !is.na(p_value_left),
+                              pretest_right = (p_value_left > 0.95) & !is.na(p_value_left),
+                              across(c("ATT","lower","upper"), ~ format(round(.,digits=0), big.mark = ",")),
+                              ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                              ATT = case_when(pretest_left==T ~ paste0(ATT, "^{+}"),
+                                              pretest_right==T ~ paste0(ATT, "^{-}"),
+                                              .default = ATT),
+                              Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]")) %>%
+                              select(Estimate, ATT, Conf)
 
 results <- results[c("Estimate", "ATT", "Conf")]
 
@@ -367,13 +384,17 @@ results_share <- data.frame(Estimate = c("simple average", port_list$port[match(
                                 attgt_share$groupwise_treatment_effects$att - attgt_share$groupwise_treatment_effects$crit_val),
                        upper = c(attgt_share$average_treatment_effect$att + attgt_share$average_treatment_effect$crit_val,
                                   attgt_share$groupwise_treatment_effects$att + attgt_share$groupwise_treatment_effects$crit_val),
-                       p_value = c(NA, attgt_share$groupwise_treatment_effects$pre_treatment_p_value)) %>%
-               mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
-                      pretest = (p_value < 0.05) & !is.na(p_value),
-                      across(c("ATT","lower","upper"), ~ format(round(.,digits=4), big.mark = ",")),
-                      ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
-                      ATT = ifelse(pretest==T, paste0(ATT, "^{x}"),ATT),
-                      Conf = paste0("[",str_trim(lower),"; ",str_trim(upper),"]"))
+                       p_value_left = c(NA, attgt_share$groupwise_treatment_effects$pre_treatment_p_value_left)) %>%
+                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
+                              pretest_left = (p_value_left < 0.05) & !is.na(p_value_left),
+                              pretest_right = (p_value_left > 0.95) & !is.na(p_value_left),
+                              across(c("ATT","lower","upper"), ~ format(round(.,digits=4), big.mark = ",")),
+                              ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                              ATT = case_when(pretest_left==T ~ paste0(ATT, "^{+}"),
+                                              pretest_right==T ~ paste0(ATT, "^{-}"),
+                                              .default = ATT),
+                              Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]")) %>%
+                              select(Estimate, ATT, Conf)
 
 results_share <- results_share[c("Estimate", "ATT", "Conf")]
 
