@@ -554,7 +554,7 @@ results_out <- merge(results_ny1, results_ny_out, by.x="Estimate", by.y="Estimat
                                               .default = ATT_cond_ny),
                       Conf_ny = paste0("[",str_trim(lower_ny),", ",str_trim(upper_ny),"]"),
                       Conf_cond_ny = paste0("[",str_trim(lower_cond_ny),"; ",str_trim(upper_cond_ny),"]"))
-results_out <- results_ny[c("Estimate", "ATT_cond_ny", "Conf_cond_ny")]
+results_out <- results_out[c("Estimate", "ATT_cond_ny", "Conf_cond_ny")]
 
 results <- merge(results, results_out, by.x="Estimate", by.y="Estimate", sort=F)
 ```
