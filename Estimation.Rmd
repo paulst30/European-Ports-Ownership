@@ -88,7 +88,6 @@ load("berth_data.RData")
 terminal_data <- berth_data
   
 # add channel depth and cranes from World port index
-wpi_data <- read.csv("WPI_data.csv")
 wpi_data <- read.csv("WPI_data2.csv")                      # new historical information
 
 # WPI control variables new
