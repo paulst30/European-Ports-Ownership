@@ -1,0 +1,130 @@
+port;port_code;reporter;average_yrly;current_depth;extension_year
+Rotterdam;NLRTM;Netherlands;1363261;24;2015
+Hamburg;DEHAM;Germany;7843057;16.7;2001
+Antwerpen;BEANR;Belgium;7100841;17;2005
+Bremerhaven;DEBRV;Germany;4526582;16.5;2020
+Valencia;ESVLC;Spain;1681379;16;2012
+Algeciras;ESALG;Spain;1558865;17;2010
+Piräus;GRPIR;Greece;2555040;18;2013
+Gioia Tauro;ITGIT;Italy;1574966;18;2000
+Ambarli;TRAMB;Turkey;712077;16.5;
+Felixstowe;GBFXT;United Kingdom;3104726;18;2011
+Barcelona;ESBCN;Spain;2180665;16.5;2011
+Genua;ITGOA;Italy;1692411;15;
+Le Havre;FRLEH;France;1064994;16;2010
+Mersin;TRMER;Turkey;1481827;15.8;2015
+Danzig;PLGDN;Poland;989805;17;2016
+La Spezia;ITSPE;Italy;1149056;14;
+?zmit;TRIZT;Turkey;88472;24;
+Southampton;GBSOU;United Kingdom;513832;16;2014
+Sines;PTSIE;Portugal;781116;28;
+Marseille;FRMRS;France;124586;16;2012
+Las Palmas de Gran Canaria;ESLPA;Spain;201343;24;
+London;GBLON;United Kingdom;44117;17;
+Alia?a;TRALI;Turkey;823445;19.2;
+Tekirda?;TRTEK;Turkey;768803;16;
+Koper;SIKOP;Slovenia;579801;18;2017
+Göteborg;SEGOT;Sweden;700788;16.5;2014
+Gdynia;PLGDY;Poland;649280;16.5;2022
+Gemlik;TRGEM;Turkey;728707;14.5;
+Livorno;ITLIV;Italy;558687;12;
+Dublin;IEDUB;Ireland;595772;10.5;2020
+Triest;ITTRS;Italy;437199;18;
+Zeebrugge;BEZEE;Belgium;691859;17;2010
+Porto de Leixões;PTLEI;Portugal;461310;15;
+Constan?a;ROCND;Romania;238415;19;2004
+Klaip?da;LTKLJ;Lithuania;469186;15;2015
+Izmir;TRIZM;Turkey;550215;13;
+Bilbao;ESBIO;Spain;567250;21;2012
+Thessaloniki;GRSKG;Greece;439703;12;
+Aarhus;DKAAR;Denmark;431450;15.5;
+Liverpool;GBLIV;United Kingdom;159218;16.5;2014
+Lissabon;PTLIS;Portugal;445356;13;2010
+Cagliari;ITCAG;Italy;354572;11;
+Helsinki;FIHEL;Finland;201789;11;2008
+Napoli;ITNAP;Italy;344131;12;
+Dunkerque;FRDKK;France;289010;17;
+Riga;LVRIX;Latvia;323106;15.5;
+Wilhelmshaven;DEWVN;Germany;291079;18;
+?skenderun;TRISK;Turkey;123597;15.5;
+Santa Cruz de Tenerife;ESSCT;Spain;50082;19.5;
+Venedig;ITVCE;Italy;140532;12;
+Limassol;CYLMS;Cyprus;258438;14;
+Teesside;GBMME;United Kingdom;44381;15;
+Rijeka;HRRJK;Croatia;195730;11.6;
+Oslo;NOOSL;Norway;202558;12;
+Helsingborg;SEHEL;Sweden;153927;13;
+Tallinn;EETLL;Estonia;36398;17.8;
+Cork;IEORK;Ireland;29660;13;
+Rauma;FIRAU;Finland;159421;12;2017
+Vigo;ESVGO;Spain;189629;14;
+Ravenna;ITRAN;Italy;172667;12.5;
+Kingston upon Hull;GBHUL;United Kingdom;246727;10;
+Immingham;GBIMM;United Kingdom;95080;14.5;
+Málaga;ESAGP;Spain;167937;17;
+Moerdijk;NLMOE;Netherlands;108227;9;
+Ancona;ITAOI;Italy;139286;11;
+Forth;GBFOR;United Kingdom;20516;10.5;
+Castellón;ESCAS;Spain;118892;14;
+Borough of Medway;GBMED;United Kingdom;37322;12.5;
+Alicante;ESALC;Spain;149991;14.5;
+Salerno;ITSAL;Italy;152018;12;
+Gävle;SEGVX;Sweden;105008;11;
+Belfast;GBBEL;United Kingdom;210448;11.3;
+Savona;ITSVN;Italy;118445;19.5;
+Nantes;FRNTE;France;27863;11;
+Antalya;TRAYT;Turkey;145702;9.4;
+Lübeck;DELBC;Germany;142171;9.5;
+Sevilla;ESSVQ;Spain;127083;8.5;
+Warna;BGVAR;Bulgaria;116153;11.5;
+Marsaxlokk;MTMAR;Malta;105841;17.4;
+Kopenhagen;DKCPH;Denmark;126113;11;
+Setúbal;PTSET;Portugal;69814;15;
+Cádiz;ESCAD;Spain;23629;13;
+Pointe a Pitre (Guadeloupe);GPPTP;France;28267;11;
+Tarragona;ESTAR;Spain;75198;16;
+Caniçal;PTCNL;Portugal;100137;12;
+Civitavecchia;ITCVV;Italy;62665;12;
+Istanbul;TRIST;Turkey;6833;10;
+Palma;ESPMI;Spain;34463;12;
+Ponta Delgada;PTPDL;Portugal;80851;12;
+Fredericia;DKFRC;Denmark;47783;15;
+Burgas;BGBOJ;Bulgaria;10975;14.5;
+Norrköping;SENRK;Sweden;24593;10;
+Stettin;PLSZZ;Poland;63387;12.5;
+Rouen;FRURO;France;19014;10;
+Bristol;GBBRS;United Kingdom;31195;14;
+Tarent;ITTAR;Italy;209644;16.5;
+Zeeland Seaports;NLZSP;Netherlands;14220;16.5;
+Cartagena;ESCAR;Spain;52786;16;
+Larvik;NOLAR;Norway;13759;9;
+Samsun;TRSSX;Turkey;59850;9;
+Aalborg;DKAAL;Denmark;56298;9.4;
+Gijón;ESGIJ;Spain;41228;10.2;
+Moss;NOMSS;Norway;51200;9;
+Cuxhaven;DECUX;Germany;45044;14;
+Marín;ESMPG;Spain;41526;10;
+Bari;ITBRI;Italy;30029;12;
+Amsterdam;NLAMS;Netherlands;23669;15;
+Kristiansand;NOKRS;Norway;42942;8.5;
+Waterford;IEWAT;Ireland;87930;8;
+Carrara;ITMDC;Italy;31368;12;
+Portsmouth;GBPME;United Kingdom;57615;11;
+Stockholm;SESTO;Sweden;9297;10;
+Catania;ITCTA;Italy;29796;12;
+Gent;BEGNE;Belgium;24419;13;
+Santander;ESSDR;Spain;25232;12;
+Huelva;ESHUV;Spain;36787;13;
+Tyneside;GBTYN;United Kingdom;9897;10;
+Porsgrunn;NOGVL;Norway;32697;8;
+Bordeaux;FRBOD;France;9200;12;
+Halmstad;SEHAD;Sweden;26059;10.4;
+Fredrikstad;NOFRK;Norway;26591;27;
+Vilagarcía de Arousa;ESVIL;Spain;23929;13;
+Esbjerg;DKEBJ;Denmark;23265;10.3;
+Brest;FRBES;France;24551;13;
+Kiel;DEKEL;Germany;22483;9;
+Sundsvall;SESDL;Sweden;13720;20;
+Plo?e;HRPLE;Croatia;23513;18;
+Melilla;ESMLN;Spain;21022;11.08;
+Oulu;FIOUL;Finland;21260;10;

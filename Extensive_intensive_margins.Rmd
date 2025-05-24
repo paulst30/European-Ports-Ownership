@@ -1,3 +1,4 @@
+
 ---
 title: "Extensive and Intensive Margin"
 author: "Katja Kalkschmied"
@@ -94,38 +95,50 @@ port_group_list$ports <- paste(port_group_list$ports,paste("(", port_group_list$
 
 # Add Control variables --------------------------------------------------------
 
-
 load("berth_data.RData")
 terminal_data <- berth_data
   
 # add channel depth and cranes from World port index
-wpi_data <- read.csv("WPI_data.csv")
+wpi_data <- read.csv("WPI_data2.csv")                      # new historical information
 
-# control variables
-control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
+# WPI control variables new
+control_var <- merge(wpi_data, terminal_data, by=c("port_code", "year"), all = T) %>%
                select(port_code, 
                       year, quarter, quay_length, cranes, 
-                      cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth)
+                      #cranes_fixed, cranes_mobile, cranes_floating, 
+                      max_lift, cargo_depth,
+                      cosco_length) %>% arrange(port_code, desc(year)) %>% group_by(port_code) %>%
+               fill(c("max_lift", "cargo_depth"), .direction = "downup")
 
 
 # merge with aggregated data
 port_data_agg <- merge(port_data_agg, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
 
-#port_data_agg$ships[port_data_agg$ships==0] <- 1
+# market size controls 
+markets <- read.csv(file.path(getwd(),"control variables_new", "markets.csv"))
+
+# markets data does not need interpolation, as we only gathered it for years with treatment
+port_data_agg  <- merge(port_data_agg , markets[,c("port_code", "year", "local_markets", "foreign_markets", "all_markets")], by.x=c("port_code", "year"), by.y = c("port_code", "year"), all.x=T) %>% arrange(port_code, desc(period)) %>% group_by(port_code) %>% fill(c("local_markets", "local_markets", "foreign_markets", "all_markets"), .direction = "downup")
+
+# TENtec infrastructure variables
+TENtec <- read.csv(file.path(getwd(),"control variables_new", "TENtec_corridors.csv"))       # on port_code level 
+
+port_data_agg  <- merge(port_data_agg , TENtec[,c("port_code", "node.score", "TENtec.core.port")], by.x=c("port_code"), by.y = c("port_code"), all.x=T)
+
 
 port_data_agg$quay_length[port_data_agg$quay_length==0] <- 100
 port_data_agg$cranes[port_data_agg$cranes==0] <- 1
 
 ### Control variables for DID ####
 
-
-controls <- c("quay_length", "max_lift", "cargo_depth") 
+controls <- c("quay_length", "local_markets", "foreign_markets", "node.score", "cargo_depth")
 var_controls <- c("quay_length")
 
 ```
 
 
 ```{r include=F, message=FALSE, warning=FALSE}
+set.seed(100)
 
 #### Estimation ot ATT with never treated as control group ####
 attgt1 <- simple_staggered_did(yname = "partner_number",            #outcome variable
@@ -155,7 +168,8 @@ results11 <- data.frame(Estimate = c("simple average", port_list$port[match(as.c
                        lower = c(attgt1$average_treatment_effect$att - attgt1$average_treatment_effect$crit_val,
                                 attgt1$groupwise_treatment_effects$att - attgt1$groupwise_treatment_effects$crit_val),
                        upper = c(attgt1$average_treatment_effect$att + attgt1$average_treatment_effect$crit_val,
-                                  attgt1$groupwise_treatment_effects$att + attgt1$groupwise_treatment_effects$crit_val))
+                                  attgt1$groupwise_treatment_effects$att + attgt1$groupwise_treatment_effects$crit_val),
+                        p_value_left = c(NA, attgt1$groupwise_treatment_effects$pre_treatment_p_value_left))
 
 results22 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond1$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond = c(attgt_cond1$average_treatment_effect$att,
@@ -163,13 +177,25 @@ results22 <- data.frame(Estimate = c("simple average", port_list$port[match(as.c
                        lower_cond = c(attgt_cond1$average_treatment_effect$att - attgt_cond1$average_treatment_effect$crit_val,
                                 attgt_cond1$groupwise_treatment_effects$att - attgt_cond1$groupwise_treatment_effects$crit_val),
                        upper_cond = c(attgt_cond1$average_treatment_effect$att + attgt_cond1$average_treatment_effect$crit_val,
-                                  attgt_cond1$groupwise_treatment_effects$att + attgt_cond1$groupwise_treatment_effects$crit_val))
+                                  attgt_cond1$groupwise_treatment_effects$att + attgt_cond1$groupwise_treatment_effects$crit_val),
+                        p_value_left_cond = c(NA, attgt_cond1$groupwise_treatment_effects$pre_treatment_p_value_left))
+
 results_E <- merge(results11, results22, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      pretest_left = (p_value_left < 0.05) & !is.na(p_value_left),
+                      pretest_right = (p_value_left > 0.95) & !is.na(p_value_left),
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      ATT = case_when(pretest_left==T ~ paste0(ATT, "^{+}"),
+                                              pretest_right==T ~ paste0(ATT, "^{-}"),
+                                              .default = ATT),
+                      pretest_left_cond = (p_value_left_cond < 0.05) & !is.na(p_value_left_cond),
+                      pretest_right_cond = (p_value_left_cond > 0.95) & !is.na(p_value_left_cond),
+                      ATT_cond = case_when(pretest_left_cond==T ~ paste0(ATT_cond, "^{+}"),
+                                              pretest_right_cond==T ~ paste0(ATT_cond, "^{-}"),
+                                              .default = ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
 results_E <- results_E[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
@@ -206,7 +232,8 @@ results_ny11 <- data.frame(Estimate = c("simple average", port_list$port[match(a
                        lower_ny = c(attgt_ny1$average_treatment_effect$att - attgt_ny1$average_treatment_effect$crit_val,
                                 attgt_ny1$groupwise_treatment_effects$att - attgt_ny1$groupwise_treatment_effects$crit_val),
                        upper_ny = c(attgt_ny1$average_treatment_effect$att + attgt_ny1$average_treatment_effect$crit_val,
-                                  attgt_ny1$groupwise_treatment_effects$att + attgt_ny1$groupwise_treatment_effects$crit_val))
+                                  attgt_ny1$groupwise_treatment_effects$att + attgt_ny1$groupwise_treatment_effects$crit_val),
+                        p_value_left_ny = c(NA, attgt_ny1$groupwise_treatment_effects$pre_treatment_p_value_left))
 
 results_ny22 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond_ny1$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond_ny = c(attgt_cond_ny1$average_treatment_effect$att,
@@ -214,16 +241,28 @@ results_ny22 <- data.frame(Estimate = c("simple average", port_list$port[match(a
                        lower_cond_ny = c(attgt_cond_ny1$average_treatment_effect$att - attgt_cond_ny1$average_treatment_effect$crit_val,
                                 attgt_cond_ny1$groupwise_treatment_effects$att - attgt_cond_ny1$groupwise_treatment_effects$crit_val),
                        upper_cond_ny = c(attgt_cond_ny1$average_treatment_effect$att + attgt_cond_ny1$average_treatment_effect$crit_val,
-                                  attgt_cond_ny1$groupwise_treatment_effects$att + attgt_cond_ny1$groupwise_treatment_effects$crit_val)) 
+                                  attgt_cond_ny1$groupwise_treatment_effects$att + attgt_cond_ny1$groupwise_treatment_effects$crit_val),
+                        p_value_left_cond_ny = c(NA, attgt_cond_ny1$groupwise_treatment_effects$pre_treatment_p_value_left)) 
 
 results_ny_E <- merge(results_ny11, results_ny22, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT_ny>0 & lower_ny>0) | (ATT_ny<0 & upper_ny<0),
                       sig_cond = (ATT_cond_ny>0 & lower_cond_ny>0) | (ATT_cond_ny<0 & upper_cond_ny<0),
                       across(c("ATT_ny","ATT_cond_ny","lower_ny","upper_ny","lower_cond_ny","upper_cond_ny"), ~ format(round(.,digits=0), big.mark = ",")),
                       ATT_ny = ifelse(sig==T, paste0(ATT_ny, "*"), ATT_ny),
+                      pretest_left = (p_value_left_ny < 0.05) & !is.na(p_value_left_ny),
+                      pretest_right = (p_value_left_ny > 0.95) & !is.na(p_value_left_ny),
                       ATT_cond_ny = ifelse(sig_cond==T, paste0(ATT_cond_ny, "*"), ATT_cond_ny),
+                      ATT_ny = case_when(pretest_left==T ~ paste0(ATT_ny, "^{+}"),
+                                              pretest_right==T ~ paste0(ATT_ny, "^{-}"),
+                                              .default = ATT_ny),
+                      pretest_left_cond = (p_value_left_cond_ny < 0.05) & !is.na(p_value_left_cond_ny),
+                      pretest_right_cond = (p_value_left_cond_ny > 0.95) & !is.na(p_value_left_cond_ny),
+                      ATT_cond_ny = case_when(pretest_left_cond==T ~ paste0(ATT_cond_ny, "^{+}"),
+                                              pretest_right_cond==T ~ paste0(ATT_cond_ny, "^{-}"),
+                                              .default = ATT_cond_ny),
                       Conf_ny = paste0("[",str_trim(lower_ny),", ",str_trim(upper_ny),"]"),
                       Conf_cond_ny = paste0("[",str_trim(lower_cond_ny),"; ",str_trim(upper_cond_ny),"]"))
+
 results_ny_E <- results_ny_E[c("Estimate", "ATT_cond_ny", "Conf_cond_ny")]
 
 results_E <- merge(results_E, results_ny_E, by.x="Estimate", by.y="Estimate", sort=F)
@@ -298,32 +337,48 @@ load("berth_data.RData")
 terminal_data <- berth_data
   
 # add channel depth and cranes from World port index
-wpi_data <- read.csv("WPI_data.csv")
+wpi_data <- read.csv("WPI_data2.csv")                      # new historical information
 
-# control variables
-control_var <- merge(wpi_data, terminal_data, by.x="port_code",by.y="port_code", all = T) %>%
+# WPI control variables new
+control_var <- merge(wpi_data, terminal_data, by=c("port_code", "year"), all = T) %>%
                select(port_code, 
                       year, quarter, quay_length, cranes, 
-                      cranes_fixed, cranes_mobile, cranes_floating, max_lift, cargo_depth)
+                      #cranes_fixed, cranes_mobile, cranes_floating, 
+                      max_lift, cargo_depth,
+                      cosco_length) %>% arrange(port_code, desc(year)) %>% group_by(port_code) %>%
+               fill(c("max_lift", "cargo_depth"), .direction = "downup")
 
 
 # merge with aggregated data
 port_data_TEU <- merge(port_data_TEU, control_var, by.x = c("port_code", "year", "quarter"), by.y = c("port_code", "year", "quarter"), all.x = T) 
 
+# market size controls 
+markets <- read.csv(file.path(getwd(),"control variables_new", "markets.csv"))
 
+# markets data does not need interpolation, as we only gathered it for years with treatment
+port_data_TEU  <- merge(port_data_TEU , markets[,c("port_code", "year", "local_markets", "foreign_markets", "all_markets")], by.x=c("port_code", "year"), by.y = c("port_code", "year"), all.x=T) %>% arrange(port_code, desc(period)) %>% group_by(port_code) %>% fill(c("local_markets", "local_markets", "foreign_markets", "all_markets"), .direction = "downup")
+
+# TENtec infrastructure variables
+TENtec <- read.csv(file.path(getwd(),"control variables_new", "TENtec_corridors.csv"))       # on port_code level 
+
+port_data_TEU  <- merge(port_data_TEU , TENtec[,c("port_code", "node.score", "TENtec.core.port")], by.x=c("port_code"), by.y = c("port_code"), all.x=T)
+
+# no zeros allowed in controlvariables
 port_data_TEU$quay_length[port_data_TEU$quay_length==0] <- 100
 port_data_TEU$cranes[port_data_TEU$cranes==0] <- 1
 
+
 ### Control variables for DID ####
 
-
-controls <- c("cranes", "max_lift", "cargo_depth")
+controls <- c("quay_length", "local_markets", "foreign_markets", "node.score", "cargo_depth")
 var_controls <- c("quay_length")
+
 
 ```
 
 
 ```{r include=F, message=FALSE, warning=FALSE}
+set.seed(100)
 
 ### Preparation for DiD: Define id for units and list of treated ports ####
 
@@ -364,7 +419,8 @@ results1 <- data.frame(Estimate = c("simple average", port_list$port[match(as.ch
                        lower = c(attgt$average_treatment_effect$att - attgt$average_treatment_effect$crit_val,
                                 attgt$groupwise_treatment_effects$att - attgt$groupwise_treatment_effects$crit_val),
                        upper = c(attgt$average_treatment_effect$att + attgt$average_treatment_effect$crit_val,
-                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val))
+                                  attgt$groupwise_treatment_effects$att + attgt$groupwise_treatment_effects$crit_val),
+                       p_value_left = c(NA, attgt$groupwise_treatment_effects$pre_treatment_p_value_left))
 
 results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond = c(attgt_cond$average_treatment_effect$att,
@@ -372,15 +428,28 @@ results2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.ch
                        lower_cond = c(attgt_cond$average_treatment_effect$att - attgt_cond$average_treatment_effect$crit_val,
                                 attgt_cond$groupwise_treatment_effects$att - attgt_cond$groupwise_treatment_effects$crit_val),
                        upper_cond = c(attgt_cond$average_treatment_effect$att + attgt_cond$average_treatment_effect$crit_val,
-                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val))
+                                  attgt_cond$groupwise_treatment_effects$att + attgt_cond$groupwise_treatment_effects$crit_val),
+                       p_value_left_cond = c(NA, attgt_cond$groupwise_treatment_effects$pre_treatment_p_value_left))
+
 results <- merge(results1, results2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT>0 & lower>0) | (ATT<0 & upper<0),
                       sig_cond = (ATT_cond>0 & lower_cond>0) | (ATT_cond<0 & upper_cond<0),
+                      pretest_left = (p_value_left < 0.05) & !is.na(p_value_left),
+                      pretest_right = (p_value_left > 0.95) & !is.na(p_value_left),
+                      pretest_left_cond = (p_value_left < 0.05) & !is.na(p_value_left_cond),
+                      pretest_right_cond = (p_value_left > 0.95) & !is.na(p_value_left_cond),
                       across(c("ATT","ATT_cond","lower","upper","lower_cond","upper_cond"), ~ format(round(.,digits=0), big.mark = ",")),
                       ATT = ifelse(sig==T, paste0(ATT, "*"), ATT),
+                      ATT = case_when(pretest_left==T ~ paste0(ATT, "^{+}"),
+                                              pretest_right==T ~ paste0(ATT, "^{-}"),
+                                              .default = ATT),
                       ATT_cond = ifelse(sig_cond==T, paste0(ATT_cond, "*"), ATT_cond),
+                      ATT_cond = case_when(pretest_left_cond==T ~ paste0(ATT_cond, "^{+}"),
+                                      pretest_right_cond==T ~ paste0(ATT_cond, "^{-}"),
+                                      .default = ATT_cond),
                       Conf = paste0("[",str_trim(lower),", ",str_trim(upper),"]"),
                       Conf_cond = paste0("[",str_trim(lower_cond),"; ",str_trim(upper_cond),"]"))
+
 results <- results[c("Estimate", "ATT", "Conf", "ATT_cond", "Conf_cond")]
 
 
@@ -416,7 +485,8 @@ results_ny1 <- data.frame(Estimate = c("simple average", port_list$port[match(as
                        lower_ny = c(attgt_ny$average_treatment_effect$att - attgt_ny$average_treatment_effect$crit_val,
                                 attgt_ny$groupwise_treatment_effects$att - attgt_ny$groupwise_treatment_effects$crit_val),
                        upper_ny = c(attgt_ny$average_treatment_effect$att + attgt_ny$average_treatment_effect$crit_val,
-                                  attgt_ny$groupwise_treatment_effects$att + attgt_ny$groupwise_treatment_effects$crit_val))
+                                  attgt_ny$groupwise_treatment_effects$att + attgt_ny$groupwise_treatment_effects$crit_val),
+                        p_value_left_ny = c(NA, attgt_ny$groupwise_treatment_effects$pre_treatment_p_value_left))
 
 results_ny2 <- data.frame(Estimate = c("simple average", port_list$port[match(as.character(attgt_cond_ny$groupwise_treatment_effects$id), port_list$id)]),
                        ATT_cond_ny = c(attgt_cond_ny$average_treatment_effect$att,
@@ -424,16 +494,28 @@ results_ny2 <- data.frame(Estimate = c("simple average", port_list$port[match(as
                        lower_cond_ny = c(attgt_cond_ny$average_treatment_effect$att - attgt_cond_ny$average_treatment_effect$crit_val,
                                 attgt_cond_ny$groupwise_treatment_effects$att - attgt_cond_ny$groupwise_treatment_effects$crit_val),
                        upper_cond_ny = c(attgt_cond_ny$average_treatment_effect$att + attgt_cond_ny$average_treatment_effect$crit_val,
-                                  attgt_cond_ny$groupwise_treatment_effects$att + attgt_cond_ny$groupwise_treatment_effects$crit_val)) 
+                                  attgt_cond_ny$groupwise_treatment_effects$att + attgt_cond_ny$groupwise_treatment_effects$crit_val),
+                        p_value_left_cond_ny = c(NA, attgt_cond_ny$groupwise_treatment_effects$pre_treatment_p_value_left)) 
 
 results_ny <- merge(results_ny1, results_ny2, by.x="Estimate", by.y="Estimate", all=T,  sort=F) %>%
                mutate(sig = (ATT_ny>0 & lower_ny>0) | (ATT_ny<0 & upper_ny<0),
                       sig_cond = (ATT_cond_ny>0 & lower_cond_ny>0) | (ATT_cond_ny<0 & upper_cond_ny<0),
+                      pretest_left_ny = (p_value_left_ny < 0.05) & !is.na(p_value_left_ny),
+                      pretest_right_ny = (p_value_left_ny > 0.95) & !is.na(p_value_left_ny),
+                      pretest_left_cond_ny = (p_value_left_cond_ny < 0.05) & !is.na(p_value_left_cond_ny),
+                      pretest_right_cond_ny = (p_value_left_cond_ny > 0.95) & !is.na(p_value_left_cond_ny),
                       across(c("ATT_ny","ATT_cond_ny","lower_ny","upper_ny","lower_cond_ny","upper_cond_ny"), ~ format(round(.,digits=0), big.mark = ",")),
                       ATT_ny = ifelse(sig==T, paste0(ATT_ny, "*"), ATT_ny),
+                      ATT_ny = case_when(pretest_left_ny==T ~ paste0(ATT_ny, "^{+}"),
+                                              pretest_right_ny==T ~ paste0(ATT_ny, "^{-}"),
+                                              .default = ATT_ny),
                       ATT_cond_ny = ifelse(sig_cond==T, paste0(ATT_cond_ny, "*"), ATT_cond_ny),
+                      ATT_cond_ny = case_when(pretest_left_cond_ny==T ~ paste0(ATT_cond_ny, "^{+}"),
+                                              pretest_right_cond_ny==T ~ paste0(ATT_cond_ny, "^{-}"),
+                                              .default = ATT_cond_ny),
                       Conf_ny = paste0("[",str_trim(lower_ny),", ",str_trim(upper_ny),"]"),
                       Conf_cond_ny = paste0("[",str_trim(lower_cond_ny),"; ",str_trim(upper_cond_ny),"]"))
+
 results_ny <- results_ny[c("Estimate", "ATT_cond_ny", "Conf_cond_ny")]
 
 results <- merge(results, results_ny, by.x="Estimate", by.y="Estimate", sort=F)
@@ -487,7 +569,7 @@ results_final <- rbind(results_final[1,],c("by group", rep("", ncol(results_fina
 # Insert multirow cell into the appropriate position in the LaTeX code
 addtorow <- list()
 addtorow$pos <- list(nrow(results_final),1)
-addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Dependent variable is number of partner countries per period for the extensive margin estimation. \\\\ Dependent variable is container throughput per partner per period for the intensive margin estimation. \\\\ Stars indicate that the uniform confidence interval does not include zero.}}", 
+addtorow$command <- c("[2ex] \\hline \\hline \\multicolumn{5}{l}{\\shortstack[l]{Note: Dependent variable is number of partner countries per period \\\\for the extensive margin estimation. Dependent variable is container \\\\throughput per partner per period for the intensive margin estimation. \\\\ Stars indicate that the uniform confidence interval does not include zero.}}", 
                       "[1ex]")
 
 # Modify the LaTeX code
@@ -504,7 +586,8 @@ latex_code <- gsub("Estimate & ATT & Conf & ATT1 & Conf1","Dependent var.: & \\\
 latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab:marginal_results}", latex_code)
 latex_code <- gsub("by group", "\\\\emph{by group}", latex_code)
 latex_code <- gsub("lllll", "lcccc", latex_code)
-latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{x\\\\\\}", "\\\\textsuperscript{x}", latex_code)
+latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{\\+\\\\\\}", "\\\\textsuperscript{+}", latex_code)
+latex_code <- gsub("\\\\verb\\|\\^\\|\\\\\\{-\\\\\\}", "\\\\textsuperscript{-}", latex_code)
 
 # Save modified LaTeX code to a .tex file
 cat(latex_code, file = file.path(getwd(), "results_tables", "margins_results.tex"))

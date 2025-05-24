@@ -1,0 +1,195 @@
+"port_code","reporter","urban node","airport","maritime port","inland port","rail road terminal","TENtec core port","TENtec comprehensive port","node score","Number of corridors","Name of corridors"
+"NLRTM","Netherlands","Yes","Core","Core","Core","Core",1,0,5,2,"North Sea - Baltic, North Sea - Rhine - Mediterranean"
+"DEHAM","Germany","Yes","Core","Core","Core","Core",1,0,5,3,"North Sea - Baltic, Scandinavian - Mediterranean, Rhine - Danube"
+"BEANR","Belgium","Yes",NA,"Core","Core","Core",1,0,4,2,"North Sea - Baltic, North Sea - Rhine - Mediterranean"
+"DEBRV","Germany","Yes",NA,"Core","Core","Core",1,0,4,3,"North Sea - Baltic, Scandinavian - Mediterranean, Rhine - Danube"
+"ESVLC","Spain","Yes","Core","Core",NA,"Core (Fonteta de 
+Saint Lluís)
+Comprehensive (Silla)",0,0,4,1,"Mediterranean"
+"ESALG","Spain","Yes",NA,"Core (Bahía de 
+Algeciras)",NA,NA,1,0,2,2,"Mediterranean, Atlantic"
+"GRPIR","Greece","Yes","Core","Core (Piraeus/Ikonio)",NA,"Core 
+(Piraeus/Thriassio 
+Pedio)",1,0,4,2,"Baltic Sea - Black Sea - Aegean Sea, Western Balkans - Eastern Mediterranean"
+"ITGIT","Italy",NA,NA,"Core",NA,NA,1,0,1,1,"Scandinavian - Mediterranean"
+"TRAMB","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"GBFXT","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESBCN","Spain","Yes","Core","Core",NA,"Core",1,0,4,1,"Mediterranean"
+"ITGOA","Italy","Yes","Core","Core",NA,"Core",1,0,4,2,"Mediterranean, North Sea - Rhine - Mediterranean"
+"FRLEH","France","Yes",NA,"Core","Core","Core",1,0,4,2,"Atlantic, North Sea - Rhine - Mediterranean"
+"TRMER","Turkey",NA,NA,NA,NA,NA,NA,0,0,0,NA
+"PLGDN","Poland","Yes","Core","Core",NA,"Core",1,0,4,2,"Baltic Sea - Adriatic Sea, Baltic Sea - Black Sea - Aegean Sea"
+"ITSPE","Italy",NA,NA,"Core",NA,"Core (Santo Stefano 
+di Magra)",1,0,2,2,"Mediterranean, Scandinavian - Mediterranean"
+"TRIZT","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"GBSOU","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"PTSIE","Portugal",NA,NA,"Core",NA,"Core (ZILS & ZAL)",1,0,2,1,"Atlantic"
+"FRMRS","France","Yes","Core","Core","Core","Core",1,0,5,2,"Mediterranean, North Sea - Rhine - Mediterranean"
+"ESLPA","Spain","Yes","Core","Core",NA,NA,1,0,3,1,"Atlantic"
+"GBLON","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"TRALI","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"TRTEK","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"SIKOP","Slovenia",NA,NA,"Core",NA,NA,1,0,1,3,"Baltic Sea - Adriatic Sea, Mediterranean, Western Balkans - Eastern Mediterranean"
+"SEGOT","Sweden","Yes","Core","Core","Core","Core",1,0,5,1,"Scandinavian - Mediterranean"
+"PLGDY","Poland","Yes",NA,"Core",NA,NA,1,0,1,2,"Baltic Sea - Adriatic Sea, Baltic Sea - Black Sea - Aegean Sea"
+"TRGEM","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ITLIV","Italy","Yes",NA,"Core",NA,"Core",1,0,3,1,"Scandinavian - Mediterranean"
+"IEDUB","Ireland","Yes","Core","Core",NA,NA,1,0,3,2,"Atlantic, North Sea - Rhine - Mediterranean"
+"ITTRS","Italy","Yes","Comprehensive","Core","Core","Core",1,0,4.5,3,"Baltic Sea - Adriatic Sea, Mediterranean, Western Balkans - Eastern Mediterranean"
+"BEZEE","Belgium","Yes",NA,"Core",NA,NA,1,0,2,2,"North Sea - Baltic, North Sea - Rhine - Mediterranean"
+"PTLEI","Portugal","Yes",NA,"Core",NA,"Core",1,0,3,1,"Atlantic"
+"ROCND","Romania","Yes","Comprehensive","Core","Core",NA,1,0,3.5,2,"Rhine - Danube, Baltic Sea - Black Sea - Aegean Sea"
+"LTKLJ","Lithuania","Yes",NA,"Core",NA,"Core",1,0,3,2,"North Sea - Baltic, Baltic Sea - Black Sea - Aegean Sea"
+"TRIZM","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESBIO","Spain","Yes","Core","Core",NA,"Core",1,0,4,1,"Atlantic"
+"GRSKG","Greece","Yes","Core","Core",NA,"Core",1,0,4,2,"Baltic Sea - Black Sea - Aegean Sea, Western Balkans - Eastern Mediterranean"
+"DKAAR","Denmark","Yes",NA,"Core",NA,NA,0,0,2,1,"Scandinavian - Mediterranean"
+"GBLIV","United Kingdom","NA",NA,NA,NA,NA,0,0,0,0,NA
+"PTLIS","Portugal","Yes","Core","Core","Core","Core",1,0,5,1,"Atlantic"
+"ITCAG","Italy","Yes","Core","Core",NA,NA,1,0,3,1,"Scandinavian - Mediterranean"
+"FIHEL","Finland","Yes","Core","Core",NA,NA,1,0,3,3,"North Sea - Baltic, Scandinavian - Mediterranean, Baltic Sea - Black Sea - Aegean Sea"
+"ITNAP","Italy","Yes","Core","Core",NA,"Core",1,0,4,1,"Scandinavian - Mediterranean"
+"FRDKK","France",NA,NA,"Core","Core","Core",1,0,3,1,"North Sea - Rhine - Mediterranean"
+"LVRIX","Latvia","Yes","Core","Core",NA,"Core",1,0,4,2,"North Sea - Baltic, Baltic Sea - Black Sea - Aegean Sea"
+"DEWVN","Germany",NA,NA,"Core",NA,NA,1,0,1,2,"North Sea - Baltic, Rhine - Danube"
+"TRISK","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESSCT","Spain","Yes","Comprehensive","Core",NA,NA,1,0,2.5,1,"Atlantic"
+"ITVCE","Italy","Yes","Core","Core","Core",NA,1,0,4,2,"Baltic Sea - Adriatic Sea, Mediterranean"
+"CYLMS","Cyprus","Yes",NA,"Core",NA,NA,1,0,2,2,"Baltic Sea - Black Sea - Aegean Sea, Western Balkans - Eastern Mediterranean"
+"GBMME","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"HRRJK","Croatia","Yes","Comprehensive","Core",NA,NA,1,0,2.5,3,"Baltic Sea - Adriatic Sea, Mediterranean, Western Balkans - Eastern Mediterranean"
+"NOOSL","Norway","Yes",NA,"Core",NA,NA,1,0,2,1,"Scandinavian - Mediterranean"
+"REPDG","France","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"SEHEL","Sweden","Yes",NA,"Comprehensive",NA,NA,0,1,2,0,NA
+"EETLL","Estonia","Yes","Core","Core",NA,NA,1,0,3,2,"North Sea - Baltic, Baltic Sea - Black Sea - Aegean Sea"
+"IEORK","Ireland","Yes","Core","Core",NA,NA,1,0,3,2,"Atlantic, North Sea - Rhine - Mediterranean"
+"FIRAU","Finland",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"ESVGO","Spain","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"ITRAN","Italy","Yes",NA,"Core","Core",NA,1,0,3,2,"Baltic Sea - Adriatic Sea, Mediterranean"
+"GBHUL","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"GBIMM","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESAGP","Spain","Yes","Core","Comprehensive",NA,NA,0,1,2.5,0,NA
+"NLMOE","Netherlands",NA,NA,"Core","Core","Core",1,0,3,2,"North Sea - Baltic, North Sea - Rhine - Mediterranean"
+"ITAOI","Italy","Yes","Comprehensive","Core",NA,"Core",1,0,3.5,2,"Baltic Sea - Adriatic Sea, Scandinavian - Mediterranean"
+"GBFOR","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESCAS","Spain","Yes",NA,"Core",NA,NA,1,0,2,1,"Mediterranean"
+"GBMED","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESALC","Spain","Yes","Core","Comprehensive",NA,NA,0,1,2.5,0,NA
+"ITSAL","Italy","Yes",NA,"Comprehensive",NA,NA,0,1,1.5,0,NA
+"SEGVX","Sweden","Yes",NA,"Comprehensive",NA,"Comprehensive",0,1,2,0,NA
+"GBBEL","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ITSVN","Italy",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"FRNTE","France","Yes","Comprehensive","Core",NA,NA,1,0,2.5,1,"Atlantic"
+"TRAYT","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"DELBC","Germany","Yes",NA,"Core","Core","Core",1,0,4,1,"Scandinavian - Mediterranean"
+"ESSVQ","Spain","Yes","Core","Core","Core","Core",1,0,5,2,"Mediterranean, Atlantic"
+"BGVAR","Bulgaria","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"MTMAR","Malta",NA,NA,"Core",NA,NA,1,0,1,1,"Scandinavian - Mediterranean"
+"DKCPH","Denmark","Yes","Core","Core",NA,NA,1,0,3,1,"Scandinavian - Mediterranean"
+"PTSET","Portugal","Yes",NA,"Core","Core","Core",1,0,4,1,"Atlantic"
+"ESCAD","Spain","Yes",NA,"Comprehensive",NA,NA,0,1,1.5,0,NA
+"FR_4","France","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"GPPTP","France","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"ESTAR","Spain","Yes","Comprehensive","Core",NA,NA,1,0,2.5,1,"Mediterranean"
+"PTCNL","Portugal",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"ITCVV","Italy",NA,NA,"Core",NA,NA,1,0,1,1,"Scandinavian - Mediterranean"
+"TRIST","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESPMI","Spain","Yes","Core","Core",NA,NA,1,0,3,1,"Mediterranean"
+"PTPDL","Portugal","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"DKFRC","Denmark",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"BGBOJ","Bulgaria","Yes","Comprehensive","Core",NA,NA,1,0,2.5,1,"Baltic Sea - Black Sea - Aegean Sea"
+"SENRK","Sweden","Yes",NA,"Comprehensive",NA,NA,0,1,1.5,0,NA
+"PLSZZ","Poland","Yes","Core","Core","Core","Core",1,0,5,2,"Baltic Sea - Adriatic Sea, North Sea - Baltic"
+"FRURO","France","Yes",NA,"Core","Core",NA,1,0,3,2,"Atlantic, North Sea - Rhine - Mediterranean"
+"GBBRS","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ITTAR","Italy","Yes",NA,"Core",NA,NA,1,0,2,1,"Scandinavian - Mediterranean"
+"NLZSP","Netherlands",NA,NA,"Core","Core",NA,1,0,2,1,"North Sea - Rhine - Mediterranean"
+"ESCAR","Spain","Yes",NA,"Core",NA,NA,1,0,2,1,"Mediterranean"
+"NOLAR","Norway",NA,NA,NA,NA,NA,0,0,0,0,NA
+"TRSSX","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"DKAAL","Denmark","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"ESGIJ","Spain","Yes",NA,"Core",NA,NA,1,0,2,1,"Atlantic"
+"NOMSS","Norway",NA,NA,NA,NA,NA,0,0,0,0,NA
+"DECUX","Germany",NA,NA,"Comprehensive",NA,"Comprehensive",0,1,1,0,NA
+"ESMPG","Spain",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"ITBRI","Italy","Yes","Comprehensive","Core",NA,"Core",0,0,3.5,3,"Baltic Sea - Adriatic Sea, Scandinavian - Mediterranean, Western Balkans - Eastern Mediterranean"
+"NLAMS","Netherlands","Yes","Core","Core","Core","Core",1,0,5,2,"North Sea - Baltic, North Sea - Rhine - Mediterranean"
+"NOKRS","Norway",NA,NA,NA,NA,NA,0,0,0,0,NA
+"IEWAT","Ireland",NA,"Comprehensive","Comprehensive",NA,NA,0,1,1,0,NA
+"ITMDC","Italy",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"GBPME","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"SESTO","Sweden","Yes","Core","Core","Core","Core",1,0,5,1,"Scandinavian - Mediterranean"
+"ITCTA","Italy","Yes","Comprehensive","Comprehensive",NA,"Comprehensive",0,1,2.5,0,NA
+"BEGNE","Belgium","Yes",NA,"Core","Core",NA,1,0,3,2,"North Sea - Baltic, North Sea - Rhine - Mediterranean"
+"ESSDR","Spain","Yes","Comprehensive","Core",NA,"Comprehensive",1,0,3,1,"Atlantic"
+"ESHUV","Spain","Yes",NA,"Core",NA,NA,1,0,2,1,"Atlantic"
+"GBTYN","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"NOGVL","Norway",NA,NA,NA,NA,NA,0,0,0,0,NA
+"FRBOD","France","Yes","Core","Core",NA,"Core",1,0,4,1,"Atlantic"
+"SEHAD","Sweden","Yes",NA,"Comprehensive",NA,NA,0,1,1.5,0,NA
+"NOFRK","Norway",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESVIL","Spain",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"DKEBJ","Denmark",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"FRBES","France","Yes","Comprehensive","Core",NA,NA,1,0,2.5,1,"Atlantic"
+"DEKEL","Germany","Yes",NA,"Comprehensive",NA,NA,0,1,1.5,0,NA
+"SESDL","Sweden","Yes","Comprehensive","Comprehensive",NA,"Comprehensive",0,1,2.5,0,NA
+"HRPLE","Croatia",NA,NA,"Core",NA,NA,1,0,1,1,"Western Balkans - Eastern Mediterranean"
+"ESMLN","Spain","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"FIOUL","Finland","Yes","Comprehensive","Core",NA,NA,1,0,2.5,2,"North Sea - Baltic, Scandinavian - Mediterranean"
+"GBWPT","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"NOBRG","Norway",NA,NA,NA,NA,NA,0,0,0,0,NA
+"NOMJF","Norway",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESAGA","Spain",NA,NA,NA,NA,NA,0,0,0,0,NA
+"SESOE","Sweden","Yes",NA,NA,"Comprehensive",NA,0,1,1.5,0,NA
+"GRHER","Greece","Yes","Core","Core",NA,NA,1,0,3,0,NA
+"GRVOL","Greece","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"PTFDF","Portugal",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"GBABD","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ITPMO","Italy","Yes","Core","Core",NA,NA,1,0,3,1,"Scandinavian - Mediterranean"
+"SEMMA","Sweden","Yes","Core","Core",NA,"Core",1,0,4,1,"Scandinavian - Mediterranean"
+"TRTZX","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"SEUME","Sweden","Yes","Comprehensive","Comprehensive",NA,"Comprehensive",0,1,2.5,0,NA
+"ESLEI","Spain","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"PTPRV","Portugal",NA,"Comprehensive","Comprehensive",NA,NA,0,1,1,0,NA
+"FITOR","Finland",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"SEVST","Sweden","Yes",NA,"Comprehensive","Comprehensive",NA,0,1,2,0,NA
+"TRBDM","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"MEBAR","Montenegro",NA,NA,"Core",NA,NA,1,0,1,1,"Western Balkans - Eastern Mediterranean"
+"FIPOR","Finland",NA,"Comprehensive","Comprehensive",NA,NA,0,1,1,0,NA
+"SEAHU","Sweden",NA,NA,NA,NA,NA,0,0,0,0,NA
+"FRSET","France",NA,NA,"Core",NA,NA,1,0,1,1,"Mediterranean"
+"ESCEU","Spain","Yes",NA,"Comprehensive",NA,NA,0,1,1.5,0,NA
+"DKKAL","Denmark",NA,NA,NA,NA,NA,0,0,0,0,NA
+"FIKOK","Finland",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"DEBRE","Germany","Yes","Core","Core","Core","Core",1,0,5,3,"North Sea - Baltic, Scandinavian - Mediterranean, Rhine - Danube"
+"GRLAV","Greece",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"SEVAG","Sweden",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"SEOXE","Sweden",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"GBGOO","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"FIKEM","Finland",NA,"Comprehensive","Comprehensive",NA,NA,0,1,1,0,NA
+"GBCDF","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"DEAGE","Germany",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"SEPIT","Sweden",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"ITTPS","Italy",NA,"Comprehensive","Comprehensive",NA,NA,0,1,1,0,NA
+"ITPZL","Italy",NA,NA,NA,NA,NA,0,0,0,0,NA
+"MTMLA","Malta",NA,NA,NA,NA,NA,0,0,0,0,NA
+"SEIGG","Sweden",NA,NA,NA,NA,NA,0,0,0,1,"Scandinavian - Mediterranean"
+"ESQLY","Spain",NA,NA,NA,NA,NA,0,0,0,0,NA
+"ESQFU","Spain",NA,NA,NA,NA,NA,0,0,0,0,NA
+"EESLM","Estonia",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"DEDUI","Germany","Yes",NA,NA,"Core","Core",1,0,3,2,"North Sea - Baltic, North Sea - Rhine - Mediterranean"
+"NOKAS","Norway",NA,NA,NA,NA,NA,0,0,0,0,NA
+"DEWMD","Germany",NA,NA,NA,NA,NA,0,0,0,0,NA
+"PTCDP","Portugal",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"FIHKO","Finland",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"PTHOR","Portugal",NA,"Comprehensive","Comprehensive",NA,NA,0,1,1,0,NA
+"TRYAL","Turkey",NA,NA,NA,NA,NA,0,0,0,0,NA
+"PTVEL","Portugal",NA,"Comprehensive","Comprehensive",NA,NA,0,1,1,0,NA
+"NOMQN","Norway",NA,NA,NA,NA,NA,0,0,0,0,NA
+"FITKU","Finland","Yes","Core","Core",NA,NA,1,0,3,1,"Scandinavian - Mediterranean"
+"DEEME","Germany",NA,NA,"Comprehensive","Comprehensive",NA,0,1,1,0,NA
+"GBHRW","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"PTFNC","Portugal","Yes","Comprehensive","Comprehensive",NA,NA,0,1,2,0,NA
+"GBIPS","United Kingdom",NA,NA,NA,NA,NA,0,0,0,0,NA
+"GREEU","Greece",NA,NA,"Comprehensive",NA,NA,0,1,0.5,0,NA
+"IEDRO","Ireland",NA,NA,NA,NA,NA,0,0,0,1,"North Sea - Rhine - Mediterranean"
