@@ -456,12 +456,12 @@ sumstat_controls <- port_data_agg  %>% group_by(port_id) %>% mutate(treated=max(
                                             all.x = T) %>%
                                       arrange(port_id, period) %>%
                                       group_by(port_id) %>%
-                                      summarize(across(c("container", "share", "quay_length", "cargo_depth", "local_markets", "foreign_markets"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
-                                                across(c("container", "share", "quay_length", "cargo_depth", "local_markets", "foreign_markets"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
+                                      summarize(across(c("container", "share", "quay_length", "cargo_depth", "local_markets", "foreign_markets", "node.score"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
+                                                across(c("container", "share", "quay_length", "cargo_depth", "local_markets", "foreign_markets", "node.score"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
                                       ungroup() %>% select(-port_id) %>%
                                       summarize(across(ends_with("mean"), mean, .names = "{col}"),
                                                 across(ends_with("grate"),~ mean(.x,na.rm=T), .names = "{col}")) %>% 
-                                      pivot_longer(cols = starts_with(c("container_", "share_", "quay_length_", "cargo_depth_", "local_markets_", "foreign_markets_")), 
+                                      pivot_longer(cols = starts_with(c("container_", "share_", "quay_length_", "cargo_depth_", "local_markets_", "foreign_markets_", "node.score_")), 
                                                    names_to = c("vars", ".value"),
                                                    names_pattern = "(.*)_(.*)")
 #treated 
@@ -472,15 +472,15 @@ sumstat_treated <- port_data_agg %>%  group_by(port_id) %>% mutate(treated=max(o
                                             by.y = c("port_code", "period"), 
                                             all.x = T) %>%
                                       arrange(port_id, period) %>%
-                                      mutate(across(c("container","share", "quay_length", "cargo_depth", "foreign_markets", "local_markets"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
+                                      mutate(across(c("container","share", "quay_length", "cargo_depth", "foreign_markets", "local_markets","node.score"), ~ mean(.x, na.rm=T), .names="{col}_mean")) %>%
                                       group_by(port_id, ownership_china) %>%
-                                      summarize(across(c("container","share", "quay_length", "cargo_depth", "foreign_markets", "local_markets"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
-                                                across(c("container_mean","share_mean", "quay_length_mean", "cargo_depth_mean", "foreign_markets_mean", "local_markets_mean"), ~ max(.x))) %>%
+                                      summarize(across(c("container","share", "quay_length", "cargo_depth", "foreign_markets", "local_markets", "node.score"), list(agrate = ~ (tail(.x,n=1)-head(.x,n=1))/(tail(period,n=1)-head(period,n=1)))),
+                                                across(c("container_mean","share_mean", "quay_length_mean", "cargo_depth_mean", "foreign_markets_mean", "local_markets_mean", "node.score_mean"), ~ max(.x))) %>%
                                       group_by(ownership_china) %>% 
                                       summarize(across(ends_with("mean"), mean, .names = "{col}"),
                                                 across(ends_with("grate"),~ mean(.x,na.rm=T), .names = "{col}")) %>%
                                       pivot_wider(names_from = "ownership_china", values_from = ends_with("grate"), names_glue = "{.value}{ownership_china}") %>% 
-                                      pivot_longer(cols = starts_with(c("container_", "share_", "quay_length_", "cargo_depth_", "foreign_markets_", "local_markets_")), 
+                                      pivot_longer(cols = starts_with(c("container_", "share_", "quay_length_", "cargo_depth_", "foreign_markets_", "local_markets_", "node.score_")), 
                                                    names_to = c("vars", ".value"),
                                                    names_pattern = "(.*)_(.*)")
 
@@ -525,7 +525,7 @@ latex_code <- print.xtable(xtable(sumstats, caption = "Summary statistics"),
                            size = "\\begin{adjustbox}{max width=\\textwidth}")
 
 latex_code <- gsub("\\\\end\\{tabular\\}", "\\\\end{tabular} \n \\\\end{adjustbox} \\\\label{tab_sumstats}", latex_code)
-latex_code <- gsub("vars & mean.x & agrate & mean.y & agrate0 & agrate1"," & \\\\multicolumn{2}{c}{Control group [N=108]} & \\\\multicolumn{3}{c}{Treatment group [N=18]} \\\\\\\\\n \\\\cmidrule(lr){2-3} \\\\cmidrule(lr){4-6}  Var. & mean & $\\\\Delta$ & mean & $\\\\Delta$ [$t \\\\leq t^*$] & $\\\\Delta$ [$t>t^*$]", latex_code)
+latex_code <- gsub("vars & mean.x & agrate & mean.y & agrate0 & agrate1"," & \\\\multicolumn{2}{c}{Control group [N=105]} & \\\\multicolumn{3}{c}{Treatment group [N=18]} \\\\\\\\\n \\\\cmidrule(lr){2-3} \\\\cmidrule(lr){4-6}  Var. & mean & $\\\\Delta$ & mean & $\\\\Delta$ [$t \\\\leq t^*$] & $\\\\Delta$ [$t>t^*$]", latex_code)
 
 # Save modified LaTeX code to a .tex file
 cat(latex_code, file = file.path(getwd(), "results_tables", "sumstats.tex"))
