@@ -1,0 +1,76 @@
+Control variables:
+
+(1) markets.csv
+
+Measures the proximity of ports to markets. We proxy markets with demand that we measure with population in the NUTS2 regions. We take data from Eurostat's "DEMO_R_D2JAN(1.0)" variable which measures the population on 1 January by age, sex and NUTS 2 region in the treatment years of our ports (2002, 2004, 2006, 2009, 2012, 2013, 2015, 2017, 2018). Eurostat's data on GDP per NUTS 2 region unfortunately misses data from UK and Norway.  
+
+local_markets: Population in thousands in the NUTS2 region in which the port is located
+
+foreign_markets: Population in the all other NUTS2 regions of Europe weighted by distance to the region in which the port is.
+
+all_markets: Population in all NUTS2 regions of Europe weighted by distance to the region in which te port is and including population in the port's region.
+
+(2) investors.csv
+
+Counts the number of investors in the 189 European ports at present time.
+
+big_investors: Presence of one or more of the following 9 big Players in the European port Operation Industry: Mediterranean Shipping Company (MSC), Hamburger Hafen Logistik AG (HHLA), Maersk (APM aka A.P. Moller-Maersk), CMA CGM, Hapag-Lloyd, COSCO Shipping, DP World, PSA International, Eurogate.
+
+other_investors: Any other investing parties in the ports including national investors and public authorities (port authorities)
+
+all_investors: The total number of investors in the port
+
+(3) PLSCI.csv
+
+Gives the port lines shipping connevtivity index scores for our sample ports at the quaterly interval starting from Q1 of 2006 that is period 37. The index construced by UNCTAD measures how connected ports are in the international port system and it is composed by information on: (1) number of shipping Services in a port, (2) number of shipping companies in a port, (3) number of Weekly ship calls, (4) total container carrying capacity of ships calling at the port, (5) number of direct Connections to other ports, (6) maximum vessel size that calls at the port.
+
+big_investors: Presence of one or more of the following 9 big Players in the European port Operation Industry: Mediterranean Shipping Company (MSC), Hamburger Hafen Logistik AG (HHLA), Maersk (APM aka A.P. Moller-Maersk), CMA CGM, Hapag-Lloyd, COSCO Shipping, DP World, PSA International, Eurogate.
+
+other_investors: Any other investing parties in the ports including national investors and public authorities (port authorities)
+
+all_investors: The total number of investors in the port
+
+(4) Partner.csv
+
+Is a measure of connectivity that gives the number of countries from which ships have previously onloaded the containers shipped to the port or to which ships have sailed to unload the containers shipped from the port on a quaterly basis. A higher number of partner countries indicates a higher connectivity of the port, i.e. a more central role in the port system.
+
+(5) Vessels.csv
+
+Provides information on the number of port calls of vessels in European ports per quater. It corresponds to the EUROSTAT variable "mar_tf_qm" that records vessels arriving in the main ports by type and size of vessels. 
+
+total_number vessels: Gives the total number of vessels calling the port in the respective quarter
+
+total_tonnage_vessels: Gives the total gross tonnage (GT) in thousand of the vessels calling the port in the respective quarter
+
+num_small_vessels: Gives the number of vessels up to 10.000 Tonnage weight calling the port in the respective quarter 
+
+num_medium_vessels: Gives the number of vessels between 10.000-40.000 Tonnage weight calling the port in the respective quarter
+
+num_large_vessels: Gives the number of vessels between 40.000-100.000 Tonnage weight calling the port in the respective quarter 
+
+num_verylarge_vessels: Gives the number of vessels above 100.000 Tonnage weight calling the port in the respective quarter 
+
+ton_small_vessels: Gives the total weight of vessels below 10.000 Tonnage calling the port in the respective quarter 
+
+ton_medium_vessels: Gives the total weight of vessels between 10.000-40.000 Tonnage calling the port in the respective quarter 
+
+ton_large_vessels: Gives the total weight of vessels between 40.000-100.000 Tonnage calling the port in the respective quarter 
+
+ton_verylarge_vessels: Gives the total weight of vesselsabove 100.000 Tonnage calling the port in the respective quarter 
+
+(6) TENtec_corridors.csv
+
+provides information of the ports on their position in the European TENtec transport corrior system. Note: All ports in Norway except for Oslo, and all ports in the UK and Turkey are not part of the  TENtec transport corridor system.
+
+Urban node dummy: identifies whether the port is at an urban node. Information is of limited help since no entry not only corresponds o no urban node but also missing Information on ports in Norway, Turkey, UK
+
+TENtec core port dummy: identifies the core ports in the TENtec Transport corridor sysem, that is the most important ports.
+
+TENtec comprehensive port dummy: identifies other mportant ports in the TENtec Transport corridor System.
+
+node score: gives an Overall score on the importance of the port in the System using all Information on 1) urban node, 2) airport, 3) maritime port, 4) inland port, 5) rail-road terminal. The scale goes from 0 to 5 with 5 for ports that tick all the boxes
+
+Number of corridors:Tells on how many corridors the respective port lies.
+
+
+ 
