@@ -29,7 +29,9 @@ library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
 
+#font_import(pattern="LM Roman 10")
 loadfonts(device = "win")
+loadfonts(device="postscript")
 
 load("port_data_TEU_110.RData")
 
@@ -647,7 +649,7 @@ change_graph <- port_data_TEU_in %>% mutate(partner_region= ifelse(partner_regio
                                         sec.axis = sec_axis( trans=~./1000*700, name="Investment stock (billion Euro)")) + 
                      scale_linetype_manual(name = "Legend",
                                           values = c("solid","dashed" , "dotted"),
-                                          labels = c("North European Ports", "South Europen Ports", "Investment stock")) +
+                                          labels = c("North European Ports", "South European Ports", "Investment stock")) +
                      theme_minimal() +
                      theme(legend.position = "bottom",
                            legend.title = element_blank(),
@@ -677,7 +679,7 @@ contribution_graph <- world %>% merge(catch_up, by.x="iso_a2", by.y="sender_code
           ggplot() + geom_sf(aes(fill=change_SE))  +
            scale_fill_continuous(low="grey90", high="grey60", 
                        guide="colorbar",na.value="white") + 
-            labs(title="c) Throughput growth of Southern European Ports with external partner countries") +
+            labs(title="c) Throughput growth of South European Ports with external partner countries") +
            theme(legend.position = "none",
                   text = element_text(size=14, family="LM Roman 10"),
                   plot.title = element_text(face = "bold", hjust=0.1),
@@ -695,7 +697,7 @@ contribution_graph <- world %>% merge(catch_up, by.x="iso_a2", by.y="sender_code
                   plot.margin = margin(0, 0, 0, 0))
 
 # notes
-change_note <- ggdraw() + geom_text(aes(label="Note: Data includes inward container shipments only. \nNote to a): Lines represent total container throughput. Bars represent the gap between Southern European ports and Northern European \nports. Internal refers to container origins within the EU. External refers to container origins outside of the EU. Data on Chinese \ninvestments into European maritime infrastructure is taken from Ghiretti et al (2023). \nNote to c): Shading represents the absolute increase in container throughput in Southern European ports to and from the partner countries \nbetween 2009 and 2019. Darker shades represent higher values. \nData source: Eurostat, Ghiretti et al (2023)."), x = 0, y = 0, hjust = 0, vjust=0, size = 5, family="LM Roman 10")
+change_note <- ggdraw() + geom_text(aes(label="Note: Data includes inward container shipments only. \nNote to a): Lines represent total container throughput. Bars represent the gap between South European ports and North European \nports. Internal refers to container origins within the EU. External refers to container origins outside of the EU. Data on Chinese \ninvestments into European maritime infrastructure is taken from Ghiretti et al (2023). \nNote to c): Shading represents the absolute increase in container throughput in South European ports to and from the partner countries \nbetween 2009 and 2019. Darker shades represent higher values. \nData source: Eurostat, Ghiretti et al (2023)."), x = 0, y = 0, hjust = 0, vjust=0, size = 5, family="LM Roman 10")
 
 
 # putting it all together
@@ -708,6 +710,10 @@ ggsave(width=12, height=7, filename = "map_presentation.pdf", path = file.path(g
 plot_grid(upper_graph,contribution_graph,change_note, ncol = 1, rel_heights = c(0.46,0.46,0.08))
 
 ggsave(width=12, height=15, filename = "map2.pdf", path = file.path(getwd(), "figures"))
+
+plot_grid(upper_graph,contribution_graph, ncol = 1, rel_heights = c(0.5,0.5))
+
+ggsave(width=12, height=15, filename = "map3.pdf", path = file.path(getwd(), "figures"))
 
 ```
 
